@@ -5,6 +5,19 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<LangVersiobn>14.0</LangVersiobn>
+		<SignAssembly>True</SignAssembly>
+		<AssemblyOriginatorKeyFile>C:\temp\Esox.SharpAndRusty.snk</AssemblyOriginatorKeyFile>
+		<RepositoryUrl>https://github.com/snoekiede/Esox.SharpAndRusty</RepositoryUrl>
+		<Company>Esox Solutions</Company>
+		<Authors>Iede Snoek</Authors>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
+
+	<ItemGroup>
+	  <None Update="README.md">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
+	</ItemGroup>
 
 </Project>
