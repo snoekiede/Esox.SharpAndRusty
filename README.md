@@ -16,7 +16,7 @@ A C# library that brings Rust-inspired `Result<T, E>` type to .NET, providing a 
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/Esox.SharpAndRusty.git
+git clone https://github.com/snoekiede/Esox.SharpAndRusty.git
 
 # Build the project
 dotnet build

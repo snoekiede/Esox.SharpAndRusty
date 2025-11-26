@@ -24,6 +24,7 @@ namespace Esox.SharpAndRusty.Extensions
                 failure: error => Result<U, E>.Err(error)
             );
         }
+        
 
         /// <summary>
         /// Chains together two operations that return results, allowing the second operation to depend on the success value of the first.
