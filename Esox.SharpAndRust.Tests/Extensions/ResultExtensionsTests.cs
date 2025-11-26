@@ -48,7 +48,7 @@ public class ResultExtensionsTests
         var result = Result<string, int>.Ok("42");
 
         // Act
-        var mapped = result.Map<string, int, int>(x => int.Parse(x));
+        var mapped = result.Map(int.Parse);
 
         // Assert
         var value = mapped.Match(
@@ -67,7 +67,7 @@ public class ResultExtensionsTests
         var mapperInvoked = false;
 
         // Act
-        var mapped = result.Map<int, string, int>(x =>
+        var mapped = result.Map(x =>
         {
             mapperInvoked = true;
             return x * 2;
@@ -240,7 +240,7 @@ public class ResultExtensionsTests
 
         // Act
         var final = result
-            .Map<int, string, int>(x => x * 2)
+            .Map(x => x * 2)
             .Bind(x => Result<string, string>.Ok($"Value: {x}"));
 
         // Assert
@@ -260,7 +260,7 @@ public class ResultExtensionsTests
 
         // Act
         var final = result
-            .Map<string, string, int>(x => int.Parse(x))
+            .Map(int.Parse)
             .Bind(x => x > 5 ? Result<int, string>.Ok(x) : Result<int, string>.Err("Too small"))
             .Map<int, string, string>(x => $"Valid number: {x}")
             .Bind(x => Result<string, string>.Ok(x.ToUpper()));

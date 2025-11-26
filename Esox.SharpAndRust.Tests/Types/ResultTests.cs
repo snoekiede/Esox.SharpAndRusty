@@ -203,7 +203,7 @@ public class ResultTests
 
         // Assert
         Assert.False(success);
-        Assert.Equal(default(int), value);
+        Assert.Equal(0, value);
     }
 
     [Fact]
@@ -467,10 +467,14 @@ public class ResultTests
     public async Task TryAsync_ReturnsSuccessForSuccessfulOperation()
     {
         // Arrange
-        var operation = async () => { await Task.Delay(1); return 42; };
+        async Task<int> Operation()
+        {
+            await Task.Delay(1);
+            return 42;
+        }
 
         // Act
-        var result = await Result<int, string>.TryAsync(operation, ex => ex.Message);
+        var result = await Result<int, string>.TryAsync(Operation, ex => ex.Message);
 
         // Assert
         Assert.True(result.IsSuccess);
@@ -523,7 +527,7 @@ public class ResultTests
 
     private class Person
     {
-        public string Name { get; set; } = string.Empty;
+        public string Name { get; init; } = string.Empty;
         public int Age { get; set; }
     }
 }

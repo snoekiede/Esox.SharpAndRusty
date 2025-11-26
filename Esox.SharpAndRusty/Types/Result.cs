@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Esox.SharpAndRusty.Types
+﻿namespace Esox.SharpAndRusty.Types
 {
     /// <summary>
     /// Represents the result of an operation that can either succeed with a value of type <typeparamref name="T"/>

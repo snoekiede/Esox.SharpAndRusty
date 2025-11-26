@@ -2,18 +2,24 @@
 
 A production-ready C# library that brings Rust-inspired `Result<T, E>` type to .NET, providing a type-safe way to handle operations that can succeed or fail without relying on exceptions for control flow.
 
+## Disclaimer
+
+This library is provided "as is" without warranty of any kind, either express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose, and non-infringement. In no event shall the authors or copyright holders be liable for any claim, damages, or other liability, whether in an action of contract, tort, or otherwise, arising from, out of, or in connection with the software or the use or other dealings in the software.
+
+**Use at your own risk.** While this library has been designed to be production-ready with comprehensive test coverage, it is your responsibility to evaluate its suitability for your specific use case and to test it thoroughly in your environment before deploying to production.
+
 ## Features
 
-- **Type-Safe Error Handling**: Explicitly represent success and failure states in your type signatures
-- **Rust-Inspired API**: Familiar patterns for developers coming from Rust or functional programming
-- **Zero Overhead**: Implemented as a `readonly struct` for optimal performance
-- **Functional Composition**: Chain operations with `Map`, `Bind`, and `OrElse`
-- **Pattern Matching**: Use the `Match` method for elegant success/failure handling
-- **Full Equality Support**: Implements `IEquatable<T>` with proper `==`, `!=`, and `GetHashCode()`
-- **Safe Value Extraction**: `TryGetValue`, `UnwrapOr`, and `UnwrapOrElse` methods
-- **Exception Handling Helpers**: Built-in `Try` and `TryAsync` for wrapping operations
-- **Inspection Methods**: Execute side effects with `Inspect` and `InspectErr`
-- **.NET 10 Compatible**: Built for the latest .NET platform with C# 14
+- ? **Type-Safe Error Handling**: Explicitly represent success and failure states in your type signatures
+- ? **Rust-Inspired API**: Familiar patterns for developers coming from Rust or functional programming
+- ? **Zero Overhead**: Implemented as a `readonly struct` for optimal performance
+- ? **Functional Composition**: Chain operations with `Map`, `Bind`, and `OrElse`
+- ? **Pattern Matching**: Use the `Match` method for elegant success/failure handling
+- ? **Full Equality Support**: Implements `IEquatable<T>` with proper `==`, `!=`, and `GetHashCode()`
+- ? **Safe Value Extraction**: `TryGetValue`, `UnwrapOr`, and `UnwrapOrElse` methods
+- ? **Exception Handling Helpers**: Built-in `Try` and `TryAsync` for wrapping operations
+- ? **Inspection Methods**: Execute side effects with `Inspect` and `InspectErr`
+- ? **.NET 10 Compatible**: Built for the latest .NET platform with C# 14
 
 ## Installation
 
