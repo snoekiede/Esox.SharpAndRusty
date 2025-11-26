@@ -4,16 +4,16 @@ A production-ready C# library that brings Rust-inspired `Result<T, E>` type to .
 
 ## Features
 
-- ? **Type-Safe Error Handling**: Explicitly represent success and failure states in your type signatures
-- ? **Rust-Inspired API**: Familiar patterns for developers coming from Rust or functional programming
-- ? **Zero Overhead**: Implemented as a `readonly struct` for optimal performance
-- ? **Functional Composition**: Chain operations with `Map`, `Bind`, and `OrElse`
-- ? **Pattern Matching**: Use the `Match` method for elegant success/failure handling
-- ? **Full Equality Support**: Implements `IEquatable<T>` with proper `==`, `!=`, and `GetHashCode()`
-- ? **Safe Value Extraction**: `TryGetValue`, `UnwrapOr`, and `UnwrapOrElse` methods
-- ? **Exception Handling Helpers**: Built-in `Try` and `TryAsync` for wrapping operations
-- ? **Inspection Methods**: Execute side effects with `Inspect` and `InspectErr`
-- ? **.NET 10 Compatible**: Built for the latest .NET platform with C# 14
+- **Type-Safe Error Handling**: Explicitly represent success and failure states in your type signatures
+- **Rust-Inspired API**: Familiar patterns for developers coming from Rust or functional programming
+- **Zero Overhead**: Implemented as a `readonly struct` for optimal performance
+- **Functional Composition**: Chain operations with `Map`, `Bind`, and `OrElse`
+- **Pattern Matching**: Use the `Match` method for elegant success/failure handling
+- **Full Equality Support**: Implements `IEquatable<T>` with proper `==`, `!=`, and `GetHashCode()`
+- **Safe Value Extraction**: `TryGetValue`, `UnwrapOr`, and `UnwrapOrElse` methods
+- **Exception Handling Helpers**: Built-in `Try` and `TryAsync` for wrapping operations
+- **Inspection Methods**: Execute side effects with `Inspect` and `InspectErr`
+- **.NET 10 Compatible**: Built for the latest .NET platform with C# 14
 
 ## Installation
 
@@ -401,13 +401,13 @@ var message = result.Match(
 
 ## Benefits
 
-- ? **Explicit Error Handling**: Method signatures clearly communicate potential failures
-- ? **Type Safety**: Compile-time guarantees about error handling
-- ? **Performance**: Avoid exception overhead for expected failure cases
-- ? **Composability**: Easily chain operations with functional combinators
-- ? **Testability**: Easier to test both success and failure paths
-- ? **No Null References**: Avoid `NullReferenceException` by making errors explicit
-- ? **Better Code Flow**: Failures don't break the natural flow of your code
+- **Explicit Error Handling**: Method signatures clearly communicate potential failures
+- **Type Safety**: Compile-time guarantees about error handling
+- **Performance**: Avoid exception overhead for expected failure cases
+- **Composability**: Easily chain operations with functional combinators
+- **Testability**: Easier to test both success and failure paths
+- **No Null References**: Avoid `NullReferenceException` by making errors explicit
+- **Better Code Flow**: Failures don't break the natural flow of your code
 
 ## Testing
 
