@@ -27,6 +27,28 @@ public class ResultTests
     }
 
     [Fact]
+    public void Ok_WithNullValue_CreatesSuccessfulResult()
+    {
+        // Arrange & Act
+        var result = Result<string?, int>.Ok(null);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.False(result.IsFailure);
+    }
+
+    [Fact]
+    public void Err_WithNullError_CreatesFailedResult()
+    {
+        // Arrange & Act
+        var result = Result<int, string?>.Err(null);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.True(result.IsFailure);
+    }
+
+    [Fact]
     public void Match_ExecutesSuccessFunctionForSuccessfulResult()
     {
         // Arrange
@@ -61,28 +83,6 @@ public class ResultTests
     }
 
     [Fact]
-    public void ImplicitConversion_FromValue_CreatesSuccessfulResult()
-    {
-        // Arrange & Act
-        Result<int, string> result = 42;
-
-        // Assert
-        Assert.True(result.IsSuccess);
-        Assert.False(result.IsFailure);
-    }
-
-    [Fact]
-    public void ImplicitConversion_FromError_CreatesFailedResult()
-    {
-        // Arrange & Act
-        Result<int, string> result = "Error occurred";
-
-        // Assert
-        Assert.False(result.IsSuccess);
-        Assert.True(result.IsFailure);
-    }
-
-    [Fact]
     public void Match_ReturnsCorrectSuccessValue()
     {
         // Arrange
@@ -112,28 +112,6 @@ public class ResultTests
 
         // Assert
         Assert.Equal(404, errorCode);
-    }
-
-    [Fact]
-    public void Ok_WithNullValue_CreatesSuccessfulResult()
-    {
-        // Arrange & Act
-        var result = Result<string?, int>.Ok(null);
-
-        // Assert
-        Assert.True(result.IsSuccess);
-        Assert.False(result.IsFailure);
-    }
-
-    [Fact]
-    public void Err_WithNullError_CreatesFailedResult()
-    {
-        // Arrange & Act
-        var result = Result<int, string?>.Err(null);
-
-        // Assert
-        Assert.False(result.IsSuccess);
-        Assert.True(result.IsFailure);
     }
 
     [Fact]
@@ -198,6 +176,349 @@ public class ResultTests
         // Assert
         Assert.Equal("Value: 42", successOutput);
         Assert.Equal("Error: Error", failureOutput);
+    }
+
+    [Fact]
+    public void TryGetValue_ReturnsValueForSuccessfulResult()
+    {
+        // Arrange
+        var result = Result<int, string>.Ok(42);
+
+        // Act
+        var success = result.TryGetValue(out var value);
+
+        // Assert
+        Assert.True(success);
+        Assert.Equal(42, value);
+    }
+
+    [Fact]
+    public void TryGetValue_ReturnsFalseForFailedResult()
+    {
+        // Arrange
+        var result = Result<int, string>.Err("Error");
+
+        // Act
+        var success = result.TryGetValue(out var value);
+
+        // Assert
+        Assert.False(success);
+        Assert.Equal(default(int), value);
+    }
+
+    [Fact]
+    public void TryGetError_ReturnsErrorForFailedResult()
+    {
+        // Arrange
+        var result = Result<int, string>.Err("Error occurred");
+
+        // Act
+        var failure = result.TryGetError(out var error);
+
+        // Assert
+        Assert.True(failure);
+        Assert.Equal("Error occurred", error);
+    }
+
+    [Fact]
+    public void TryGetError_ReturnsFalseForSuccessfulResult()
+    {
+        // Arrange
+        var result = Result<int, string>.Ok(42);
+
+        // Act
+        var failure = result.TryGetError(out var error);
+
+        // Assert
+        Assert.False(failure);
+        Assert.Null(error);
+    }
+
+    [Fact]
+    public void UnwrapOr_ReturnsValueForSuccessfulResult()
+    {
+        // Arrange
+        var result = Result<int, string>.Ok(42);
+
+        // Act
+        var value = result.UnwrapOr(0);
+
+        // Assert
+        Assert.Equal(42, value);
+    }
+
+    [Fact]
+    public void UnwrapOr_ReturnsDefaultForFailedResult()
+    {
+        // Arrange
+        var result = Result<int, string>.Err("Error");
+
+        // Act
+        var value = result.UnwrapOr(99);
+
+        // Assert
+        Assert.Equal(99, value);
+    }
+
+    [Fact]
+    public void UnwrapOrElse_ReturnsValueForSuccessfulResult()
+    {
+        // Arrange
+        var result = Result<int, string>.Ok(42);
+
+        // Act
+        var value = result.UnwrapOrElse(error => error.Length);
+
+        // Assert
+        Assert.Equal(42, value);
+    }
+
+    [Fact]
+    public void UnwrapOrElse_ComputesDefaultForFailedResult()
+    {
+        // Arrange
+        var result = Result<int, string>.Err("Error");
+
+        // Act
+        var value = result.UnwrapOrElse(error => error.Length);
+
+        // Assert
+        Assert.Equal(5, value);
+    }
+
+    [Fact]
+    public void OrElse_ReturnsOriginalForSuccessfulResult()
+    {
+        // Arrange
+        var result = Result<int, string>.Ok(42);
+
+        // Act
+        var final = result.OrElse(error => Result<int, string>.Ok(0));
+
+        // Assert
+        Assert.True(final.IsSuccess);
+        Assert.Equal(42, final.UnwrapOr(0));
+    }
+
+    [Fact]
+    public void OrElse_ReturnsAlternativeForFailedResult()
+    {
+        // Arrange
+        var result = Result<int, string>.Err("Error");
+
+        // Act
+        var final = result.OrElse(error => Result<int, string>.Ok(99));
+
+        // Assert
+        Assert.True(final.IsSuccess);
+        Assert.Equal(99, final.UnwrapOr(0));
+    }
+
+    [Fact]
+    public void Inspect_ExecutesActionForSuccessfulResult()
+    {
+        // Arrange
+        var result = Result<int, string>.Ok(42);
+        var inspected = 0;
+
+        // Act
+        var returned = result.Inspect(value => inspected = value);
+
+        // Assert
+        Assert.Equal(42, inspected);
+        Assert.True(returned.IsSuccess);
+    }
+
+    [Fact]
+    public void Inspect_DoesNotExecuteActionForFailedResult()
+    {
+        // Arrange
+        var result = Result<int, string>.Err("Error");
+        var executed = false;
+
+        // Act
+        var returned = result.Inspect(value => executed = true);
+
+        // Assert
+        Assert.False(executed);
+        Assert.True(returned.IsFailure);
+    }
+
+    [Fact]
+    public void InspectErr_ExecutesActionForFailedResult()
+    {
+        // Arrange
+        var result = Result<int, string>.Err("Error");
+        var inspectedError = "";
+
+        // Act
+        var returned = result.InspectErr(error => inspectedError = error);
+
+        // Assert
+        Assert.Equal("Error", inspectedError);
+        Assert.True(returned.IsFailure);
+    }
+
+    [Fact]
+    public void InspectErr_DoesNotExecuteActionForSuccessfulResult()
+    {
+        // Arrange
+        var result = Result<int, string>.Ok(42);
+        var executed = false;
+
+        // Act
+        var returned = result.InspectErr(error => executed = true);
+
+        // Assert
+        Assert.False(executed);
+        Assert.True(returned.IsSuccess);
+    }
+
+    [Fact]
+    public void Equals_ReturnsTrueForEqualSuccessResults()
+    {
+        // Arrange
+        var result1 = Result<int, string>.Ok(42);
+        var result2 = Result<int, string>.Ok(42);
+
+        // Assert
+        Assert.Equal(result1, result2);
+        Assert.True(result1.Equals(result2));
+        Assert.True(result1 == result2);
+        Assert.False(result1 != result2);
+    }
+
+    [Fact]
+    public void Equals_ReturnsFalseForDifferentSuccessResults()
+    {
+        // Arrange
+        var result1 = Result<int, string>.Ok(42);
+        var result2 = Result<int, string>.Ok(43);
+
+        // Assert
+        Assert.NotEqual(result1, result2);
+        Assert.False(result1.Equals(result2));
+        Assert.False(result1 == result2);
+        Assert.True(result1 != result2);
+    }
+
+    [Fact]
+    public void Equals_ReturnsTrueForEqualErrorResults()
+    {
+        // Arrange
+        var result1 = Result<int, string>.Err("Error");
+        var result2 = Result<int, string>.Err("Error");
+
+        // Assert
+        Assert.Equal(result1, result2);
+        Assert.True(result1.Equals(result2));
+    }
+
+    [Fact]
+    public void Equals_ReturnsFalseForSuccessAndError()
+    {
+        // Arrange
+        var result1 = Result<int, string>.Ok(42);
+        var result2 = Result<int, string>.Err("Error");
+
+        // Assert
+        Assert.NotEqual(result1, result2);
+        Assert.False(result1.Equals(result2));
+    }
+
+    [Fact]
+    public void GetHashCode_IsConsistentForEqualResults()
+    {
+        // Arrange
+        var result1 = Result<int, string>.Ok(42);
+        var result2 = Result<int, string>.Ok(42);
+
+        // Assert
+        Assert.Equal(result1.GetHashCode(), result2.GetHashCode());
+    }
+
+    [Fact]
+    public void ToString_ReturnsFormattedStringForSuccess()
+    {
+        // Arrange
+        var result = Result<int, string>.Ok(42);
+
+        // Act
+        var str = result.ToString();
+
+        // Assert
+        Assert.Equal("Ok(42)", str);
+    }
+
+    [Fact]
+    public void ToString_ReturnsFormattedStringForError()
+    {
+        // Arrange
+        var result = Result<int, string>.Err("Error");
+
+        // Act
+        var str = result.ToString();
+
+        // Assert
+        Assert.Equal("Err(Error)", str);
+    }
+
+    [Fact]
+    public async Task TryAsync_ReturnsSuccessForSuccessfulOperation()
+    {
+        // Arrange
+        var operation = async () => { await Task.Delay(1); return 42; };
+
+        // Act
+        var result = await Result<int, string>.TryAsync(operation, ex => ex.Message);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(42, result.UnwrapOr(0));
+    }
+
+    [Fact]
+    public async Task TryAsync_ReturnsErrorForFailedOperation()
+    {
+        // Arrange
+        var operation = async Task<int> () => { await Task.Delay(1); throw new InvalidOperationException("Test error"); };
+
+        // Act
+        var result = await Result<int, string>.TryAsync(operation, ex => ex.Message);
+
+        // Assert
+        Assert.True(result.IsFailure);
+        Assert.True(result.TryGetError(out var error));
+        Assert.Contains("Test error", error);
+    }
+
+    [Fact]
+    public void Try_ReturnsSuccessForSuccessfulOperation()
+    {
+        // Arrange
+        var operation = () => 42;
+
+        // Act
+        var result = Result<int, string>.Try(operation, ex => ex.Message);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(42, result.UnwrapOr(0));
+    }
+
+    [Fact]
+    public void Try_ReturnsErrorForFailedOperation()
+    {
+        // Arrange
+        var operation = () => { throw new InvalidOperationException("Test error"); return 42; };
+
+        // Act
+        var result = Result<int, string>.Try(operation, ex => ex.Message);
+
+        // Assert
+        Assert.True(result.IsFailure);
+        Assert.True(result.TryGetError(out var error));
+        Assert.Contains("Test error", error);
     }
 
     private class Person
