@@ -19,6 +19,7 @@ This library is provided "as is" without warranty of any kind, either express or
 - ✅ **Safe Value Extraction**: `TryGetValue`, `UnwrapOr`, and `UnwrapOrElse` methods
 - ✅ **Exception Handling Helpers**: Built-in `Try` and `TryAsync` for wrapping operations
 - ✅ **Inspection Methods**: Execute side effects with `Inspect` and `InspectErr`
+- ✅ **LINQ Query Syntax**: Full support for C# LINQ query comprehension with `from`, `select`, and more
 - ✅ **.NET 10 Compatible**: Built for the latest .NET platform with C# 14
 
 ## Installation
@@ -51,6 +52,12 @@ var message = success.Match(
     success: value => $"Got value: {value}",
     failure: error => $"Got error: {error}"
 );
+
+// Or use LINQ query syntax!
+var result = from x in Result<int, string>.Ok(10)
+             from y in Result<int, string>.Ok(20)
+             select x + y;
+// Result: Ok(30)
 ```
 
 ## Usage Examples
@@ -141,12 +148,12 @@ Result<int, string> GetUserAge() => Result<int, string>.Ok(25);
 
 // Transform the success value
 var result = GetUserAge()
-    .Map<int, string, string>(age => $"User is {age} years old");
+    .Map(age => $"User is {age} years old");
 // Result: Ok("User is 25 years old")
 
 // Errors propagate automatically
 Result<int, string> failed = Result<int, string>.Err("User not found");
-var mappedFailed = failed.Map<int, string, string>(age => $"User is {age} years old");
+var mappedFailed = failed.Map(age => $"User is {age} years old");
 // Result: Err("User not found")
 ```
 
@@ -188,13 +195,45 @@ var failedResult = ParseInt("100")
 // Result: Err("Division by zero") - ValidatePositive never executes
 ```
 
+### LINQ Query Syntax (NEW!)
+
+Use familiar C# LINQ query syntax for elegant error handling:
+
+```csharp
+// Simple query
+var result = from x in ParseInt("10")
+             from y in ParseInt("20")
+             select x + y;
+// Result: Ok(30)
+
+// Complex query with validation
+var result = from input in ParseInt("100")
+             from divisor in ParseInt("5")
+             from quotient in Divide(input, divisor)
+             from validated in ValidatePositive(quotient)
+             select $"Result: {validated}";
+// Result: Ok("Result: 20")
+
+// Error propagation - stops at first error
+var result = from x in ParseInt("10")
+             from y in ParseInt("abc") // Parse fails here
+             from z in ParseInt("30")  // Never executes
+             select x + y + z;
+// Result: Err("Cannot parse 'abc' as integer")
+
+// Works with different types
+var result = from name in GetUserName(userId)
+             from age in GetUserAge(userId)
+             select $"{name} is {age} years old";
+```
+
 ### Combining Map and Bind
 
 ```csharp
 var result = ParseInt("42")
-    .Map<int, string, int>(x => x * 2)              // Transform value: 42 -> 84
-    .Bind(x => Divide(x, 2))                         // Chain operation: 84 / 2 = 42
-    .Map<int, string, string>(x => $"Result: {x}"); // Transform to string
+    .Map(x => x * 2)              // Transform value: 42 -> 84
+    .Bind(x => Divide(x, 2))      // Chain operation: 84 / 2 = 42
+    .Map(x => $"Result: {x}");    // Transform to string
 // Result: Ok("Result: 42")
 ```
 
@@ -227,7 +266,7 @@ Execute side effects without transforming the result:
 var result = GetUser(userId)
     .Inspect(user => Logger.Info($"Found user: {user.Name}"))
     .InspectErr(error => Logger.Error($"User lookup failed: {error}"))
-    .Map<User, string, string>(user => user.Email);
+    .Map(user => user.Email);
 
 // Logs are written, but result is transformed only on success
 ```
@@ -262,36 +301,27 @@ var fileContent = Result<string, string>.Try(
 ```csharp
 public async Task<Result<OrderConfirmation, string>> ProcessOrderAsync(OrderRequest request)
 {
-    // Validate, process payment, create order, send email - all in a chain
+    // Using LINQ query syntax for readable error handling
+    return await (from order in ValidateOrder(request)
+                  from payment in ProcessPayment(order)
+                  from _ in LogPayment(payment)
+                  from createdOrder in CreateOrder(payment)
+                  from confirmation in SendConfirmationEmail(createdOrder)
+                  select confirmation)
+        .InspectErr(error => Logger.Error($"Order processing failed: {error}"))
+        .OrElse(error => CreatePendingOrder(request, error));
+}
+
+// Or using method chaining
+public async Task<Result<OrderConfirmation, string>> ProcessOrderAsync(OrderRequest request)
+{
     return await ValidateOrder(request)
         .Bind(order => ProcessPayment(order))
         .Inspect(payment => Logger.Info($"Payment processed: {payment.TransactionId}"))
         .Bind(payment => CreateOrder(payment))
         .Bind(async order => await SendConfirmationEmail(order))
         .InspectErr(error => Logger.Error($"Order processing failed: {error}"))
-        .OrElse(error => 
-        {
-            // Fallback: create pending order for manual review
-            return CreatePendingOrder(request, error);
-        });
-}
-
-Result<Order, string> ValidateOrder(OrderRequest request)
-{
-    if (request.Items.Count == 0)
-        return Result<Order, string>.Err("Order must contain at least one item");
-    if (request.Total <= 0)
-        return Result<Order, string>.Err("Order total must be positive");
-    
-    return Result<Order, string>.Ok(new Order(request));
-}
-
-Result<Payment, string> ProcessPayment(Order order)
-{
-    // Payment processing logic
-    return paymentService.Charge(order.Total)
-        ? Result<Payment, string>.Ok(new Payment { Amount = order.Total })
-        : Result<Payment, string>.Err("Payment declined");
+        .OrElse(error => CreatePendingOrder(request, error));
 }
 ```
 
@@ -328,23 +358,23 @@ Result<Payment, string> ProcessPayment(Order order)
 
 ### Extension Methods (ResultExtensions)
 
-#### `Map<T, E, U>`
+#### `Map<U>`
 Transforms the success value while propagating errors:
 ```csharp
-Result<U, E> Map<T, E, U>(this Result<T, E> result, Func<T, U> mapper)
+Result<U, E> Map<U>(this Result<T, E> result, Func<T, U> mapper)
 ```
 
 **Example:**
 ```csharp
 var result = Result<int, string>.Ok(5);
-var mapped = result.Map<int, string, string>(x => $"Value: {x}");
+var mapped = result.Map(x => $"Value: {x}");
 // Result: Ok("Value: 5")
 ```
 
-#### `Bind<T, E, U>`
+#### `Bind<U>`
 Chains operations that return results (also known as `flatMap` or `andThen`):
 ```csharp
-Result<U, E> Bind<T, E, U>(this Result<T, E> result, Func<T, Result<U, E>> binder)
+Result<U, E> Bind<U>(this Result<T, E> result, Func<T, Result<U, E>> binder)
 ```
 
 **Example:**
@@ -354,6 +384,33 @@ var result = Result<int, string>.Ok(10)
         ? Result<int, string>.Ok(x * 2) 
         : Result<int, string>.Err("Must be positive"));
 // Result: Ok(20)
+```
+
+#### `Select<U>` (LINQ Support)
+Projects the success value (enables `select` in LINQ queries):
+```csharp
+Result<U, E> Select<U>(this Result<T, E> result, Func<T, U> selector)
+```
+
+**Example:**
+```csharp
+var result = from x in Result<int, string>.Ok(10)
+             select x * 2;
+// Result: Ok(20)
+```
+
+#### `SelectMany<U>` (LINQ Support)
+Chains results (enables `from` in LINQ queries):
+```csharp
+Result<U, E> SelectMany<U>(this Result<T, E> result, Func<T, Result<U, E>> selector)
+```
+
+**Example:**
+```csharp
+var result = from x in ParseInt("10")
+             from y in ParseInt("20")
+             select x + y;
+// Result: Ok(30)
 ```
 
 #### `Unwrap<T, E>`
@@ -414,14 +471,16 @@ var message = result.Match(
 - ✅ **Testability**: Easier to test both success and failure paths
 - ✅ **No Null References**: Avoid `NullReferenceException` by making errors explicit
 - ✅ **Better Code Flow**: Failures don't break the natural flow of your code
+- ✅ **LINQ Integration**: Use familiar C# query syntax for error handling workflows
 
 ## Testing
 
-The library includes comprehensive test coverage with 52+ unit tests covering:
+The library includes comprehensive test coverage with 69+ unit tests covering:
 - Basic creation and inspection
 - Pattern matching
 - Equality and hash code
 - Map and Bind operations
+- **LINQ query syntax integration** (SelectMany, Select, from/select)
 - Exception handling (Try/TryAsync)
 - Side effects (Inspect/InspectErr)
 - Value extraction methods
@@ -438,12 +497,13 @@ This library is production-ready with:
 - ✅ Full equality implementation
 - ✅ Comprehensive API surface
 - ✅ Exception handling helpers
-- ✅ Extensive test coverage
+- ✅ Extensive test coverage (69+ tests)
 - ✅ Proper null handling
 - ✅ Argument validation
 - ✅ Clear documentation
+- ✅ **Full LINQ query syntax support**
 
-See [RESULT_TYPE_IMPROVEMENTS.md](RESULT_TYPE_IMPROVEMENTS.md) for detailed information about production-ready features.
+See [RESULT_TYPE_IMPROVEMENTS.md](Esox.SharpAndRusty/RESULT_TYPE_IMPROVEMENTS.md) for detailed information about production-ready features.
 
 ## Contributing
 

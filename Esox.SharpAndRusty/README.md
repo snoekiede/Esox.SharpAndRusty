@@ -20,6 +20,7 @@ This library is provided "as is" without warranty of any kind, either express or
 - ✅ **Exception Handling Helpers**: Built-in `Try` and `TryAsync` for wrapping operations
 - ✅ **Inspection Methods**: Execute side effects with `Inspect` and `InspectErr`
 - ✅ **.NET 10 Compatible**: Built for the latest .NET platform with C# 14
+- ✅ **LINQ Query Syntax**: Full support for C# LINQ query comprehension with `from`, `select`, and more
 
 ## Installation
 
@@ -51,6 +52,12 @@ var message = success.Match(
     success: value => $"Got value: {value}",
     failure: error => $"Got error: {error}"
 );
+
+// Or use LINQ query syntax!
+var result = from x in Result<int, string>.Ok(10)
+             from y in Result<int, string>.Ok(20)
+             select x + y;
+// Result: Ok(30)
 ```
 
 ## Usage Examples
@@ -186,6 +193,38 @@ var failedResult = ParseInt("100")
     .Bind(value => Divide(value, 0))
     .Bind(value => ValidatePositive(value));
 // Result: Err("Division by zero") - ValidatePositive never executes
+```
+
+### LINQ Query Syntax
+
+Use familiar C# LINQ query syntax for elegant error handling:
+
+```csharp
+// Simple query
+var result = from x in ParseInt("10")
+             from y in ParseInt("20")
+             select x + y;
+// Result: Ok(30)
+
+// Complex query with validation
+var result = from input in ParseInt("100")
+             from divisor in ParseInt("5")
+             from quotient in Divide(input, divisor)
+             from validated in ValidatePositive(quotient)
+             select $"Result: {validated}";
+// Result: Ok("Result: 20")
+
+// Error propagation - stops at first error
+var result = from x in ParseInt("10")
+             from y in ParseInt("abc") // Parse fails here
+             from z in ParseInt("30")  // Never executes
+             select x + y + z;
+// Result: Err("Cannot parse 'abc' as integer")
+
+// Works with different types
+var result = from name in GetUserName(userId)
+             from age in GetUserAge(userId)
+             select $"{name} is {age} years old";
 ```
 
 ### Combining Map and Bind
@@ -356,6 +395,33 @@ var result = Result<int, string>.Ok(10)
 // Result: Ok(20)
 ```
 
+#### `Select<U>` (LINQ Support)
+Projects the success value (enables `select` in LINQ queries):
+```csharp
+Result<U, E> Select<U>(this Result<T, E> result, Func<T, U> selector)
+```
+
+**Example:**
+```csharp
+var result = from x in Result<int, string>.Ok(10)
+             select x * 2;
+// Result: Ok(20)
+```
+
+#### `SelectMany<U>` (LINQ Support)
+Chains results (enables `from` in LINQ queries):
+```csharp
+Result<U, E> SelectMany<U>(this Result<T, E> result, Func<T, Result<U, E>> selector)
+```
+
+**Example:**
+```csharp
+var result = from x in ParseInt("10")
+             from y in ParseInt("20")
+             select x + y;
+// Result: Ok(30)
+```
+
 #### `Unwrap<T, E>`
 Extracts the success value or throws an exception (use with caution):
 ```csharp
@@ -414,14 +480,16 @@ var message = result.Match(
 - ✅ **Testability**: Easier to test both success and failure paths
 - ✅ **No Null References**: Avoid `NullReferenceException` by making errors explicit
 - ✅ **Better Code Flow**: Failures don't break the natural flow of your code
+- ✅ **LINQ Integration**: Use familiar C# query syntax for error handling workflows
 
 ## Testing
 
-The library includes comprehensive test coverage with 52+ unit tests covering:
+The library includes comprehensive test coverage with 69+ unit tests covering:
 - Basic creation and inspection
 - Pattern matching
 - Equality and hash code
 - Map and Bind operations
+- **LINQ query syntax integration** (SelectMany, Select, from/select)
 - Exception handling (Try/TryAsync)
 - Side effects (Inspect/InspectErr)
 - Value extraction methods
@@ -438,27 +506,8 @@ This library is production-ready with:
 - ✅ Full equality implementation
 - ✅ Comprehensive API surface
 - ✅ Exception handling helpers
-- ✅ Extensive test coverage
+- ✅ Extensive test coverage (69+ tests)
 - ✅ Proper null handling
 - ✅ Argument validation
 - ✅ Clear documentation
-
-See [RESULT_TYPE_IMPROVEMENTS.md](RESULT_TYPE_IMPROVEMENTS.md) for detailed information about production-ready features.
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## License
-
-MIT License - see LICENSE file for details
-
-## Acknowledgments
-
-Inspired by Rust's `Result<T, E>` type and functional programming principles. This library brings idiomatic Rust error handling patterns to the C# ecosystem while respecting .NET conventions and best practices.
+- ✅ **Full LINQ query syntax support**
