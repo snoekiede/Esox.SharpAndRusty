@@ -273,4 +273,298 @@ public class ResultExtensionsTests
         Assert.Equal("VALID NUMBER: 10", output);
         Assert.True(final.IsSuccess);
     }
+
+    #region SelectMany Tests (LINQ Integration)
+
+    [Fact]
+    public void SelectMany_SingleParameter_ChainsSuccessfulOperations()
+    {
+        // Arrange
+        var result = Result<int, string>.Ok(10);
+
+        // Act
+        var final = result.SelectMany(x => Result<int, string>.Ok(x * 2));
+
+        // Assert
+        Assert.True(final.IsSuccess);
+        Assert.Equal(20, final.UnwrapOr(0));
+    }
+
+    [Fact]
+    public void SelectMany_SingleParameter_PropagatesOriginalError()
+    {
+        // Arrange
+        var result = Result<int, string>.Err("Original error");
+
+        // Act
+        var final = result.SelectMany(x => Result<int, string>.Ok(x * 2));
+
+        // Assert
+        Assert.True(final.IsFailure);
+        Assert.True(final.TryGetError(out var error));
+        Assert.Equal("Original error", error);
+    }
+
+    [Fact]
+    public void SelectMany_SingleParameter_PropagatesSelectorError()
+    {
+        // Arrange
+        var result = Result<int, string>.Ok(10);
+
+        // Act
+        var final = result.SelectMany(_ => Result<int, string>.Err("Selector error"));
+
+        // Assert
+        Assert.True(final.IsFailure);
+        Assert.True(final.TryGetError(out var error));
+        Assert.Equal("Selector error", error);
+    }
+
+    [Fact]
+    public void SelectMany_SingleParameter_DoesNotInvokeSelectorOnError()
+    {
+        // Arrange
+        var result = Result<int, string>.Err("Error");
+        var selectorInvoked = false;
+
+        // Act
+        var final = result.SelectMany(x =>
+        {
+            selectorInvoked = true;
+            return Result<int, string>.Ok(x * 2);
+        });
+
+        // Assert
+        Assert.False(selectorInvoked);
+        Assert.True(final.IsFailure);
+    }
+
+    [Fact]
+    public void SelectMany_TwoParameters_ProjectsBothValuesOnSuccess()
+    {
+        // Arrange
+        var result = Result<int, string>.Ok(10);
+
+        // Act
+        var final = result.SelectMany(
+            x => Result<int, string>.Ok(x + 5),
+            (x, y) => x + y
+        );
+
+        // Assert
+        Assert.True(final.IsSuccess);
+        Assert.Equal(25, final.UnwrapOr(0)); // 10 + 15
+    }
+
+    [Fact]
+    public void SelectMany_TwoParameters_PropagatesOriginalError()
+    {
+        // Arrange
+        var result = Result<int, string>.Err("Original error");
+
+        // Act
+        var final = result.SelectMany(
+            x => Result<int, string>.Ok(x + 5),
+            (x, y) => x + y
+        );
+
+        // Assert
+        Assert.True(final.IsFailure);
+        Assert.True(final.TryGetError(out var error));
+        Assert.Equal("Original error", error);
+    }
+
+    [Fact]
+    public void SelectMany_TwoParameters_PropagatesSelectorError()
+    {
+        // Arrange
+        var result = Result<int, string>.Ok(10);
+
+        // Act
+        var final = result.SelectMany(
+            _ => Result<int, string>.Err("Selector error"),
+            (x, y) => x + y
+        );
+
+        // Assert
+        Assert.True(final.IsFailure);
+        Assert.True(final.TryGetError(out var error));
+        Assert.Equal("Selector error", error);
+    }
+
+    [Fact]
+    public void SelectMany_TwoParameters_DoesNotInvokeProjectorOnError()
+    {
+        // Arrange
+        var result = Result<int, string>.Ok(10);
+        var projectorInvoked = false;
+
+        // Act
+        var final = result.SelectMany(
+            _ => Result<int, string>.Err("Selector error"),
+            (x, y) =>
+            {
+                projectorInvoked = true;
+                return x + y;
+            }
+        );
+
+        // Assert
+        Assert.False(projectorInvoked);
+        Assert.True(final.IsFailure);
+    }
+
+    [Fact]
+    public void LinqQuerySyntax_SimpleQuery_WorksCorrectly()
+    {
+        // Arrange & Act
+        var result = from x in Result<int, string>.Ok(10)
+                     from y in Result<int, string>.Ok(20)
+                     select x + y;
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(30, result.UnwrapOr(0));
+    }
+
+    [Fact]
+    public void LinqQuerySyntax_StopsOnFirstError()
+    {
+        // Arrange & Act
+        var result = from x in Result<int, string>.Ok(10)
+                     from y in Result<int, string>.Err("Error in y")
+                     from z in Result<int, string>.Ok(30)
+                     select x + y + z;
+
+        // Assert
+        Assert.True(result.IsFailure);
+        Assert.True(result.TryGetError(out var error));
+        Assert.Equal("Error in y", error);
+    }
+
+    [Fact]
+    public void LinqQuerySyntax_ComplexQuery_WorksCorrectly()
+    {
+        // Arrange
+        Result<int, string> ParseInt(string s) =>
+            int.TryParse(s, out var value)
+                ? Result<int, string>.Ok(value)
+                : Result<int, string>.Err($"Cannot parse '{s}'");
+
+        Result<int, string> Divide(int numerator, int denominator) =>
+            denominator != 0
+                ? Result<int, string>.Ok(numerator / denominator)
+                : Result<int, string>.Err("Division by zero");
+
+        // Act
+        var result = from x in ParseInt("100")
+                     from y in ParseInt("5")
+                     from z in Divide(x, y)
+                     select $"Result: {z}";
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        var output = result.Match(v => v, _ => "Error");
+        Assert.Equal("Result: 20", output);
+    }
+
+    [Fact]
+    public void LinqQuerySyntax_WithWhereClause_WorksCorrectly()
+    {
+        // Arrange & Act
+        var result = (from x in Result<int, string>.Ok(10)
+                      from y in Result<int, string>.Ok(20)
+                      select x + y)
+            .Bind(sum => sum > 25 
+                ? Result<int, string>.Ok(sum) 
+                : Result<int, string>.Err("Sum must be greater than 25"));
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(30, result.UnwrapOr(0));
+    }
+
+    [Fact]
+    public void LinqQuerySyntax_MultipleFromClauses_ProjectsCorrectly()
+    {
+        // Arrange & Act
+        var result = from a in Result<int, string>.Ok(2)
+                     from b in Result<int, string>.Ok(3)
+                     from c in Result<int, string>.Ok(4)
+                     select a * b * c;
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(24, result.UnwrapOr(0));
+    }
+
+    [Fact]
+    public void LinqQuerySyntax_WithConditionalLogic_WorksCorrectly()
+    {
+        // Arrange
+        Result<int, string> ValidatePositive(int value) =>
+            value > 0
+                ? Result<int, string>.Ok(value)
+                : Result<int, string>.Err("Value must be positive");
+
+        // Act
+        var result = from x in Result<int, string>.Ok(10)
+                     from validated in ValidatePositive(x)
+                     select validated * 2;
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(20, result.UnwrapOr(0));
+    }
+
+    [Fact]
+    public void LinqQuerySyntax_FailsValidation_ReturnsError()
+    {
+        // Arrange
+        Result<int, string> ValidatePositive(int value) =>
+            value > 0
+                ? Result<int, string>.Ok(value)
+                : Result<int, string>.Err("Value must be positive");
+
+        // Act
+        var result = from x in Result<int, string>.Ok(-5)
+                     from validated in ValidatePositive(x)
+                     select validated * 2;
+
+        // Assert
+        Assert.True(result.IsFailure);
+        Assert.True(result.TryGetError(out var error));
+        Assert.Equal("Value must be positive", error);
+    }
+
+    [Fact]
+    public void LinqQuerySyntax_MixedWithMap_WorksCorrectly()
+    {
+        // Arrange & Act
+        var result = (from x in Result<int, string>.Ok(5)
+                      from y in Result<int, string>.Ok(10)
+                      select x + y)
+            .Map(sum => $"Total: {sum}");
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        var output = result.Match(v => v, _ => "Error");
+        Assert.Equal("Total: 15", output);
+    }
+
+    [Fact]
+    public void LinqQuerySyntax_WithDifferentTypes_WorksCorrectly()
+    {
+        // Arrange & Act
+        var result = from name in Result<string, string>.Ok("John")
+                     from age in Result<int, string>.Ok(30)
+                     select $"{name} is {age} years old";
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        var output = result.Match(v => v, _ => "Error");
+        Assert.Equal("John is 30 years old", output);
+    }
+
+    #endregion
 }
