@@ -58,7 +58,7 @@ public class ResultTests
         // Act
         var actualValue = result.Match(
             success: value => value * 2,
-            failure: error => 0
+            failure: _ => 0
         );
 
         // Assert
@@ -74,7 +74,7 @@ public class ResultTests
 
         // Act
         var actualMessage = result.Match(
-            success: value => "Success",
+            success: _ => "Success",
             failure: error => $"Error: {error}"
         );
 
@@ -91,7 +91,7 @@ public class ResultTests
         // Act
         var value = result.Match(
             success: v => v,
-            failure: e => "Error"
+            failure: _ => "Error"
         );
 
         // Assert
@@ -106,7 +106,7 @@ public class ResultTests
 
         // Act
         var errorCode = result.Match(
-            success: v => 0,
+            success: _ => 0,
             failure: e => e
         );
 
@@ -124,11 +124,17 @@ public class ResultTests
         // Act
         var name = result.Match(
             success: p => p.Name,
-            failure: error => "Unknown"
+            failure: _ => "Unknown"
+        );
+
+        var age = result.Match(
+            success: p => p.Age.ToString(),
+            failure: _ => "Unknown"
         );
 
         // Assert
         Assert.Equal("John", name);
+        Assert.Equal("30", age);
     }
 
     [Fact]
@@ -293,7 +299,7 @@ public class ResultTests
         var result = Result<int, string>.Ok(42);
 
         // Act
-        var final = result.OrElse(error => Result<int, string>.Ok(0));
+        var final = result.OrElse(_ => Result<int, string>.Ok(0));
 
         // Assert
         Assert.True(final.IsSuccess);
@@ -307,7 +313,7 @@ public class ResultTests
         var result = Result<int, string>.Err("Error");
 
         // Act
-        var final = result.OrElse(error => Result<int, string>.Ok(99));
+        var final = result.OrElse(_ => Result<int, string>.Ok(99));
 
         // Assert
         Assert.True(final.IsSuccess);
@@ -337,7 +343,7 @@ public class ResultTests
         var executed = false;
 
         // Act
-        var returned = result.Inspect(value => executed = true);
+        var returned = result.Inspect(_ => executed = true);
 
         // Assert
         Assert.False(executed);
@@ -367,7 +373,7 @@ public class ResultTests
         var executed = false;
 
         // Act
-        var returned = result.InspectErr(error => executed = true);
+        var returned = result.InspectErr(_ => executed = true);
 
         // Assert
         Assert.False(executed);
@@ -528,6 +534,6 @@ public class ResultTests
     private class Person
     {
         public string Name { get; init; } = string.Empty;
-        public int Age { get; set; }
+        public int Age { get; init; }
     }
 }

@@ -17,7 +17,7 @@ public class ResultExtensionsTests
         // Assert
         var output = mapped.Match(
             success: v => v,
-            failure: e => "Error"
+            failure: _ => "Error"
         );
         Assert.Equal("Value: 5", output);
         Assert.True(mapped.IsSuccess);
@@ -34,7 +34,7 @@ public class ResultExtensionsTests
 
         // Assert
         var error = mapped.Match(
-            success: v => "Success",
+            success: _ => "Success",
             failure: e => e
         );
         Assert.Equal("Original error", error);
@@ -53,7 +53,7 @@ public class ResultExtensionsTests
         // Assert
         var value = mapped.Match(
             success: v => v,
-            failure: e => 0
+            failure: _ => 0
         );
         Assert.Equal(42, value);
         Assert.True(mapped.IsSuccess);
@@ -90,7 +90,7 @@ public class ResultExtensionsTests
         // Assert
         var output = bound.Match(
             success: v => v,
-            failure: e => "Error"
+            failure: _ => "Error"
         );
         Assert.Equal("Number: 5", output);
         Assert.True(bound.IsSuccess);
@@ -107,7 +107,7 @@ public class ResultExtensionsTests
 
         // Assert
         var error = bound.Match(
-            success: v => "Success",
+            success: _ => "Success",
             failure: e => e
         );
         Assert.Equal("Original error", error);
@@ -121,11 +121,11 @@ public class ResultExtensionsTests
         var result = Result<int, string>.Ok(5);
 
         // Act
-        var bound = result.Bind(x => Result<string, string>.Err("Binder error"));
+        var bound = result.Bind(_ => Result<string, string>.Err("Binder error"));
 
         // Assert
         var error = bound.Match(
-            success: v => "Success",
+            success: _ => "Success",
             failure: e => e
         );
         Assert.Equal("Binder error", error);
@@ -166,7 +166,7 @@ public class ResultExtensionsTests
         // Assert
         var output = final.Match(
             success: v => v,
-            failure: e => "Error"
+            failure: _ => "Error"
         );
         Assert.Equal("Final: 20", output);
         Assert.True(final.IsSuccess);
@@ -182,7 +182,7 @@ public class ResultExtensionsTests
         // Act
         var final = result
             .Bind(x => Result<int, string>.Ok(x * 2))
-            .Bind(x => Result<int, string>.Err("Second binder failed"))
+            .Bind(_ => Result<int, string>.Err("Second binder failed"))
             .Bind(x =>
             {
                 thirdBinderInvoked = true;
@@ -246,7 +246,7 @@ public class ResultExtensionsTests
         // Assert
         var output = final.Match(
             success: v => v,
-            failure: e => "Error"
+            failure: _ => "Error"
         );
         Assert.Equal("Value: 10", output);
         Assert.True(final.IsSuccess);
@@ -268,7 +268,7 @@ public class ResultExtensionsTests
         // Assert
         var output = final.Match(
             success: v => v,
-            failure: e => "Error"
+            failure: _ => "Error"
         );
         Assert.Equal("VALID NUMBER: 10", output);
         Assert.True(final.IsSuccess);
