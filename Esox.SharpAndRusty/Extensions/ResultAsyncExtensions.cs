@@ -126,128 +126,114 @@ namespace Esox.SharpAndRusty.Extensions
             );
         }
 
-        /// <summary>
-        /// Chains together two Task-wrapped results.
-        /// Both the result task and the binder return tasks that need to be awaited.
-        /// </summary>
+        /// <param name="resultTask">The task containing the result to bind.</param>
         /// <typeparam name="T">The type of the original success value.</typeparam>
         /// <typeparam name="E">The type of the error value.</typeparam>
-        /// <typeparam name="U">The type of the success value in the result returned by the async binder.</typeparam>
-        /// <param name="resultTask">The task containing the result to bind.</param>
-        /// <param name="asyncBinder">An async function that takes the success value and returns a task containing a new result.</param>
-        /// <returns>A task containing the result from the async binder, or the original error.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when resultTask or asyncBinder is null.</exception>
-        /// <example>
-        /// <code>
-        /// var result = await GetUserAsync(userId)
-        ///     .BindAsync(async user => await ValidateAndSaveUserAsync(user));
-        /// </code>
-        /// </example>
-        public static async Task<Result<U, E>> BindAsync<T, E, U>(
-            this Task<Result<T, E>> resultTask,
-            Func<T, Task<Result<U, E>>> asyncBinder)
+        extension<T, E>(Task<Result<T, E>> resultTask)
         {
-            if (resultTask is null) throw new ArgumentNullException(nameof(resultTask));
-            if (asyncBinder is null) throw new ArgumentNullException(nameof(asyncBinder));
+            /// <summary>
+            /// Chains together two Task-wrapped results.
+            /// Both the result task and the binder return tasks that need to be awaited.
+            /// </summary>
+            /// <typeparam name="U">The type of the success value in the result returned by the async binder.</typeparam>
+            /// <param name="asyncBinder">An async function that takes the success value and returns a task containing a new result.</param>
+            /// <returns>A task containing the result from the async binder, or the original error.</returns>
+            /// <exception cref="ArgumentNullException">Thrown when resultTask or asyncBinder is null.</exception>
+            /// <example>
+            /// <code>
+            /// var result = await GetUserAsync(userId)
+            ///     .BindAsync(async user => await ValidateAndSaveUserAsync(user));
+            /// </code>
+            /// </example>
+            public async Task<Result<U, E>> BindAsync<U>(Func<T, Task<Result<U, E>>> asyncBinder)
+            {
+                if (resultTask is null) throw new ArgumentNullException(nameof(resultTask));
+                if (asyncBinder is null) throw new ArgumentNullException(nameof(asyncBinder));
             
-            var result = await resultTask.ConfigureAwait(false);
-            return await result.BindAsync(asyncBinder);
-        }
+                var result = await resultTask.ConfigureAwait(false);
+                return await result.BindAsync(asyncBinder);
+            }
 
-        /// <summary>
-        /// Transforms the error value of a Task-wrapped result using the specified error mapper function.
-        /// </summary>
-        /// <typeparam name="T">The type of the success value.</typeparam>
-        /// <typeparam name="E">The type of the original error value.</typeparam>
-        /// <typeparam name="E2">The type of the transformed error value.</typeparam>
-        /// <param name="resultTask">The task containing the result to transform.</param>
-        /// <param name="errorMapper">A function to transform the error value.</param>
-        /// <returns>A task containing the result with transformed error type.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when resultTask or errorMapper is null.</exception>
-        /// <example>
-        /// <code>
-        /// var result = await GetUserAsync(userId)
-        ///     .MapErrorAsync(errorMsg => new UserNotFoundException(errorMsg));
-        /// </code>
-        /// </example>
-        public static async Task<Result<T, E2>> MapErrorAsync<T, E, E2>(
-            this Task<Result<T, E>> resultTask,
-            Func<E, E2> errorMapper)
-        {
-            if (resultTask is null) throw new ArgumentNullException(nameof(resultTask));
-            if (errorMapper is null) throw new ArgumentNullException(nameof(errorMapper));
+            /// <summary>
+            /// Transforms the error value of a Task-wrapped result using the specified error mapper function.
+            /// </summary>
+            /// <typeparam name="E2">The type of the transformed error value.</typeparam>
+            /// <param name="errorMapper">A function to transform the error value.</param>
+            /// <returns>A task containing the result with transformed error type.</returns>
+            /// <exception cref="ArgumentNullException">Thrown when resultTask or errorMapper is null.</exception>
+            /// <example>
+            /// <code>
+            /// var result = await GetUserAsync(userId)
+            ///     .MapErrorAsync(errorMsg => new UserNotFoundException(errorMsg));
+            /// </code>
+            /// </example>
+            public async Task<Result<T, E2>> MapErrorAsync<E2>(Func<E, E2> errorMapper)
+            {
+                if (resultTask is null) throw new ArgumentNullException(nameof(resultTask));
+                if (errorMapper is null) throw new ArgumentNullException(nameof(errorMapper));
             
-            var result = await resultTask.ConfigureAwait(false);
-            return result.MapError(errorMapper);
-        }
+                var result = await resultTask.ConfigureAwait(false);
+                return result.MapError(errorMapper);
+            }
 
-        /// <summary>
-        /// Executes async actions on both success and failure of a Task-wrapped result without transforming it.
-        /// </summary>
-        /// <typeparam name="T">The type of the success value.</typeparam>
-        /// <typeparam name="E">The type of the error value.</typeparam>
-        /// <param name="resultTask">The task containing the result to inspect.</param>
-        /// <param name="onSuccess">Async action to execute if the result is successful.</param>
-        /// <param name="onFailure">Async action to execute if the result is a failure.</param>
-        /// <returns>A task containing the original result unchanged.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when resultTask, onSuccess, or onFailure is null.</exception>
-        /// <example>
-        /// <code>
-        /// var result = await GetUserAsync(userId)
-        ///     .TapAsync(
-        ///         onSuccess: async user => await LogSuccessAsync(user),
-        ///         onFailure: async error => await LogErrorAsync(error)
-        ///     );
-        /// </code>
-        /// </example>
-        public static async Task<Result<T, E>> TapAsync<T, E>(
-            this Task<Result<T, E>> resultTask,
-            Func<T, Task> onSuccess,
-            Func<E, Task> onFailure)
-        {
-            if (resultTask is null) throw new ArgumentNullException(nameof(resultTask));
-            if (onSuccess is null) throw new ArgumentNullException(nameof(onSuccess));
-            if (onFailure is null) throw new ArgumentNullException(nameof(onFailure));
+            /// <summary>
+            /// Executes async actions on both success and failure of a Task-wrapped result without transforming it.
+            /// </summary>
+            /// <param name="onSuccess">Async action to execute if the result is successful.</param>
+            /// <param name="onFailure">Async action to execute if the result is a failure.</param>
+            /// <returns>A task containing the original result unchanged.</returns>
+            /// <exception cref="ArgumentNullException">Thrown when resultTask, onSuccess, or onFailure is null.</exception>
+            /// <example>
+            /// <code>
+            /// var result = await GetUserAsync(userId)
+            ///     .TapAsync(
+            ///         onSuccess: async user => await LogSuccessAsync(user),
+            ///         onFailure: async error => await LogErrorAsync(error)
+            ///     );
+            /// </code>
+            /// </example>
+            public async Task<Result<T, E>> TapAsync(Func<T, Task> onSuccess,
+                Func<E, Task> onFailure)
+            {
+                if (resultTask is null) throw new ArgumentNullException(nameof(resultTask));
+                if (onSuccess is null) throw new ArgumentNullException(nameof(onSuccess));
+                if (onFailure is null) throw new ArgumentNullException(nameof(onFailure));
             
-            var result = await resultTask.ConfigureAwait(false);
+                var result = await resultTask.ConfigureAwait(false);
             
-            if (result.IsSuccess && result.TryGetValue(out var value))
-                await onSuccess(value).ConfigureAwait(false);
-            else if (result.TryGetError(out var error))
-                await onFailure(error).ConfigureAwait(false);
+                if (result.IsSuccess && result.TryGetValue(out var value))
+                    await onSuccess(value).ConfigureAwait(false);
+                else if (result.TryGetError(out var error))
+                    await onFailure(error).ConfigureAwait(false);
             
-            return result;
-        }
-
-        /// <summary>
-        /// Provides an alternative result from an async function if the Task-wrapped result is a failure.
-        /// </summary>
-        /// <typeparam name="T">The type of the success value.</typeparam>
-        /// <typeparam name="E">The type of the error value.</typeparam>
-        /// <param name="resultTask">The task containing the result to check.</param>
-        /// <param name="asyncAlternative">An async function that produces an alternative result based on the error.</param>
-        /// <returns>A task containing the original result if successful; otherwise, the alternative result.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when resultTask or asyncAlternative is null.</exception>
-        /// <example>
-        /// <code>
-        /// var result = await GetUserFromCacheAsync(userId)
-        ///     .OrElseAsync(async error => await GetUserFromDatabaseAsync(userId));
-        /// </code>
-        /// </example>
-        public static async Task<Result<T, E>> OrElseAsync<T, E>(
-            this Task<Result<T, E>> resultTask,
-            Func<E, Task<Result<T, E>>> asyncAlternative)
-        {
-            if (resultTask is null) throw new ArgumentNullException(nameof(resultTask));
-            if (asyncAlternative is null) throw new ArgumentNullException(nameof(asyncAlternative));
-            
-            var result = await resultTask.ConfigureAwait(false);
-            
-            if (result.IsSuccess)
                 return result;
+            }
+
+            /// <summary>
+            /// Provides an alternative result from an async function if the Task-wrapped result is a failure.
+            /// </summary>
+            /// <param name="asyncAlternative">An async function that produces an alternative result based on the error.</param>
+            /// <returns>A task containing the original result if successful; otherwise, the alternative result.</returns>
+            /// <exception cref="ArgumentNullException">Thrown when resultTask or asyncAlternative is null.</exception>
+            /// <example>
+            /// <code>
+            /// var result = await GetUserFromCacheAsync(userId)
+            ///     .OrElseAsync(async error => await GetUserFromDatabaseAsync(userId));
+            /// </code>
+            /// </example>
+            public async Task<Result<T, E>> OrElseAsync(Func<E, Task<Result<T, E>>> asyncAlternative)
+            {
+                if (resultTask is null) throw new ArgumentNullException(nameof(resultTask));
+                if (asyncAlternative is null) throw new ArgumentNullException(nameof(asyncAlternative));
             
-            result.TryGetError(out var error);
-            return await asyncAlternative(error!).ConfigureAwait(false);
+                var result = await resultTask.ConfigureAwait(false);
+            
+                if (result.IsSuccess)
+                    return result;
+            
+                result.TryGetError(out var error);
+                return await asyncAlternative(error!).ConfigureAwait(false);
+            }
         }
 
         /// <summary>

@@ -100,7 +100,7 @@ namespace Esox.SharpAndRusty.Extensions
                 if (errorMapper is null) throw new ArgumentNullException(nameof(errorMapper));
                 
                 return result.Match(
-                    success: value => Result<T, E2>.Ok(value),
+                    success: Result<T, E2>.Ok,
                     failure: error => Result<T, E2>.Err(errorMapper(error))
                 );
             }
@@ -155,7 +155,7 @@ namespace Esox.SharpAndRusty.Extensions
             /// <summary>
             /// Projects the success value of the result using a selector function.
             /// This method enables LINQ query comprehension syntax for Result types with select projections.
-            /// Equivalent to <see cref="Map{U}(Func{T, U})"/>.
+            /// Equivalent to <see cref="Map{U}(x)"/>.
             /// If the result is a failure, the error is propagated unchanged without calling the selector.
             /// </summary>
             /// <typeparam name="U">The type of the projected success value.</typeparam>
@@ -177,7 +177,7 @@ namespace Esox.SharpAndRusty.Extensions
             /// <summary>
             /// Projects the success value of the result into a new result using a selector function.
             /// This method enables LINQ query comprehension syntax for Result types.
-            /// Equivalent to <see cref="Bind{U}(Func{T, Result{U, E}})"/>.
+            /// Equivalent to <see cref="Bind{U}(x)"/>.
             /// If the result is a failure, the error is propagated unchanged without calling the selector.
             /// </summary>
             /// <typeparam name="U">The type of the success value in the result returned by the selector.</typeparam>
@@ -244,7 +244,7 @@ namespace Esox.SharpAndRusty.Extensions
             /// <exception cref="ArgumentNullException">Thrown when predicate is null.</exception>
             /// <remarks>
             /// Note: This method requires a default error value when the predicate fails.
-            /// For better control over error messages, consider using <see cref="Bind{U}(Func{T, Result{U, E}})"/> with explicit validation.
+            /// For better control over error messages, consider using <see cref="Bind{U}(x)"/> with explicit validation.
             /// </remarks>
             /// <example>
             /// <code>
@@ -266,74 +266,74 @@ namespace Esox.SharpAndRusty.Extensions
             }
         }
 
-        /// <summary>
-        /// Combines multiple results into a single result containing a collection of values.
-        /// If any result is an error, returns the first error encountered.
-        /// </summary>
+        /// <param name="results">The collection of results to combine.</param>
         /// <typeparam name="T">The type of the success values.</typeparam>
         /// <typeparam name="E">The type of the error value.</typeparam>
-        /// <param name="results">The collection of results to combine.</param>
-        /// <returns>
-        /// A result containing all success values if all results are successful;
-        /// otherwise, the first error encountered.
-        /// </returns>
-        /// <exception cref="ArgumentNullException">Thrown when results is null.</exception>
-        /// <example>
-        /// <code>
-        /// var userIds = new[] { 1, 2, 3 };
-        /// var results = userIds.Select(id => GetUser(id));
-        /// Result&lt;IEnumerable&lt;User&gt;, string&gt; combined = results.Combine();
-        /// // All succeed: Ok([User1, User2, User3])
-        /// // Any fail: Err("User 2 not found")
-        /// </code>
-        /// </example>
-        public static Result<IEnumerable<T>, E> Combine<T, E>(this IEnumerable<Result<T, E>> results)
+        extension<T, E>(IEnumerable<Result<T, E>> results)
         {
-            if (results is null) throw new ArgumentNullException(nameof(results));
-            
-            var values = new List<T>();
-            foreach (var result in results)
+            /// <summary>
+            /// Combines multiple results into a single result containing a collection of values.
+            /// If any result is an error, returns the first error encountered.
+            /// </summary>
+            /// <returns>
+            /// A result containing all success values if all results are successful;
+            /// otherwise, the first error encountered.
+            /// </returns>
+            /// <exception cref="ArgumentNullException">Thrown when results is null.</exception>
+            /// <example>
+            /// <code>
+            /// var userIds = new[] { 1, 2, 3 };
+            /// var results = userIds.Select(id => GetUser(id));
+            /// Result&lt;IEnumerable&lt;User&gt;, string&gt; combined = results.Combine();
+            /// // All succeed: Ok([User1, User2, User3])
+            /// // Any fail: Err("User 2 not found")
+            /// </code>
+            /// </example>
+            public Result<IEnumerable<T>, E> Combine()
             {
-                if (result.TryGetValue(out var value))
-                    values.Add(value);
-                else if (result.TryGetError(out var error))
-                    return Result<IEnumerable<T>, E>.Err(error);
+                if (results is null) throw new ArgumentNullException(nameof(results));
+            
+                var values = new List<T>();
+                foreach (var result in results)
+                {
+                    if (result.TryGetValue(out var value))
+                        values.Add(value);
+                    else if (result.TryGetError(out var error))
+                        return Result<IEnumerable<T>, E>.Err(error);
+                }
+                return Result<IEnumerable<T>, E>.Ok(values);
             }
-            return Result<IEnumerable<T>, E>.Ok(values);
-        }
 
-        /// <summary>
-        /// Separates a collection of results into successes and failures.
-        /// Useful for batch operations where you want to process both successful and failed results.
-        /// </summary>
-        /// <typeparam name="T">The type of the success values.</typeparam>
-        /// <typeparam name="E">The type of the error values.</typeparam>
-        /// <param name="results">The collection of results to partition.</param>
-        /// <returns>A tuple containing lists of successes and failures.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when results is null.</exception>
-        /// <example>
-        /// <code>
-        /// var results = userIds.Select(id => GetUser(id));
-        /// var (successes, failures) = results.Partition();
-        /// Console.WriteLine($"Found {successes.Count} users, {failures.Count} errors");
-        /// </code>
-        /// </example>
-        public static (List<T> successes, List<E> failures) Partition<T, E>(this IEnumerable<Result<T, E>> results)
-        {
-            if (results is null) throw new ArgumentNullException(nameof(results));
-            
-            var successes = new List<T>();
-            var failures = new List<E>();
-            
-            foreach (var result in results)
+            /// <summary>
+            /// Separates a collection of results into successes and failures.
+            /// Useful for batch operations where you want to process both successful and failed results.
+            /// </summary>
+            /// <returns>A tuple containing lists of successes and failures.</returns>
+            /// <exception cref="ArgumentNullException">Thrown when results is null.</exception>
+            /// <example>
+            /// <code>
+            /// var results = userIds.Select(id => GetUser(id));
+            /// var (successes, failures) = results.Partition();
+            /// Console.WriteLine($"Found {successes.Count} users, {failures.Count} errors");
+            /// </code>
+            /// </example>
+            public (List<T> successes, List<E> failures) Partition()
             {
-                if (result.TryGetValue(out var value))
-                    successes.Add(value);
-                else if (result.TryGetError(out var error))
-                    failures.Add(error);
-            }
+                if (results is null) throw new ArgumentNullException(nameof(results));
             
-            return (successes, failures);
+                var successes = new List<T>();
+                var failures = new List<E>();
+            
+                foreach (var result in results)
+                {
+                    if (result.TryGetValue(out var value))
+                        successes.Add(value);
+                    else if (result.TryGetError(out var error))
+                        failures.Add(error);
+                }
+            
+                return (successes, failures);
+            }
         }
     }
 }

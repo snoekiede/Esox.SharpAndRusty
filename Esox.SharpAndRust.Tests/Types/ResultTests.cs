@@ -491,10 +491,14 @@ public class ResultTests
     public async Task TryAsync_ReturnsErrorForFailedOperation()
     {
         // Arrange
-        var operation = async Task<int> () => { await Task.Delay(1); throw new InvalidOperationException("Test error"); };
+        async Task<int> Operation()
+        {
+            await Task.Delay(1);
+            throw new InvalidOperationException("Test error");
+        }
 
         // Act
-        var result = await Result<int, string>.TryAsync(operation, ex => ex.Message);
+        var result = await Result<int, string>.TryAsync(Operation, ex => ex.Message);
 
         // Assert
         Assert.True(result.IsFailure);
