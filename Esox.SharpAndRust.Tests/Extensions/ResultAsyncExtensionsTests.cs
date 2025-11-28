@@ -473,4 +473,267 @@ public class ResultAsyncExtensionsTests
     }
 
     #endregion
+
+    #region CancellationToken Tests
+
+    [Fact]
+    public async Task MapAsync_TaskResult_RespectsCancellation()
+    {
+        // Arrange
+        var cts = new CancellationTokenSource();
+        var resultTask = Task.Run(async () =>
+        {
+            await Task.Delay(100, cts.Token);
+            return Result<int, string>.Ok(42);
+        }, cts.Token);
+        cts.Cancel();
+
+        // Act & Assert
+        await Assert.ThrowsAsync<TaskCanceledException>(async () =>
+            await resultTask.MapAsync(x => x * 2, cts.Token));
+    }
+
+    [Fact]
+    public async Task MapAsync_AsyncMapper_RespectsCancellation()
+    {
+        // Arrange
+        var cts = new CancellationTokenSource();
+        var result = Result<int, string>.Ok(42);
+        
+        // Act & Assert
+        cts.Cancel();
+        await Assert.ThrowsAsync<OperationCanceledException>(async () =>
+            await result.MapAsync(async x =>
+            {
+                await Task.Delay(100, cts.Token);
+                return x * 2;
+            }, cts.Token));
+    }
+
+    [Fact]
+    public async Task MapAsync_AsyncMapper_RespectsCancellationAfterMapper()
+    {
+        // Arrange
+        var cts = new CancellationTokenSource();
+        var result = Result<int, string>.Ok(42);
+        
+        // Act & Assert
+        await Assert.ThrowsAsync<OperationCanceledException>(async () =>
+            await result.MapAsync(async x =>
+            {
+                await Task.Delay(10, cts.Token);
+                await cts.CancelAsync();
+                return x * 2;
+            }, cts.Token));
+    }
+
+    [Fact]
+    public async Task BindAsync_TaskResult_RespectsCancellation()
+    {
+        // Arrange
+        var cts = new CancellationTokenSource();
+        var resultTask = Task.Run(async () =>
+        {
+            await Task.Delay(100, cts.Token);
+            return Result<int, string>.Ok(42);
+        }, cts.Token);
+        await cts.CancelAsync();
+
+        // Act & Assert
+        await Assert.ThrowsAsync<TaskCanceledException>(async () =>
+            await resultTask.BindAsync(x => Result<int, string>.Ok(x * 2), cts.Token));
+    }
+
+    [Fact]
+    public async Task BindAsync_AsyncBinder_RespectsCancellation()
+    {
+        // Arrange
+        var cts = new CancellationTokenSource();
+        var result = Result<int, string>.Ok(42);
+        
+        // Act & Assert
+        await cts.CancelAsync();
+        await Assert.ThrowsAsync<OperationCanceledException>(async () =>
+            await result.BindAsync(async x =>
+            {
+                await Task.Delay(100, cts.Token);
+                return Result<int, string>.Ok(x * 2);
+            }, cts.Token));
+    }
+
+    [Fact]
+    public async Task BindAsync_AsyncBinder_RespectsCancellationAfterBinder()
+    {
+        // Arrange
+        var cts = new CancellationTokenSource();
+        var result = Result<int, string>.Ok(42);
+        
+        // Act & Assert
+        await Assert.ThrowsAsync<OperationCanceledException>(async () =>
+            await result.BindAsync(async x =>
+            {
+                await Task.Delay(10, cts.Token);
+                await cts.CancelAsync();
+                return Result<int, string>.Ok(x * 2);
+            }, cts.Token));
+    }
+
+    [Fact]
+    public async Task MapErrorAsync_RespectsCancellation()
+    {
+        // Arrange
+        var cts = new CancellationTokenSource();
+        var resultTask = Task.Run(async () =>
+        {
+            await Task.Delay(100, cts.Token);
+            return Result<int, string>.Err("error");
+        }, cts.Token);
+        await cts.CancelAsync();
+
+        // Act & Assert
+        await Assert.ThrowsAsync<TaskCanceledException>(async () =>
+            await resultTask.MapErrorAsync(msg => msg.Length, cts.Token));
+    }
+
+    [Fact]
+    public async Task TapAsync_RespectsCancellation()
+    {
+        // Arrange
+        var cts = new CancellationTokenSource();
+        var resultTask = Task.Run(async () =>
+        {
+            await Task.Delay(100, cts.Token);
+            return Result<int, string>.Ok(42);
+        }, cts.Token);
+        await cts.CancelAsync();
+
+        // Act & Assert
+        await Assert.ThrowsAsync<TaskCanceledException>(async () =>
+            await resultTask.TapAsync(
+                onSuccess: async _ => await Task.Delay(10, cts.Token),
+                onFailure: async _ => await Task.Delay(10, cts.Token),
+                cts.Token));
+    }
+
+    [Fact]
+    public async Task TapAsync_RespectsCancellationAfterSuccessAction()
+    {
+        // Arrange
+        var cts = new CancellationTokenSource();
+        var resultTask = Task.FromResult(Result<int, string>.Ok(42));
+
+        // Act & Assert
+        await Assert.ThrowsAsync<OperationCanceledException>(async () =>
+            await resultTask.TapAsync(
+                onSuccess: async _ =>
+                {
+                    await Task.Delay(10, cts.Token);
+                    await cts.CancelAsync();
+                },
+                onFailure: async _ => await Task.Delay(10, cts.Token),
+                cts.Token));
+    }
+
+    [Fact]
+    public async Task TapAsync_RespectsCancellationAfterFailureAction()
+    {
+        // Arrange
+        var cts = new CancellationTokenSource();
+        var resultTask = Task.FromResult(Result<int, string>.Err("error"));
+
+        // Act & Assert
+        await Assert.ThrowsAsync<OperationCanceledException>(async () =>
+            await resultTask.TapAsync(
+                onSuccess: async _ => await Task.Delay(10, cts.Token),
+                onFailure: async _ =>
+                {
+                    await Task.Delay(10, cts.Token);
+                    await cts.CancelAsync();
+                },
+                cts.Token));
+    }
+
+    [Fact]
+    public async Task OrElseAsync_RespectsCancellation()
+    {
+        // Arrange
+        var cts = new CancellationTokenSource();
+        var resultTask = Task.Run(async () =>
+        {
+            await Task.Delay(100, cts.Token);
+            return Result<int, string>.Err("error");
+        }, cts.Token);
+        await cts.CancelAsync();
+
+        // Act & Assert
+        await Assert.ThrowsAsync<TaskCanceledException>(async () =>
+            await resultTask.OrElseAsync(
+                async _ => await Task.FromResult(Result<int, string>.Ok(99)),
+                cts.Token));
+    }
+
+    [Fact]
+    public async Task OrElseAsync_RespectsCancellationAfterAlternative()
+    {
+        // Arrange
+        var cts = new CancellationTokenSource();
+        var resultTask = Task.FromResult(Result<int, string>.Err("error"));
+
+        // Act & Assert
+        await Assert.ThrowsAsync<OperationCanceledException>(async () =>
+            await resultTask.OrElseAsync(
+                async _ =>
+                {
+                    await Task.Delay(10, cts.Token);
+                    await cts.CancelAsync();
+                    return Result<int, string>.Ok(99);
+                },
+                cts.Token));
+    }
+
+    [Fact]
+    public async Task CombineAsync_RespectsCancellation()
+    {
+        // Arrange
+        var cts = new CancellationTokenSource();
+        var resultTasks = new []
+        {
+            Task.Run(async () =>
+            {
+                await Task.Delay(100, cts.Token);
+                return Result<int, string>.Ok(1);
+            }, cts.Token),
+            Task.Run(async () =>
+            {
+                await Task.Delay(100, cts.Token);
+                return Result<int, string>.Ok(2);
+            }, cts.Token)
+        };
+        await cts.CancelAsync();
+
+        // Act & Assert
+        await Assert.ThrowsAsync<TaskCanceledException>(async () =>
+            await resultTasks.CombineAsync(cts.Token));
+    }
+
+    [Fact]
+    public async Task CancellationToken_DoesNotAffectNormalOperation()
+    {
+        // Arrange
+        using var cts = new CancellationTokenSource();
+        var result = Result<int, string>.Ok(42);
+
+        // Act
+        var mapped = await result.MapAsync(async x =>
+        {
+            await Task.Delay(10, cts.Token);
+            return x * 2;
+        }, cts.Token);
+
+        // Assert
+        Assert.True(mapped.IsSuccess);
+        Assert.Equal(84, mapped.UnwrapOr(0));
+    }
+
+    #endregion
 }

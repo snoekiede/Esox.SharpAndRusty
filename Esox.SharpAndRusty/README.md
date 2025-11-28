@@ -13,14 +13,16 @@ This library is provided "as is" without warranty of any kind, either express or
 - ✅ **Type-Safe Error Handling**: Explicitly represent success and failure states in your type signatures
 - ✅ **Rust-Inspired API**: Familiar patterns for developers coming from Rust or functional programming
 - ✅ **Zero Overhead**: Implemented as a `readonly struct` for optimal performance
-- ✅ **Functional Composition**: Chain operations with `Map`, `Bind`, and `OrElse`
+- ✅ **Functional Composition**: Chain operations with `Map`, `Bind`, `MapError`, and `OrElse`
 - ✅ **Pattern Matching**: Use the `Match` method for elegant success/failure handling
 - ✅ **Full Equality Support**: Implements `IEquatable<T>` with proper `==`, `!=`, and `GetHashCode()`
-- ✅ **Safe Value Extraction**: `TryGetValue`, `UnwrapOr`, and `UnwrapOrElse` methods
+- ✅ **Safe Value Extraction**: `TryGetValue`, `UnwrapOr`, `UnwrapOrElse`, `Expect`, and `Contains` methods
 - ✅ **Exception Handling Helpers**: Built-in `Try` and `TryAsync` for wrapping operations
-- ✅ **Inspection Methods**: Execute side effects with `Inspect` and `InspectErr`
-- ✅ **.NET 10 Compatible**: Built for the latest .NET platform with C# 14
+- ✅ **Inspection Methods**: Execute side effects with `Inspect`, `InspectErr`, and `Tap`
 - ✅ **LINQ Query Syntax**: Full support for C# LINQ query comprehension with `from`, `select`, and more
+- ✅ **Collection Operations**: `Combine` and `Partition` for batch processing
+- ✅ **Full Async Support**: Complete async/await integration with `MapAsync`, `BindAsync`, `TapAsync`, and more
+- ✅ **.NET 10 Compatible**: Built for the latest .NET platform with C# 14
 
 ## Installation
 
@@ -115,6 +117,16 @@ var age = result.UnwrapOrElse(error =>
 if (result.TryGetError(out var error))
 {
     Console.WriteLine($"Error occurred: {error}");
+}
+
+// Option 5: Expect a value or throw
+var age = result.Expect("Age not available");
+// Throws InvalidOperationException with message "Age not available" if error
+
+// Option 6: Check if result contains a value
+if (result.Contains(42))
+{
+    Console.WriteLine("User is 42 years old");
 }
 ```
 
@@ -225,6 +237,32 @@ var result = from x in ParseInt("10")
 var result = from name in GetUserName(userId)
              from age in GetUserAge(userId)
              select $"{name} is {age} years old";
+```
+
+**Note on Validation:** LINQ `where` clauses are not supported for Result types because predicates cannot provide meaningful error messages. Instead, use `Bind` with explicit validation:
+
+```csharp
+// ❌ where is not available (by design)
+// var result = from x in GetValue()
+//              where x > 5  // Cannot provide error message
+//              select x * 2;
+
+// ✅ Use Bind with explicit validation instead
+var result = GetValue()
+    .Bind(x => x > 5 
+        ? Result<int, string>.Ok(x) 
+        : Result<int, string>.Err("Value must be greater than 5"))
+    .Map(x => x * 2);
+
+// ✅ Or use validation helper functions in LINQ queries
+Result<int, string> ValidatePositive(int value) =>
+    value > 0
+        ? Result<int, string>.Ok(value)
+        : Result<int, string>.Err("Value must be positive");
+
+var result = from x in GetValue()
+             from validated in ValidatePositive(x)
+             select validated * 2;
 ```
 
 ### Combining Map and Bind
@@ -484,12 +522,15 @@ var message = result.Match(
 
 ## Testing
 
-The library includes comprehensive test coverage with 69+ unit tests covering:
+The library includes comprehensive test coverage with **123 unit tests** covering:
 - Basic creation and inspection
 - Pattern matching
 - Equality and hash code
 - Map and Bind operations
 - **LINQ query syntax integration** (SelectMany, Select, from/select)
+- **Advanced features** (MapError, Expect, Tap, Contains)
+- **Collection operations** (Combine, Partition)
+- **Full async support** (MapAsync, BindAsync, TapAsync, OrElseAsync, CombineAsync)
 - Exception handling (Try/TryAsync)
 - Side effects (Inspect/InspectErr)
 - Value extraction methods
@@ -506,8 +547,15 @@ This library is production-ready with:
 - ✅ Full equality implementation
 - ✅ Comprehensive API surface
 - ✅ Exception handling helpers
-- ✅ Extensive test coverage (69+ tests)
+- ✅ Extensive test coverage (**123 tests**)
 - ✅ Proper null handling
 - ✅ Argument validation
 - ✅ Clear documentation
 - ✅ **Full LINQ query syntax support**
+- ✅ **Complete async/await integration**
+- ✅ **Advanced error handling features** (MapError, Expect, Tap, etc.)
+- ✅ **Collection operations** (Combine, Partition)
+
+See [RESULT_TYPE_IMPROVEMENTS.md](RESULT_TYPE_IMPROVEMENTS.md) for detailed information about production-ready features.
+
+See [ADVANCED_FEATURES.md](ADVANCED_FEATURES.md) for comprehensive guide on advanced features including async support, collection operations, and error transformation

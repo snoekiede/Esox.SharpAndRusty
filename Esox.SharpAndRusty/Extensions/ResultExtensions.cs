@@ -231,39 +231,6 @@ namespace Esox.SharpAndRusty.Extensions
                 
                 return result.Bind(t => selector(t).Map(u => projector(t, u)));
             }
-
-            /// <summary>
-            /// Filters the success value of the result based on a predicate.
-            /// This method enables LINQ query comprehension syntax with where clauses.
-            /// If the result is successful and the predicate returns true, returns the original result.
-            /// If the result is successful but the predicate returns false, returns a failure with a default error message.
-            /// If the result is already a failure, the error is propagated unchanged.
-            /// </summary>
-            /// <param name="predicate">A function to test the success value.</param>
-            /// <returns>The original result if successful and predicate returns true; otherwise, a failure result.</returns>
-            /// <exception cref="ArgumentNullException">Thrown when predicate is null.</exception>
-            /// <remarks>
-            /// Note: This method requires a default error value when the predicate fails.
-            /// For better control over error messages, consider using <see cref="Bind{U}(x)"/> with explicit validation.
-            /// </remarks>
-            /// <example>
-            /// <code>
-            /// var result = from x in Result&lt;int, string&gt;.Ok(10)
-            ///              where x > 5
-            ///              select x * 2;
-            /// </code>
-            /// </example>
-            public Result<T, E> Where(Func<T, bool> predicate)
-            {
-                if (predicate is null) throw new ArgumentNullException(nameof(predicate));
-                
-                return result.Match(
-                    success: value => predicate(value) 
-                        ? result 
-                        : Result<T, E>.Err(default(E)!),
-                    failure: _ => result
-                );
-            }
         }
 
         /// <param name="results">The collection of results to combine.</param>

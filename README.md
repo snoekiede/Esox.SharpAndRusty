@@ -13,13 +13,16 @@ This library is provided "as is" without warranty of any kind, either express or
 - ✅ **Type-Safe Error Handling**: Explicitly represent success and failure states in your type signatures
 - ✅ **Rust-Inspired API**: Familiar patterns for developers coming from Rust or functional programming
 - ✅ **Zero Overhead**: Implemented as a `readonly struct` for optimal performance
-- ✅ **Functional Composition**: Chain operations with `Map`, `Bind`, and `OrElse`
+- ✅ **Functional Composition**: Chain operations with `Map`, `Bind`, `MapError`, and `OrElse`
 - ✅ **Pattern Matching**: Use the `Match` method for elegant success/failure handling
 - ✅ **Full Equality Support**: Implements `IEquatable<T>` with proper `==`, `!=`, and `GetHashCode()`
-- ✅ **Safe Value Extraction**: `TryGetValue`, `UnwrapOr`, and `UnwrapOrElse` methods
+- ✅ **Safe Value Extraction**: `TryGetValue`, `UnwrapOr`, `UnwrapOrElse`, `Expect`, and `Contains` methods
 - ✅ **Exception Handling Helpers**: Built-in `Try` and `TryAsync` for wrapping operations
-- ✅ **Inspection Methods**: Execute side effects with `Inspect` and `InspectErr`
+- ✅ **Inspection Methods**: Execute side effects with `Inspect`, `InspectErr`, and `Tap`
 - ✅ **LINQ Query Syntax**: Full support for C# LINQ query comprehension with `from`, `select`, and more
+- ✅ **Collection Operations**: `Combine` and `Partition` for batch processing
+- ✅ **Full Async Support**: Complete async/await integration with `MapAsync`, `BindAsync`, `TapAsync`, and more
+- ✅ **Cancellation Support**: All async methods support `CancellationToken` for graceful operation cancellation
 - ✅ **.NET 10 Compatible**: Built for the latest .NET platform with C# 14
 
 ## Installation
@@ -195,7 +198,7 @@ var failedResult = ParseInt("100")
 // Result: Err("Division by zero") - ValidatePositive never executes
 ```
 
-### LINQ Query Syntax (NEW!)
+### LINQ Query Syntax
 
 Use familiar C# LINQ query syntax for elegant error handling:
 
@@ -227,6 +230,31 @@ var result = from name in GetUserName(userId)
              select $"{name} is {age} years old";
 ```
 
+**Note on Validation:** LINQ `where` clauses are not supported for Result types because predicates cannot provide meaningful error messages. Instead, use `Bind` with explicit validation:
+
+```csharp
+// ❌ where is not available (by design)
+// var result = from x in GetValue()
+//              where x > 5  // Cannot provide error message
+//              select x * 2;
+
+// ✅ Use Bind with explicit validation instead
+var result = GetValue()
+    .Bind(x => x > 5 
+        ? Result<int, string>.Ok(x) 
+        : Result<int, string>.Err("Value must be greater than 5"))
+    .Map(x => x * 2);
+
+// ✅ Or use validation helper functions in LINQ queries
+Result<int, string> ValidatePositive(int value) =>
+    value > 0
+        ? Result<int, string>.Ok(value)
+        : Result<int, string>.Err("Value must be positive");
+
+var result = from x in GetValue()
+             from validated in ValidatePositive(x)
+             select validated * 2;
+```
 ### Combining Map and Bind
 
 ```csharp
@@ -296,10 +324,60 @@ var fileContent = Result<string, string>.Try(
 );
 ```
 
+### Async Operations with Cancellation Support
+
+All async methods support cancellation tokens for responsive, cancellable operations:
+
+```csharp
+using var cts = new CancellationTokenSource();
+cts.CancelAfter(TimeSpan.FromSeconds(5));
+
+// Map with async transformation and cancellation
+var result = await GetUserAsync(userId, cts.Token)
+    .MapAsync(async user => 
+    {
+        await LoadUserDetailsAsync(user, cts.Token);
+        return user;
+    }, cts.Token);
+
+// Chain async operations with cancellation
+var processedResult = await GetUserAsync(userId, cts.Token)
+    .BindAsync(async user => 
+        await ValidateUserAsync(user, cts.Token), cts.Token)
+    .BindAsync(async user => 
+        await SaveUserAsync(user, cts.Token), cts.Token)
+    .TapAsync(
+        onSuccess: async user => await LogSuccessAsync(user, cts.Token),
+        onFailure: async error => await LogErrorAsync(error, cts.Token),
+        cts.Token
+    );
+
+// Combine multiple async operations with cancellation
+var userTasks = userIds.Select(id => GetUserAsync(id, cts.Token));
+var combined = await userTasks.CombineAsync(cts.Token);
+
+// Fallback with async alternative and cancellation
+var user = await GetUserFromCacheAsync(userId, cts.Token)
+    .OrElseAsync(async error => 
+        await GetUserFromDatabaseAsync(userId, cts.Token), cts.Token);
+```
+
+**Available Async Extensions with Cancellation Support:**
+- `MapAsync` - Transform success values asynchronously
+- `BindAsync` - Chain async operations that return results
+- `MapErrorAsync` - Transform error values asynchronously
+- `TapAsync` - Execute async side effects without transforming
+- `OrElseAsync` - Provide async fallback on failure
+- `CombineAsync` - Combine multiple async results
+
+All cancellation token parameters are **optional** with default values, ensuring 100% backward compatibility with existing code.
+
 ### Complex Real-World Example
 
 ```csharp
-public async Task<Result<OrderConfirmation, string>> ProcessOrderAsync(OrderRequest request)
+public async Task<Result<OrderConfirmation, string>> ProcessOrderAsync(
+    OrderRequest request, 
+    CancellationToken cancellationToken = default)
 {
     // Using LINQ query syntax for readable error handling
     return await (from order in ValidateOrder(request)
@@ -309,19 +387,39 @@ public async Task<Result<OrderConfirmation, string>> ProcessOrderAsync(OrderRequ
                   from confirmation in SendConfirmationEmail(createdOrder)
                   select confirmation)
         .InspectErr(error => Logger.Error($"Order processing failed: {error}"))
-        .OrElse(error => CreatePendingOrder(request, error));
+        .OrElseAsync(
+            async error => await CreatePendingOrderAsync(request, error, cancellationToken),
+            cancellationToken
+        );
 }
 
-// Or using method chaining
-public async Task<Result<OrderConfirmation, string>> ProcessOrderAsync(OrderRequest request)
+// Or using method chaining with cancellation
+public async Task<Result<OrderConfirmation, string>> ProcessOrderAsync(
+    OrderRequest request,
+    CancellationToken cancellationToken = default)
 {
     return await ValidateOrder(request)
-        .Bind(order => ProcessPayment(order))
-        .Inspect(payment => Logger.Info($"Payment processed: {payment.TransactionId}"))
-        .Bind(payment => CreateOrder(payment))
-        .Bind(async order => await SendConfirmationEmail(order))
-        .InspectErr(error => Logger.Error($"Order processing failed: {error}"))
-        .OrElse(error => CreatePendingOrder(request, error));
+        .BindAsync(
+            async order => await ProcessPaymentAsync(order, cancellationToken), 
+            cancellationToken
+        )
+        .TapAsync(
+            onSuccess: async payment => await LogSuccessAsync(payment, cancellationToken),
+            onFailure: async error => await LogErrorAsync(error, cancellationToken),
+            cancellationToken
+        )
+        .BindAsync(
+            async payment => await CreateOrderAsync(payment, cancellationToken), 
+            cancellationToken
+        )
+        .BindAsync(
+            async order => await SendConfirmationEmailAsync(order, cancellationToken), 
+            cancellationToken
+        )
+        .OrElseAsync(
+            async error => await CreatePendingOrderAsync(request, error, cancellationToken),
+            cancellationToken
+        );
 }
 ```
 
@@ -428,6 +526,84 @@ var failed = Result<int, string>.Err("Error");
 var willThrow = failed.Unwrap(); // Throws InvalidOperationException
 ```
 
+### Async Extension Methods (ResultAsyncExtensions)
+
+All async extension methods support optional `CancellationToken` parameters for graceful cancellation:
+
+#### `MapAsync<U>`
+Transforms success values asynchronously:
+```csharp
+// Task<Result<T, E>> -> Result<U, E>
+Task<Result<U, E>> MapAsync<U>(
+    this Task<Result<T, E>> resultTask, 
+    Func<T, U> mapper,
+    CancellationToken cancellationToken = default)
+
+// Result<T, E> -> async mapper -> Result<U, E>
+Task<Result<U, E>> MapAsync<U>(
+    this Result<T, E> result, 
+    Func<T, Task<U>> asyncMapper,
+    CancellationToken cancellationToken = default)
+```
+
+#### `BindAsync<U>`
+Chains async operations that return results:
+```csharp
+// Task<Result<T, E>> -> Result<U, E>
+Task<Result<U, E>> BindAsync<U>(
+    this Task<Result<T, E>> resultTask, 
+    Func<T, Result<U, E>> binder,
+    CancellationToken cancellationToken = default)
+
+// Result<T, E> -> async binder -> Result<U, E>
+Task<Result<U, E>> BindAsync<U>(
+    this Result<T, E> result, 
+    Func<T, Task<Result<U, E>>> asyncBinder,
+    CancellationToken cancellationToken = default)
+```
+
+#### `MapErrorAsync<E2>`
+Transforms error types asynchronously:
+```csharp
+Task<Result<T, E2>> MapErrorAsync<E2>(
+    this Task<Result<T, E>> resultTask, 
+    Func<E, E2> errorMapper,
+    CancellationToken cancellationToken = default)
+```
+
+#### `TapAsync`
+Executes async side effects without transforming the result:
+```csharp
+Task<Result<T, E>> TapAsync(
+    this Task<Result<T, E>> resultTask,
+    Func<T, Task> onSuccess,
+    Func<E, Task> onFailure,
+    CancellationToken cancellationToken = default)
+```
+
+#### `OrElseAsync`
+Provides async alternative on failure:
+```csharp
+Task<Result<T, E>> OrElseAsync(
+    this Task<Result<T, E>> resultTask,
+    Func<E, Task<Result<T, E>>> asyncAlternative,
+    CancellationToken cancellationToken = default)
+```
+
+#### `CombineAsync`
+Combines multiple async results:
+```csharp
+Task<Result<IEnumerable<T>, E>> CombineAsync<T, E>(
+    this IEnumerable<Task<Result<T, E>>> resultTasks,
+    CancellationToken cancellationToken = default)
+```
+
+**Cancellation Behavior:**
+- Cancellation is checked at strategic points throughout async operations
+- When cancelled, methods throw `OperationCanceledException`
+- All `CancellationToken` parameters are optional (default value)
+- Existing code without cancellation tokens continues to work unchanged
+
 ## Why Use Result Types?
 
 ### Traditional Exception-Based Approach
@@ -472,15 +648,21 @@ var message = result.Match(
 - ✅ **No Null References**: Avoid `NullReferenceException` by making errors explicit
 - ✅ **Better Code Flow**: Failures don't break the natural flow of your code
 - ✅ **LINQ Integration**: Use familiar C# query syntax for error handling workflows
+- ✅ **Async/Await Support**: Full integration with async patterns including cancellation
+- ✅ **Cancellable Operations**: Graceful cancellation of long-running async operations
 
 ## Testing
 
-The library includes comprehensive test coverage with 69+ unit tests covering:
+The library includes comprehensive test coverage with **157 tests** covering:
 - Basic creation and inspection
 - Pattern matching
 - Equality and hash code
 - Map and Bind operations
 - **LINQ query syntax integration** (SelectMany, Select, from/select)
+- **Advanced features** (MapError, Expect, Tap, Contains)
+- **Collection operations** (Combine, Partition)
+- **Full async support** (MapAsync, BindAsync, TapAsync, OrElseAsync, CombineAsync)
+- **Cancellation token support** (all async methods with cancellation scenarios)
 - Exception handling (Try/TryAsync)
 - Side effects (Inspect/InspectErr)
 - Value extraction methods
@@ -497,13 +679,22 @@ This library is production-ready with:
 - ✅ Full equality implementation
 - ✅ Comprehensive API surface
 - ✅ Exception handling helpers
-- ✅ Extensive test coverage (69+ tests)
+- ✅ Extensive test coverage (**157 tests**)
 - ✅ Proper null handling
 - ✅ Argument validation
 - ✅ Clear documentation
 - ✅ **Full LINQ query syntax support**
+- ✅ **Complete async/await integration**
+- ✅ **Cancellation token support for all async operations**
+- ✅ **Advanced error handling features** (MapError, Expect, Tap, etc.)
+- ✅ **Collection operations** (Combine, Partition)
+- ✅ **100% backward compatibility**
 
 See [RESULT_TYPE_IMPROVEMENTS.md](Esox.SharpAndRusty/RESULT_TYPE_IMPROVEMENTS.md) for detailed information about production-ready features.
+
+See [ADVANCED_FEATURES.md](Esox.SharpAndRusty/ADVANCED_FEATURES.md) for comprehensive guide on advanced features including async support, collection operations, and error transformation.
+
+See [CANCELLATION_TOKEN_SUPPORT.md](CANCELLATION_TOKEN_SUPPORT.md) for detailed information about cancellation token support in async operations.
 
 ## Contributing
 

@@ -425,17 +425,6 @@ public class ResultExtensionsAdvancedTests
             result.SelectMany(Result<int, string>.Ok, (Func<int, int, int>)null!));
     }
 
-    [Fact]
-    public void Where_ThrowsOnNullPredicate()
-    {
-        // Arrange
-        var result = Result<int, string>.Ok(42);
-
-        // Act & Assert
-        Assert.Throws<ArgumentNullException>(() =>
-            result.Where(null!));
-    }
-
     #endregion
 
     #region Integration Tests
