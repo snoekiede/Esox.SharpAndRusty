@@ -131,7 +131,7 @@ public class ResultAsyncExtensionsTests
         var result = Result<int, string>.Ok(10);
 
         // Act
-        var bound = await result.BindAsync(async x =>
+        var bound = await result.BindAsync(async _ =>
         {
             await Task.Delay(1);
             return Result<int, string>.Err("Binder error");
@@ -208,12 +208,12 @@ public class ResultAsyncExtensionsTests
 
         // Act
         var result = await resultTask.TapAsync(
-            onSuccess: async value =>
+            onSuccess: async _ =>
             {
                 await Task.Delay(1);
                 successCalled = true;
             },
-            onFailure: async error =>
+            onFailure: async _ =>
             {
                 await Task.Delay(1);
                 failureCalled = true;
@@ -236,12 +236,12 @@ public class ResultAsyncExtensionsTests
 
         // Act
         var result = await resultTask.TapAsync(
-            onSuccess: async value =>
+            onSuccess: async _ =>
             {
                 await Task.Delay(1);
                 successCalled = true;
             },
-            onFailure: async error =>
+            onFailure: async _ =>
             {
                 await Task.Delay(1);
                 failureCalled = true;
@@ -265,7 +265,7 @@ public class ResultAsyncExtensionsTests
         var resultTask = Task.FromResult(Result<int, string>.Ok(42));
 
         // Act
-        var result = await resultTask.OrElseAsync(async error =>
+        var result = await resultTask.OrElseAsync(async _ =>
         {
             await Task.Delay(1);
             return Result<int, string>.Ok(0);
@@ -283,7 +283,7 @@ public class ResultAsyncExtensionsTests
         var resultTask = Task.FromResult(Result<int, string>.Err("Error"));
 
         // Act
-        var result = await resultTask.OrElseAsync(async error =>
+        var result = await resultTask.OrElseAsync(async _ =>
         {
             await Task.Delay(1);
             return Result<int, string>.Ok(99);
@@ -315,7 +315,7 @@ public class ResultAsyncExtensionsTests
         // Assert
         Assert.True(combined.IsSuccess);
         combined.TryGetValue(out var values);
-        Assert.Equal(new[] { 1, 2, 3 }, values);
+        Assert.Equal([1, 2, 3], values);
     }
 
     [Fact]
@@ -361,7 +361,7 @@ public class ResultAsyncExtensionsTests
         // Assert
         Assert.True(combined.IsSuccess);
         combined.TryGetValue(out var values);
-        Assert.Equal(new[] { 1, 2, 3 }, values);
+        Assert.Equal([1, 2, 3], values);
     }
 
     #endregion
@@ -469,7 +469,7 @@ public class ResultAsyncExtensionsTests
 
         // Act & Assert
         await Assert.ThrowsAsync<ArgumentNullException>(async () =>
-            await resultTask!.BindAsync(x => Result<int, string>.Ok(x)));
+            await resultTask!.BindAsync(Result<int, string>.Ok));
     }
 
     #endregion

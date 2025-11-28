@@ -238,7 +238,7 @@ public class ResultExtensionsAdvancedTests
         // Assert
         Assert.True(combined.IsSuccess);
         combined.TryGetValue(out var values);
-        Assert.Equal(new[] { 1, 2, 3 }, values);
+        Assert.Equal([1, 2, 3], values);
     }
 
     [Fact]
@@ -378,7 +378,7 @@ public class ResultExtensionsAdvancedTests
 
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() =>
-            result.Bind((Func<int, Result<int, string>>)null!));
+            result.Bind<int, string, int>(null!));
     }
 
     [Fact]
@@ -400,7 +400,7 @@ public class ResultExtensionsAdvancedTests
 
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() =>
-            result.SelectMany((Func<int, Result<int, string>>)null!));
+            result.SelectMany<int, string, int>(null!));
     }
 
     [Fact]
@@ -422,7 +422,7 @@ public class ResultExtensionsAdvancedTests
 
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() =>
-            result.SelectMany(x => Result<int, string>.Ok(x), (Func<int, int, int>)null!));
+            result.SelectMany(Result<int, string>.Ok, (Func<int, int, int>)null!));
     }
 
     [Fact]
@@ -450,7 +450,7 @@ public class ResultExtensionsAdvancedTests
         var final = result
             .MapError(int.Parse)
             .MapError(code => $"Error code: {code}")
-            .OrElse(error => Result<int, string>.Ok(0));
+            .OrElse(_ => Result<int, string>.Ok(0));
 
         // Assert
         Assert.True(final.IsSuccess);
