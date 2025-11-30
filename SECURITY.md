@@ -1,0 +1,557 @@
+# Security Policy
+
+## Supported Versions
+
+We take security seriously and provide security updates for the following versions of Esox.SharpAndRusty:
+
+| Version | Supported          | Status |
+| ------- | ------------------ | ------ |
+| 1.2.x   | :white_check_mark: | Current stable release |
+| 1.1.x   | :white_check_mark: | Maintenance support |
+| 1.0.x   | :warning:          | Critical fixes only |
+| < 1.0   | :x:                | No longer supported |
+
+### Support Timeline
+
+- **Current Release (1.2.x)**: Full security support with immediate patches
+- **Previous Release (1.1.x)**: Security updates for critical vulnerabilities (6 months after 1.2.0 release)
+- **Older Releases (1.0.x)**: Critical security fixes only (3 months after 1.2.0 release)
+- **Legacy Versions (< 1.0)**: Not supported - please upgrade
+
+---
+
+## Reporting a Vulnerability
+
+We take all security vulnerabilities seriously. If you discover a security issue, please report it responsibly.
+
+### How to Report
+
+**Please do NOT report security vulnerabilities through public GitHub issues.**
+
+Instead, please report security vulnerabilities by:
+
+1. **Email** (Preferred): Send details to **security@esoxsolutions.com**
+2. **GitHub Security Advisory**: Use [GitHub's private vulnerability reporting](https://github.com/snoekiede/Esox.SharpAndRusty/security/advisories/new)
+
+### What to Include
+
+Please include the following information in your report:
+
+- **Description**: Clear description of the vulnerability
+- **Impact**: What an attacker could achieve
+- **Reproduction Steps**: Detailed steps to reproduce the issue
+- **Affected Versions**: Which versions are affected
+- **Proof of Concept**: Code or screenshots (if applicable)
+- **Suggested Fix**: Your proposed solution (if you have one)
+- **Contact Information**: How we can reach you for follow-up
+
+**Example Template:**
+
+```markdown
+## Vulnerability Report
+
+### Summary
+Brief description of the vulnerability.
+
+### Affected Component
+- File: ErrorExtensions.cs
+- Method: TryAsync
+- Versions: 1.2.0, 1.1.0
+
+### Vulnerability Type
+- [ ] Code Injection
+- [ ] Information Disclosure
+- [ ] Denial of Service
+- [ ] Authentication Bypass
+- [ ] Other: _______________
+
+### Impact
+What can an attacker do with this vulnerability?
+
+### Reproduction Steps
+1. Create a Result<T, Error> with...
+2. Call method X with parameters...
+3. Observe behavior...
+
+### Proof of Concept
+```csharp
+// Minimal code to reproduce
+var result = Result<int, Error>.Ok(42);
+// ...
+```
+
+### Environment
+- .NET Version: 10.0
+- OS: Windows 11 / macOS / Linux
+- Library Version: 1.2.0
+
+### Suggested Fix
+Optional: Your proposed solution.
+```
+```
+
+### Response Timeline
+
+We aim to respond to security reports according to the following timeline:
+
+- **Initial Response**: Within 48 hours
+- **Confirmation**: Within 5 business days
+- **Status Updates**: Every 7 days until resolution
+- **Patch Release**: Based on severity (see below)
+
+### Severity Levels and Response Times
+
+| Severity | Description | Response Time | Public Disclosure |
+|----------|-------------|---------------|-------------------|
+| **Critical** | Remote code execution, data breach, authentication bypass | 24-48 hours | After patch released |
+| **High** | Privilege escalation, significant data exposure | 7 days | After patch released |
+| **Medium** | Limited information disclosure, denial of service | 30 days | After patch released |
+| **Low** | Minor security improvements, edge cases | Next release | With release notes |
+
+---
+
+## Security Best Practices
+
+### For Library Users
+
+#### 1. Keep Dependencies Updated
+
+Always use the latest stable version:
+
+```bash
+# Check for updates
+dotnet list package --outdated
+
+# Update to latest version
+dotnet add package Esox.SharpAndRusty --version 1.2.0
+```
+
+#### 2. Validate Input Data
+
+Always validate data before processing, especially in error messages:
+
+```csharp
+// ? Don't expose sensitive data in error messages
+var error = Error.New($"Failed to process credit card: {creditCardNumber}");
+
+// ? Use sanitized messages
+var error = Error.New("Failed to process payment")
+    .WithMetadata("transactionId", transactionId)  // Safe to log
+    .WithMetadata("timestamp", DateTime.UtcNow);
+```
+
+#### 3. Handle Sensitive Metadata Carefully
+
+Be cautious with metadata containing sensitive information:
+
+```csharp
+// ? Don't store sensitive data in metadata
+error.WithMetadata("password", userPassword);
+error.WithMetadata("apiKey", secretKey);
+
+// ? Use metadata for debugging, not secrets
+error.WithMetadata("userId", userId);
+error.WithMetadata("operationType", "login");
+error.WithMetadata("attemptCount", 3);
+```
+
+#### 4. Secure Exception Handling
+
+Use `Try` and `TryAsync` to prevent information leakage:
+
+```csharp
+// ? Don't expose full exception details to users
+try
+{
+    // Operation
+}
+catch (Exception ex)
+{
+    return Error.FromException(ex); // May contain stack traces
+}
+
+// ? Sanitize error messages for users
+var result = ErrorExtensions.Try(() => SensitiveOperation())
+    .MapError(error => Error.New("Operation failed")
+        .WithKind(error.Kind)
+        // Don't include stack trace or detailed error in production
+    );
+```
+
+#### 5. Limit Error Chain Depth
+
+The library automatically limits error chains to 50 levels, but be mindful:
+
+```csharp
+// The library protects against this automatically
+// But avoid creating unnecessarily deep chains
+var error = baseError;
+for (int i = 0; i < 1000; i++)  // Protected by depth limit
+{
+    error = error.WithContext($"Level {i}");
+}
+```
+
+#### 6. Secure Async Operations
+
+Always use cancellation tokens to prevent resource exhaustion:
+
+```csharp
+// ? Use cancellation tokens
+var result = await ErrorExtensions.TryAsync(
+    async () => await LongRunningOperation(),
+    cancellationToken: cts.Token
+);
+
+// ? Set timeouts for operations
+using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+var result = await ProcessAsync(cts.Token);
+```
+
+### For Contributors
+
+#### 1. Code Review Checklist
+
+All code must pass security review before merging:
+
+- [ ] No hardcoded secrets or credentials
+- [ ] Input validation for all public APIs
+- [ ] No sensitive data in logs or error messages
+- [ ] Proper exception handling
+- [ ] No SQL injection vectors (if database access added)
+- [ ] No code injection vulnerabilities
+- [ ] Thread-safe operations
+- [ ] Proper async/await patterns with cancellation
+- [ ] No denial of service vulnerabilities
+
+#### 2. Dependency Security
+
+- Use only trusted NuGet packages
+- Keep dependencies updated
+- Review dependency security advisories
+- Minimize dependency count
+
+#### 3. Secure Coding Guidelines
+
+**Argument Validation:**
+```csharp
+public Error WithMetadata(string key, object value)
+{
+    // ? Always validate arguments
+    if (key is null) throw new ArgumentNullException(nameof(key));
+    if (value is null) throw new ArgumentNullException(nameof(value));
+    
+    // ? Validate business rules
+    if (!IsMetadataTypeValid(value))
+    {
+        throw new ArgumentException(
+            $"Type {value.GetType().Name} is not suitable for metadata.",
+            nameof(value));
+    }
+    
+    // Implementation
+}
+```
+
+**Immutability:**
+```csharp
+// ? Use readonly fields
+private readonly string _message;
+private readonly ImmutableDictionary<string, object>? _metadata;
+
+// ? Return new instances, don't modify existing
+public Error WithContext(string contextMessage)
+{
+    return new Error(contextMessage, _kind, this, null, null);
+}
+```
+
+**Resource Cleanup:**
+```csharp
+// ? Proper async disposal
+public async Task<Result<T, Error>> ProcessAsync(CancellationToken cancellationToken)
+{
+    await using var resource = await AcquireResourceAsync();
+    // Use resource
+}
+```
+
+---
+
+## Known Security Considerations
+
+### 1. Stack Trace Exposure
+
+**Issue**: Stack traces may contain sensitive file paths or internal implementation details.
+
+**Mitigation**:
+- Use `CaptureStackTrace(includeFileInfo: false)` in production
+- Sanitize error messages before sending to clients
+- Use metadata for structured logging instead of stack traces
+
+**Example**:
+```csharp
+#if DEBUG
+var error = Error.New("Operation failed")
+    .CaptureStackTrace(includeFileInfo: true);  // Detailed in dev
+#else
+var error = Error.New("Operation failed")
+    .CaptureStackTrace(includeFileInfo: false);  // Safe in production
+#endif
+```
+
+### 2. Error Message Information Disclosure
+
+**Issue**: Detailed error messages might reveal internal system structure.
+
+**Mitigation**:
+- Use generic error messages for external users
+- Store detailed information in metadata (logged internally)
+- Filter error messages based on environment
+
+**Example**:
+```csharp
+public Error CreateUserFacingError(Error internalError)
+{
+    // External: Generic message
+    var publicError = Error.New("An error occurred")
+        .WithKind(internalError.Kind);
+    
+    // Internal: Full context (logged, not sent to client)
+    Logger.LogError(internalError.GetFullMessage());
+    
+    return publicError;
+}
+```
+
+### 3. Metadata Storage
+
+**Issue**: Metadata is stored as objects and could contain references to sensitive data.
+
+**Mitigation**:
+- Type validation prevents storing complex objects
+- Only primitives, strings, and value types allowed
+- Immutable collections prevent modification
+
+**Protected by Design**:
+```csharp
+// ? Type validation prevents this
+error.WithMetadata("connection", databaseConnection);  // Throws ArgumentException
+
+// ? Only safe types allowed
+error.WithMetadata("userId", 123);           // OK: int
+error.WithMetadata("timestamp", DateTime.UtcNow);  // OK: DateTime
+```
+
+### 4. Async Exception Handling
+
+**Issue**: Unhandled exceptions in async operations could leak information.
+
+**Mitigation**:
+- All async methods have proper exception handling
+- Cancellation tokens supported throughout
+- Proper async/await patterns used
+
+**Built-in Protection**:
+```csharp
+public static async Task<Result<T, Error>> TryAsync<T>(
+    Func<Task<T>> operation,
+    CancellationToken cancellationToken = default)
+{
+    try
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var value = await operation().ConfigureAwait(false);
+        return Ok(value);
+    }
+    catch (Exception ex)  // All exceptions caught
+    {
+        return Err(Error.FromException(ex));
+    }
+}
+```
+
+### 5. Circular Reference Protection
+
+**Issue**: Circular references in error chains could cause stack overflow or infinite loops.
+
+**Mitigation**:
+- HashSet-based cycle detection in `GetFullMessage()`
+- Depth limiting (max 50 levels)
+- Graceful degradation with informative messages
+
+**Automatic Protection**:
+```csharp
+// Protected automatically - no user action needed
+var message = error.GetFullMessage();  // Safe, even with cycles
+```
+
+---
+
+## Security Features
+
+### Built-in Security Mechanisms
+
+1. **Immutability**
+   - All types are immutable by design
+   - Prevents accidental or malicious modification
+   - Thread-safe by default
+
+2. **Type Safety**
+   - Strong typing prevents type confusion attacks
+   - Generic constraints ensure type correctness
+   - Nullable reference types prevent null reference errors
+
+3. **Resource Management**
+   - Proper async/await patterns
+   - Cancellation token support
+   - No resource leaks
+
+4. **Depth Limiting**
+   - Error chains limited to 50 levels
+   - Prevents stack overflow attacks
+   - Graceful degradation
+
+5. **Cycle Detection**
+   - HashSet-based circular reference detection
+   - Prevents infinite loops
+   - O(1) detection per node
+
+6. **Argument Validation**
+   - All public APIs validate arguments
+   - Clear exception messages
+   - No undefined behavior
+
+---
+
+## Compliance and Standards
+
+### Security Standards
+
+This library follows these security principles:
+
+- **OWASP Secure Coding Practices**: Input validation, error handling, data protection
+- **Principle of Least Privilege**: Minimal API surface, restricted access
+- **Defense in Depth**: Multiple layers of protection
+- **Fail Securely**: Secure defaults, graceful degradation
+- **Secure by Design**: Immutability, type safety, validation
+
+### Privacy Considerations
+
+- **No Telemetry**: Library does not collect or send any data
+- **No External Dependencies**: No third-party data transmission
+- **Local Processing Only**: All operations are local
+- **User Control**: You control what data goes into errors/metadata
+
+---
+
+## Security Updates
+
+### Notification Channels
+
+Stay informed about security updates:
+
+1. **GitHub Security Advisories**: [Subscribe to security advisories](https://github.com/snoekiede/Esox.SharpAndRusty/security/advisories)
+2. **GitHub Releases**: [Watch releases](https://github.com/snoekiede/Esox.SharpAndRusty/releases)
+3. **NuGet**: Check for updates regularly
+
+### Update Process
+
+When a security update is released:
+
+1. **Announcement**: Published on GitHub and security advisory
+2. **Patch Release**: New version released with fix
+3. **CHANGELOG**: Updated with security fix details
+4. **Documentation**: Updated if necessary
+
+---
+
+## Responsible Disclosure
+
+### Our Commitment
+
+We are committed to:
+
+- **Acknowledgment**: We will acknowledge receipt of your report
+- **Communication**: We will keep you informed of progress
+- **Credit**: We will credit you in release notes (if desired)
+- **Responsible Disclosure**: We will coordinate disclosure timing with you
+
+### Disclosure Timeline
+
+1. **Day 0**: Vulnerability reported
+2. **Day 2**: Initial response and acknowledgment
+3. **Day 5**: Confirmation and severity assessment
+4. **Day 7-30**: Patch development and testing
+5. **Release**: Security update released
+6. **Disclosure**: Public disclosure after patch is available
+
+### Hall of Fame
+
+We maintain a security researchers hall of fame for those who help us improve security:
+
+- [Security Researchers](SECURITY_RESEARCHERS.md) (when applicable)
+
+---
+
+## Questions and Contact
+
+### Security Questions
+
+For security-related questions:
+
+- **Email**: security@esoxsolutions.com
+- **GitHub**: [Create a private security advisory](https://github.com/snoekiede/Esox.SharpAndRusty/security/advisories/new)
+
+### General Questions
+
+For non-security questions:
+
+- **GitHub Issues**: [Create an issue](https://github.com/snoekiede/Esox.SharpAndRusty/issues)
+- **GitHub Discussions**: [Start a discussion](https://github.com/snoekiede/Esox.SharpAndRusty/discussions)
+
+---
+
+## Additional Resources
+
+- [OWASP Secure Coding Practices](https://owasp.org/www-project-secure-coding-practices-quick-reference-guide/)
+- [Microsoft Security Development Lifecycle](https://www.microsoft.com/en-us/securityengineering/sdl)
+- [.NET Security Guidelines](https://docs.microsoft.com/en-us/dotnet/standard/security/)
+- [NuGet Package Security Best Practices](https://docs.microsoft.com/en-us/nuget/concepts/security-best-practices)
+
+---
+
+**Last Updated**: 2024  
+**Policy Version**: 1.0  
+**Contact**: security@esoxsolutions.com
+
+---
+
+## Appendix: Security Checklist for Users
+
+### Before Using in Production
+
+- [ ] Review this security policy
+- [ ] Update to latest stable version (1.2.0)
+- [ ] Validate no sensitive data in error messages
+- [ ] Sanitize error messages before sending to clients
+- [ ] Use `includeFileInfo: false` for stack traces
+- [ ] Implement proper logging (separate from user-facing errors)
+- [ ] Use cancellation tokens for async operations
+- [ ] Set appropriate timeouts
+- [ ] Test error handling paths
+- [ ] Review metadata contents
+
+### Ongoing Security Maintenance
+
+- [ ] Monitor for security advisories
+- [ ] Update dependencies regularly
+- [ ] Review security logs
+- [ ] Test security scenarios
+- [ ] Train team on secure usage
+- [ ] Conduct security reviews
+- [ ] Keep documentation updated
+
+---
+
+Thank you for helping keep Esox.SharpAndRusty and its users secure! ??
