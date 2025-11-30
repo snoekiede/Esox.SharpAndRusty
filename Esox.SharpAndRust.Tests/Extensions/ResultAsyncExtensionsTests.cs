@@ -486,7 +486,7 @@ public class ResultAsyncExtensionsTests
             await Task.Delay(100, cts.Token);
             return Result<int, string>.Ok(42);
         }, cts.Token);
-        cts.Cancel();
+        await cts.CancelAsync();
 
         // Act & Assert
         await Assert.ThrowsAsync<TaskCanceledException>(async () =>
@@ -501,7 +501,7 @@ public class ResultAsyncExtensionsTests
         var result = Result<int, string>.Ok(42);
         
         // Act & Assert
-        cts.Cancel();
+        await cts.CancelAsync();
         await Assert.ThrowsAsync<OperationCanceledException>(async () =>
             await result.MapAsync(async x =>
             {
