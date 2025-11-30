@@ -12,6 +12,7 @@ This library is provided "as is" without warranty of any kind, either express or
 
 - ✅ **Type-Safe Error Handling**: Explicitly represent success and failure states in your type signatures
 - ✅ **Rust-Inspired API**: Familiar patterns for developers coming from Rust or functional programming
+- ✅ **Rich Error Type**: Rust-inspired `Error` type with context chaining, metadata, and error categorization
 - ✅ **Zero Overhead**: Implemented as a `readonly struct` for optimal performance
 - ✅ **Functional Composition**: Chain operations with `Map`, `Bind`, `MapError`, and `OrElse`
 - ✅ **Pattern Matching**: Use the `Match` method for elegant success/failure handling
@@ -22,6 +23,7 @@ This library is provided "as is" without warranty of any kind, either express or
 - ✅ **LINQ Query Syntax**: Full support for C# LINQ query comprehension with `from`, `select`, and more
 - ✅ **Collection Operations**: `Combine` and `Partition` for batch processing
 - ✅ **Full Async Support**: Complete async/await integration with `MapAsync`, `BindAsync`, `TapAsync`, and more
+- ✅ **Cancellation Support**: All async methods support `CancellationToken` for graceful operation cancellation
 - ✅ **.NET 10 Compatible**: Built for the latest .NET platform with C# 14
 
 ## Installation
@@ -60,6 +62,12 @@ var result = from x in Result<int, string>.Ok(10)
              from y in Result<int, string>.Ok(20)
              select x + y;
 // Result: Ok(30)
+
+// Use the Error type for rich error handling
+var richResult = ErrorExtensions.Try(() => int.Parse("42"))
+    .Context("Failed to parse user age")
+    .WithMetadata("input", "42")
+    .WithKind(ErrorKind.ParseError);
 ```
 
 ## Usage Examples
@@ -332,45 +340,107 @@ var fileContent = Result<string, string>.Try(
     operation: () => File.ReadAllText("config.json"),
     errorHandler: ex => $"Failed to read config: {ex.Message}"
 );
+
+// Using the Error type for automatic exception conversion
+var richResult = ErrorExtensions.Try(() => int.Parse("42"));
+// Automatically converts exceptions to Error with appropriate ErrorKind
+
+var asyncRichResult = await ErrorExtensions.TryAsync(
+    async () => await File.ReadAllTextAsync("config.json"));
+// Returns Result<string, Error>
 ```
 
-### Complex Real-World Example
+### Rich Error Handling with Error Type
+
+The library includes a Rust-inspired `Error` type for rich error handling with **production-grade optimizations**:
 
 ```csharp
-public async Task<Result<OrderConfirmation, string>> ProcessOrderAsync(OrderRequest request)
+using Esox.SharpAndRusty.Types;
+using Esox.SharpAndRusty.Extensions;
+
+// Automatic exception conversion with error kinds
+var result = ErrorExtensions.Try(() => File.ReadAllText("config.json"))
+    .Context("Failed to load configuration")
+    .WithMetadata("path", "config.json")
+    .WithKind(ErrorKind.NotFound);
+
+// Type-safe metadata with compile-time safety
+var error = Error.New("Operation failed")
+    .WithMetadata("userId", 123)           // Type-safe: int
+    .WithMetadata("timestamp", DateTime.UtcNow)  // Type-safe: DateTime
+    .WithMetadata("isRetryable", true);    // Type-safe: bool
+
+// Type-safe metadata retrieval
+if (error.TryGetMetadata("userId", out int userId))
 {
-    // Validate, process payment, create order, send email - all in a chain
-    return await ValidateOrder(request)
-        .Bind(order => ProcessPayment(order))
-        .Inspect(payment => Logger.Info($"Payment processed: {payment.TransactionId}"))
-        .Bind(payment => CreateOrder(payment))
-        .Bind(async order => await SendConfirmationEmail(order))
-        .InspectErr(error => Logger.Error($"Order processing failed: {error}"))
-        .OrElse(error => 
-        {
-            // Fallback: create pending order for manual review
-            return CreatePendingOrder(request, error);
-        });
+    Console.WriteLine($"Failed for user: {userId}");
 }
 
-Result<Order, string> ValidateOrder(OrderRequest request)
+// Context chaining for error propagation
+Result<Config, Error> LoadConfig(string path)
 {
-    if (request.Items.Count == 0)
-        return Result<Order, string>.Err("Order must contain at least one item");
-    if (request.Total <= 0)
-        return Result<Order, string>.Err("Order total must be positive");
-    
-    return Result<Order, string>.Ok(new Order(request));
+    return ReadFile(path)
+        .Context($"Failed to load config from {path}")
+        .Bind(content => ParseConfig(content)
+            .Context("Failed to parse configuration")
+            .WithKind(ErrorKind.ParseError));
 }
 
-Result<Payment, string> ProcessPayment(Order order)
+// Full error chain display with metadata
+if (result.TryGetError(out var error))
 {
-    // Payment processing logic
-    return paymentService.Charge(order.Total)
-        ? Result<Payment, string>.Ok(new Payment { Amount = order.Total })
-        : Result<Payment, string>.Err("Payment declined");
+    Console.Error.WriteLine(error.GetFullMessage());
+    // Output:
+    // "NotFound: Failed to load configuration"
+    //   [path=/etc/app/config.json]
+    //   [attemptCount=3]
+    //   Caused by: "Io: File not found: config.json"
 }
+
+// Error categorization with ErrorKind
+if (error.Kind == ErrorKind.NotFound)
+{
+    // Handle not found specifically
+}
+
+// Optional stack trace capture (performance-aware)
+var errorWithTrace = error.CaptureStackTrace(includeFileInfo: false);  // Fast
+var detailedError = error.CaptureStackTrace(includeFileInfo: true);    // Detailed
 ```
+
+**Production Features:**
+- ✅ **ImmutableDictionary** - Efficient metadata storage with structural sharing
+- ✅ **Type-Safe Metadata** - Generic overloads for compile-time type safety
+- ✅ **Metadata type validation** - Validates types at addition time, not serialization
+- ✅ **Depth Limiting** - Error chains truncated at 50 levels (prevents stack overflow)
+- ✅ **Circular Reference Detection** - HashSet-based cycle detection
+- ✅ **Expanded Exception Mapping** - 11 common exception types automatically mapped
+- ✅ **Configurable Stack Traces** - Optional file info for performance tuning
+- ✅ **Metadata Type Validation** - Validates types at addition time, not serialization
+
+**Error Kind Categories:**
+- `NotFound` - Entity not found
+- `InvalidInput` - Invalid data
+- `PermissionDenied` - Insufficient privileges
+- `Timeout` - Operation timed out
+- `Interrupted` - Operation cancelled/interrupted
+- `ParseError` - Parsing failed
+- `Io` - I/O error
+- `ResourceExhausted` - Out of memory, disk full, etc.
+- `InvalidOperation` - Operation invalid for current state
+- And more... (14 categories total)
+
+**Exception to ErrorKind Mapping:**
+- `FileNotFoundException`, `DirectoryNotFoundException` → `NotFound`
+- `TaskCanceledException`, `OperationCanceledException` → `Interrupted`
+- `FormatException` → `ParseError`
+- `OutOfMemoryException` → `ResourceExhausted`
+- `TimeoutException` → `Timeout`
+- `UnauthorizedAccessException` → `PermissionDenied`
+- And more...
+
+See [ERROR_TYPE.md](../ERROR_TYPE.md) for comprehensive Error type documentation.
+See [ERROR_TYPE_PRODUCTION_IMPROVEMENTS.md](../ERROR_TYPE_PRODUCTION_IMPROVEMENTS.md) for detailed production optimization information.
 
 ## API Reference
 
@@ -443,7 +513,7 @@ Result<U, E> Select<U>(this Result<T, E> result, Func<T, U> selector)
 ```csharp
 var result = from x in Result<int, string>.Ok(10)
              select x * 2;
-// Result: Ok(20)
+             // Result: Ok(20)
 ```
 
 #### `SelectMany<U>` (LINQ Support)
@@ -474,6 +544,50 @@ var value = result.Unwrap(); // Returns 42
 var failed = Result<int, string>.Err("Error");
 var willThrow = failed.Unwrap(); // Throws InvalidOperationException
 ```
+
+### `Error` Type
+
+A rich error type inspired by Rust's error handling patterns with **production-grade optimizations**.
+
+#### Static Factory Methods
+- `Error New(string message)` - Creates a new error
+- `Error New(string message, ErrorKind kind)` - Creates an error with a specific kind
+- `Error FromException(Exception exception)` - Converts an exception to an error (maps 11+ exception types)
+
+#### Instance Methods
+- `Error WithContext(string contextMessage)` - Adds context to the error
+- `Error WithMetadata(string key, object value)` - Attaches metadata (validates types)
+- `Error WithMetadata<T>(string key, T value) where T : struct` - Type-safe metadata attachment
+- `Error WithKind(ErrorKind kind)` - Changes the error kind
+- `Error CaptureStackTrace(bool includeFileInfo = false)` - Captures the current stack trace (configurable)
+- `bool TryGetMetadata(string key, out object? value)` - Gets metadata
+- `bool TryGetMetadata<T>(string key, out T? value)` - Type-safe metadata retrieval
+- `string GetFullMessage()` - Gets the full error chain as a string (depth-limited, circular-safe)
+
+#### Properties
+- `string Message` - The error message
+- `ErrorKind Kind` - The error category (14 predefined kinds)
+- `Error? Source` - The source error (if chained)
+- `string? StackTrace` - The captured stack trace
+- `bool HasSource` - Whether this error has a source
+
+#### Production Features
+- **ImmutableDictionary** for metadata - O(log n) operations with structural sharing
+- **Type-safe metadata API** - Generic overloads for compile-time type safety
+- **Metadata type validation** - Validates at addition time (primitives, DateTime, Guid, enums, value types)
+- **Depth limiting** - Error chains truncated at 50 levels to prevent stack overflow
+- **Circular reference detection** - HashSet-based cycle detection prevents infinite loops
+- **Expanded exception mapping** - 11 common exception types automatically categorized
+- **Configurable stack traces** - Optional file info for performance tuning
+- **Equality support** - Proper `Equals`, `GetHashCode`, `==`, `!=` operators
+
+**Performance Characteristics:**
+- Metadata addition: O(log n) with structural sharing
+- Depth limit: Bounded at 50 levels
+- Circular detection: O(1) per node
+- Memory: Immutable with structural sharing
+
+See [ERROR_TYPE_PRODUCTION_IMPROVEMENTS.md](../ERROR_TYPE_PRODUCTION_IMPROVEMENTS.md) for complete optimization details.
 
 ## Why Use Result Types?
 
@@ -513,16 +627,21 @@ var message = result.Match(
 
 - ✅ **Explicit Error Handling**: Method signatures clearly communicate potential failures
 - ✅ **Type Safety**: Compile-time guarantees about error handling
+- ✅ **Rich Error Context**: Chain error context as failures propagate up the call stack
+- ✅ **Error Categorization**: 14 predefined error kinds for appropriate handling
 - ✅ **Performance**: Avoid exception overhead for expected failure cases
 - ✅ **Composability**: Easily chain operations with functional combinators
 - ✅ **Testability**: Easier to test both success and failure paths
 - ✅ **No Null References**: Avoid `NullReferenceException` by making errors explicit
 - ✅ **Better Code Flow**: Failures don't break the natural flow of your code
 - ✅ **LINQ Integration**: Use familiar C# query syntax for error handling workflows
+- ✅ **Async/Await Support**: Full integration with async patterns including cancellation
+- ✅ **Cancellable Operations**: Graceful cancellation of long-running async operations
+- ✅ **Debugging Support**: Metadata attachment and full error chain display for debugging
 
 ## Testing
 
-The library includes comprehensive test coverage with **123 unit tests** covering:
+The library includes comprehensive test coverage with **230 unit tests** covering:
 - Basic creation and inspection
 - Pattern matching
 - Equality and hash code
@@ -531,6 +650,18 @@ The library includes comprehensive test coverage with **123 unit tests** coverin
 - **Advanced features** (MapError, Expect, Tap, Contains)
 - **Collection operations** (Combine, Partition)
 - **Full async support** (MapAsync, BindAsync, TapAsync, OrElseAsync, CombineAsync)
+- **Cancellation token support** (all async methods with cancellation scenarios)
+- **Error type** (64 comprehensive tests)
+  - Context chaining and error propagation
+  - Type-safe metadata with generics
+  - Metadata type validation
+  - Exception conversion with 11 exception types
+  - Error kind modification
+  - Stack trace capture (configurable)
+  - Depth limiting (50 levels)
+  - Circular reference detection
+  - Full error chain formatting
+  - Equality and hash code
 - Exception handling (Try/TryAsync)
 - Side effects (Inspect/InspectErr)
 - Value extraction methods
@@ -538,24 +669,4 @@ The library includes comprehensive test coverage with **123 unit tests** coverin
 
 Run tests:
 ```bash
-dotnet test
-```
-
-## Production Readiness
-
-This library is production-ready with:
-- ✅ Full equality implementation
-- ✅ Comprehensive API surface
-- ✅ Exception handling helpers
-- ✅ Extensive test coverage (**123 tests**)
-- ✅ Proper null handling
-- ✅ Argument validation
-- ✅ Clear documentation
-- ✅ **Full LINQ query syntax support**
-- ✅ **Complete async/await integration**
-- ✅ **Advanced error handling features** (MapError, Expect, Tap, etc.)
-- ✅ **Collection operations** (Combine, Partition)
-
-See [RESULT_TYPE_IMPROVEMENTS.md](RESULT_TYPE_IMPROVEMENTS.md) for detailed information about production-ready features.
-
-See [ADVANCED_FEATURES.md](ADVANCED_FEATURES.md) for comprehensive guide on advanced features including async support, collection operations, and error transformation
+dotne
