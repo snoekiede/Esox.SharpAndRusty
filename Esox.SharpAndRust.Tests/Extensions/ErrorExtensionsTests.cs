@@ -1,6 +1,5 @@
 using Esox.SharpAndRusty.Extensions;
 using Esox.SharpAndRusty.Types;
-using Xunit;
 
 namespace Esox.SharpAndRust.Tests.Extensions
 {
@@ -177,7 +176,7 @@ namespace Esox.SharpAndRust.Tests.Extensions
             using var cts = new CancellationTokenSource();
             var result = Task.FromResult(Result<int, Error>.Err(Error.New("Error")));
             
-            cts.Cancel();
+            await cts.CancelAsync();
 
             await Assert.ThrowsAsync<OperationCanceledException>(async () =>
                 await result.ContextAsync("Failed", cts.Token));
@@ -284,11 +283,11 @@ namespace Esox.SharpAndRust.Tests.Extensions
         public async Task TryAsync_WithCancellation_ThrowsWhenCancelled()
         {
             using var cts = new CancellationTokenSource();
-            cts.Cancel();
+            await cts.CancelAsync();
 
             var result = await ErrorExtensions.TryAsync(async () =>
             {
-                await Task.Delay(1000);
+                await Task.Delay(1000, cts.Token);
                 return 42;
             }, cts.Token);
 
