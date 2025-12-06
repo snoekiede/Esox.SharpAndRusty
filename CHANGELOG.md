@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.2.0] - 2024
+## [1.2.0] - 2025
 
 ### Added
 
@@ -80,7 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.1.0] - 2024
+## [1.1.0] - 2025
 
 ### Added
 
@@ -138,7 +138,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.0.0] - 2024
+## [1.0.0] - 2025
 
 ### Added
 
@@ -197,9 +197,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 | Version | Tests | Features | Documentation | Production Ready |
 |---------|-------|----------|---------------|------------------|
-| 1.0.0   | 150+  | Core Result type | Basic | ?? Beta |
-| 1.1.0   | 202   | + LINQ, Async, Error type | Comprehensive | ? Yes |
-| 1.2.0   | 230   | + Production optimizations | Complete | ? Enterprise |
+| 1.0.0   | 150+  | Core Result type | Basic | Beta |
+| 1.1.0   | 202   | + LINQ, Async, Error type | Comprehensive | Yes |
+| 1.2.0   | 230   | + Production optimizations | Complete | Yes |
 
 ---
 

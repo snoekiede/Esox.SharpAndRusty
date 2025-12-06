@@ -30,8 +30,8 @@ We take all security vulnerabilities seriously. If you discover a security issue
 
 Instead, please report security vulnerabilities by:
 
-1. **Email** (Preferred): Send details to **security@esoxsolutions.com**
-2. **GitHub Security Advisory**: Use [GitHub's private vulnerability reporting](https://github.com/snoekiede/Esox.SharpAndRusty/security/advisories/new)
+1. **Email** (Preferred): Send details to **info@codenomad.nl**
+
 
 ### What to Include
 
@@ -99,14 +99,7 @@ We aim to respond to security reports according to the following timeline:
 - **Status Updates**: Every 7 days until resolution
 - **Patch Release**: Based on severity (see below)
 
-### Severity Levels and Response Times
 
-| Severity | Description | Response Time | Public Disclosure |
-|----------|-------------|---------------|-------------------|
-| **Critical** | Remote code execution, data breach, authentication bypass | 24-48 hours | After patch released |
-| **High** | Privilege escalation, significant data exposure | 7 days | After patch released |
-| **Medium** | Limited information disclosure, denial of service | 30 days | After patch released |
-| **Low** | Minor security improvements, edge cases | Next release | With release notes |
 
 ---
 
@@ -131,10 +124,10 @@ dotnet add package Esox.SharpAndRusty --version 1.2.0
 Always validate data before processing, especially in error messages:
 
 ```csharp
-// ? Don't expose sensitive data in error messages
+// Don't expose sensitive data in error messages
 var error = Error.New($"Failed to process credit card: {creditCardNumber}");
 
-// ? Use sanitized messages
+// Use sanitized messages
 var error = Error.New("Failed to process payment")
     .WithMetadata("transactionId", transactionId)  // Safe to log
     .WithMetadata("timestamp", DateTime.UtcNow);
@@ -145,11 +138,11 @@ var error = Error.New("Failed to process payment")
 Be cautious with metadata containing sensitive information:
 
 ```csharp
-// ? Don't store sensitive data in metadata
+// Don't store sensitive data in metadata
 error.WithMetadata("password", userPassword);
 error.WithMetadata("apiKey", secretKey);
 
-// ? Use metadata for debugging, not secrets
+// Use metadata for debugging, not secrets
 error.WithMetadata("userId", userId);
 error.WithMetadata("operationType", "login");
 error.WithMetadata("attemptCount", 3);
@@ -160,7 +153,7 @@ error.WithMetadata("attemptCount", 3);
 Use `Try` and `TryAsync` to prevent information leakage:
 
 ```csharp
-// ? Don't expose full exception details to users
+// Don't expose full exception details to users
 try
 {
     // Operation
@@ -170,7 +163,7 @@ catch (Exception ex)
     return Error.FromException(ex); // May contain stack traces
 }
 
-// ? Sanitize error messages for users
+// Sanitize error messages for users
 var result = ErrorExtensions.Try(() => SensitiveOperation())
     .MapError(error => Error.New("Operation failed")
         .WithKind(error.Kind)
@@ -197,13 +190,13 @@ for (int i = 0; i < 1000; i++)  // Protected by depth limit
 Always use cancellation tokens to prevent resource exhaustion:
 
 ```csharp
-// ? Use cancellation tokens
+// Use cancellation tokens
 var result = await ErrorExtensions.TryAsync(
     async () => await LongRunningOperation(),
     cancellationToken: cts.Token
 );
 
-// ? Set timeouts for operations
+// Set timeouts for operations
 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 var result = await ProcessAsync(cts.Token);
 ```
@@ -477,22 +470,7 @@ We are committed to:
 - **Credit**: We will credit you in release notes (if desired)
 - **Responsible Disclosure**: We will coordinate disclosure timing with you
 
-### Disclosure Timeline
 
-1. **Day 0**: Vulnerability reported
-2. **Day 2**: Initial response and acknowledgment
-3. **Day 5**: Confirmation and severity assessment
-4. **Day 7-30**: Patch development and testing
-5. **Release**: Security update released
-6. **Disclosure**: Public disclosure after patch is available
-
-### Hall of Fame
-
-We maintain a security researchers hall of fame for those who help us improve security:
-
-- [Security Researchers](SECURITY_RESEARCHERS.md) (when applicable)
-
----
 
 ## Questions and Contact
 

@@ -361,9 +361,9 @@ var result = ParseInt("42")
 
 ### Benefits of Explicit Validation
 
-- ? **Clear error messages**: Every validation provides specific feedback
-- ? **Testable**: Validation functions can be unit tested independently
-- ? **Reusable**: Create a library of validation functions
-- ? **Type-safe**: Compiler enforces proper error handling
-- ? **Composable**: Chain validations naturally with Bind
-- ? **Self-documenting**: Code clearly shows what validations are performed
+- **Clear error messages**: Every validation provides specific feedback
+- **Testable**: Validation functions can be unit tested independently
+- **Reusable**: Create a library of validation functions
+- **Type-safe**: Compiler enforces proper error handling
+- **Composable**: Chain validations naturally with Bind
+- **Self-documenting**: Code clearly shows what validations are performed

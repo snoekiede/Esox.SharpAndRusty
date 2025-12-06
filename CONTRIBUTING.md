@@ -43,21 +43,18 @@ This project adheres to a code of conduct that we expect all contributors to fol
 
 ```
 Esox.SharpAndRusty/
-??? Esox.SharpAndRusty/           # Main library project
-?   ??? Types/                     # Core types (Result, Error)
-?   ??? Extensions/                # Extension methods
-?   ??? README.md                  # Project documentation
-??? Esox.SharpAndRust.Tests/      # Test project
-?   ??? Types/                     # Type tests
-?   ??? Extensions/                # Extension tests
-?   ??? ...
-??? docs/                          # Documentation files
-?   ??? ERROR_TYPE.md
-?   ??? ERROR_TYPE_EXAMPLES.md
-?   ??? ...
-??? README.md                      # Main repository documentation
-??? CONTRIBUTING.md                # This file
-??? LICENSE.txt                    # MIT License
+    Esox.SharpAndRusty/           # Main library project
+        Types/                     # Core types (Result, Error)
+        Extensions/                # Extension methods
+        README.md                  # Project documentation
+    Esox.SharpAndRust.Tests/      # Test project
+        Types/                     # Type tests
+        Extensions/                # Extension tests
+
+
+    README.md                      # Main repository documentation
+    CONTRIBUTING.md                # This file
+    LICENSE.txt                    # MIT License
 ```
 
 ---
@@ -571,13 +568,13 @@ Tests mirror the main project structure:
 
 ```
 Esox.SharpAndRust.Tests/
-??? Types/
-?   ??? ResultTests.cs          (core Result tests)
-?   ??? ErrorTests.cs           (core Error tests)
-??? Extensions/
-    ??? ResultExtensionsTests.cs
-    ??? ResultAsyncExtensionsTests.cs
-    ??? ErrorExtensionsTests.cs
+    Types/
+        ResultTests.cs          (core Result tests)
+        ErrorTests.cs           (core Error tests)
+    Extensions/
+        ResultExtensionsTests.cs
+        ResultAsyncExtensionsTests.cs
+        ErrorExtensionsTests.cs
 ```
 
 ---

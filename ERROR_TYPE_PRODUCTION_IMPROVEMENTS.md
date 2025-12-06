@@ -2,14 +2,14 @@
 
 This document summarizes the improvements made to the `Error` type to address production readiness concerns and optimize for high-throughput scenarios.
 
-## Date: 2024
+## Date: 2025
 ## Version: Enhanced Production-Ready Implementation
 
 ---
 
 ## Summary of Improvements
 
-### 1. ? Memory Optimization - ImmutableDictionary for Metadata
+### 1. Memory Optimization - ImmutableDictionary for Metadata
 
 **Problem:** Each metadata addition created a new Dictionary copy, causing memory pressure in high-throughput scenarios.
 
@@ -47,7 +47,7 @@ public Error WithMetadata(string key, object value)
 
 ---
 
-### 2. ? Stack Overflow Protection - Error Chain Depth Limit
+### 2. Stack Overflow Protection - Error Chain Depth Limit
 
 **Problem:** No protection against circular references or extremely deep error chains could cause stack overflow.
 
@@ -76,7 +76,7 @@ private static void AppendErrorChain(StringBuilder sb, Error error, int depth)
 
 ---
 
-### 3. ? Expanded Exception Mapping
+### 3. Expanded Exception Mapping
 
 **Problem:** Many common .NET exceptions were not mapped to appropriate `ErrorKind` values.
 
@@ -110,7 +110,7 @@ var kind = exception switch
 
 ---
 
-### 4. ? Configurable Stack Trace Capture
+### 4. Configurable Stack Trace Capture
 
 **Problem:** Stack trace capture with file info (`includeFileInfo: true`) is very expensive and was always enabled.
 
@@ -146,7 +146,7 @@ public Error CaptureStackTrace(bool includeFileInfo = false)
 
 ---
 
-### 5. ? Metadata Type Validation
+### 5. Metadata Type Validation
 
 **Problem:** Metadata accepted any object type, which could lead to serialization issues or unexpected behavior.
 
@@ -244,7 +244,7 @@ private static bool IsMetadataTypeValid(object value)
 
 | Operation | Performance | Memory |
 |-----------|-------------|--------|
-| Add 10 metadata items | O(n²) | High (10 full dictionary copies) |
+| Add 10 metadata items | O(nï¿½) | High (10 full dictionary copies) |
 | Deep error chain (100 levels) | Stack overflow | N/A |
 | Stack trace capture | Slow (always with file info) | High |
 | Exception mapping | 7 exception types | - |
