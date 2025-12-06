@@ -5,7 +5,7 @@ The `Result<T, E>` type has been enhanced to be production-ready with comprehens
 
 ## Key Improvements Made
 
-### 1. ? Removed Implicit Conversions
+### 1. Removed Implicit Conversions
 **Problem**: Implicit conversions from `T` and `E` caused ambiguity when both types were the same (e.g., `Result<string, string>`).
 
 **Solution**: Removed both implicit operators. Users must now explicitly call `Ok()` or `Err()`:
@@ -18,7 +18,7 @@ var result = Result<string, string>.Ok("value");
 var error = Result<string, string>.Err("error");
 ```
 
-### 2. ? Implemented Full Equality Support
+### 2. Implemented Full Equality Support
 **Added**: `IEquatable<Result<T, E>>` implementation with:
 - `Equals(Result<T, E> other)`
 - `Equals(object? obj)` override
@@ -31,7 +31,7 @@ var result2 = Result<int, string>.Ok(42);
 Assert.True(result1 == result2); // Now works correctly
 ```
 
-### 3. ? Added ToString() Override
+### 3. Added ToString() Override
 Provides helpful debugging output:
 ```csharp
 var success = Result<int, string>.Ok(42);
@@ -41,7 +41,7 @@ var failure = Result<int, string>.Err("Error");
 Console.WriteLine(failure); // Output: Err(Error)
 ```
 
-### 4. ? Added Safe Value Extraction Methods
+### 4. Added Safe Value Extraction Methods
 
 #### TryGetValue / TryGetError
 ```csharp
@@ -68,7 +68,7 @@ Compute default value based on the error:
 var value = result.UnwrapOrElse(error => error.Length);
 ```
 
-### 5. ? Added Functional Composition Methods
+### 5. Added Functional Composition Methods
 
 #### OrElse
 Provide alternative Result if current one fails:
@@ -85,7 +85,7 @@ result
     .InspectErr(error => Logger.Error(error));
 ```
 
-### 6. ? Added Exception Handling Helpers
+### 6. Added Exception Handling Helpers
 
 #### Try (Synchronous)
 ```csharp
@@ -103,13 +103,13 @@ var result = await Result<int, string>.TryAsync(
 );
 ```
 
-### 7. ? Null Handling Policy
+### 7. Null Handling Policy
 The type now accepts null values for nullable types (`T?` or `E?`):
 ```csharp
 var result = Result<string?, int>.Ok(null); // Valid for nullable types
 ```
 
-### 8. ? Argument Validation
+### 8. Argument Validation
 All methods validate their function arguments:
 ```csharp
 // Throws ArgumentNullException if success or failure is null

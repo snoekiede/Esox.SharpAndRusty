@@ -667,6 +667,4 @@ The library includes comprehensive test coverage with **230 unit tests** coverin
 - Value extraction methods
 - Null handling for nullable types
 
-Run tests:
-```bash
-dotne
+
