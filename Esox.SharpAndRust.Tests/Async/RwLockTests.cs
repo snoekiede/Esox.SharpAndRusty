@@ -174,7 +174,7 @@ namespace Esox.SharpAndRust.Tests.Async
         }
 
         [Fact]
-        public void Write_WithActiveReader_Blocks()
+        public async Task Write_WithActiveReader_Blocks()
         {
             // Arrange
             var rwlock = new RwLock<int>(42);
@@ -182,10 +182,10 @@ namespace Esox.SharpAndRust.Tests.Async
 
             // Act
             var writeTask = Task.Run(() => rwlock.TryWrite());
-            Thread.Sleep(50); // Give write attempt time to try
+            await Task.Delay(50); // Give write attempt time to try
 
             // Assert - write should fail because reader is active
-            var writeResult = writeTask.Result;
+            var writeResult = await writeTask;
             Assert.True(writeResult.IsFailure);
 
             // Cleanup
@@ -215,7 +215,7 @@ namespace Esox.SharpAndRust.Tests.Async
         }
 
         [Fact]
-        public void TryRead_WithActiveWriter_ReturnsError()
+        public async Task TryRead_WithActiveWriter_ReturnsError()
         {
             // Arrange
             var rwlock = new RwLock<int>(42);
@@ -224,7 +224,7 @@ namespace Esox.SharpAndRust.Tests.Async
             var writeGuard = rwlock.Write();
 
             // Try to read from a different thread to avoid recursion
-            var result = Task.Run(() => rwlock.TryRead()).Result;
+            var result = await Task.Run(() => rwlock.TryRead());
 
             // Assert
             Assert.True(result.IsFailure);
@@ -329,14 +329,14 @@ namespace Esox.SharpAndRust.Tests.Async
         }
 
         [Fact]
-        public void TryWrite_WithActiveReader_ReturnsError()
+        public async Task TryWrite_WithActiveReader_ReturnsError()
         {
             // Arrange
             var rwlock = new RwLock<int>(42);
             var readGuard = rwlock.Read();
 
             // Act - Try from different thread to avoid recursion
-            var result = Task.Run(() => rwlock.TryWrite()).Result;
+            var result = await Task.Run(() => rwlock.TryWrite());
 
             // Assert
             Assert.True(result.IsFailure);
@@ -387,7 +387,7 @@ namespace Esox.SharpAndRust.Tests.Async
         }
 
         [Fact]
-        public void TryWriteTimeout_WithActiveReaderAndTimeoutExpires_ReturnsError()
+        public async Task TryWriteTimeout_WithActiveReaderAndTimeoutExpires_ReturnsError()
         {
             // Arrange
             var rwlock = new RwLock<int>(42);
@@ -395,7 +395,7 @@ namespace Esox.SharpAndRust.Tests.Async
             var timeout = TimeSpan.FromMilliseconds(100);
 
             // Act - Try from different thread to avoid recursion
-            var result = Task.Run(() => rwlock.TryWriteTimeout(timeout)).Result;
+            var result = await Task.Run(() => rwlock.TryWriteTimeout(timeout));
 
             // Assert
             Assert.True(result.IsFailure);
@@ -841,14 +841,21 @@ namespace Esox.SharpAndRust.Tests.Async
         }
 
         [Fact]
-        public void RwLock_WriterBlocksReaders_UntilReleased()
+        public async Task RwLock_WriterBlocksReaders_UntilReleased()
         {
             // Arrange
             var rwlock = new RwLock<int>(42);
             var writeResult = rwlock.Write();
+            
+            if (!writeResult.TryGetValue(out var writeGuard))
+            {
+                Assert.Fail("Failed to acquire write lock");
+                return;
+            }
+
             bool readerAcquired = false;
 
-            // Act
+            // Act - Start reader task that will try to acquire lock
             var readTask = Task.Run(() =>
             {
                 Thread.Sleep(50); // Ensure writer has lock first
@@ -856,22 +863,19 @@ namespace Esox.SharpAndRust.Tests.Async
                 readerAcquired = result.IsSuccess;
             });
 
-            Thread.Sleep(100); // Let reader try
+            await Task.Delay(100); // Let reader try while writer still holds lock
             
             // Assert - reader should fail while writer holds lock
             Assert.False(readerAcquired);
 
             // Release writer
-            if (writeResult.TryGetValue(out var writeGuard))
-            {
-                writeGuard.Dispose();
-            }
+            writeGuard.Dispose();
 
-            readTask.Wait();
+            await readTask;
         }
 
         [Fact]
-        public void RwLock_MultipleReadersBlockWriter()
+        public async Task RwLock_MultipleReadersBlockWriter()
         {
             // Arrange
             var rwlock = new RwLock<int>(42);
