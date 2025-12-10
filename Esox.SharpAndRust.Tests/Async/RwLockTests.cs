@@ -853,20 +853,36 @@ namespace Esox.SharpAndRust.Tests.Async
                 return;
             }
 
+            using var readerReady = new SemaphoreSlim(0, 1);
+            using var checkComplete = new SemaphoreSlim(0, 1);
             bool readerAcquired = false;
 
-            // Act - Start reader task that will try to acquire lock
+            // Act - Start reader task that will try to acquire lock from a different thread
             var readTask = Task.Run(() =>
             {
-                Thread.Sleep(50); // Ensure writer has lock first
+                readerReady.Release(); // Signal we're ready
+                // Try to acquire read lock while writer holds it
                 var result = rwlock.TryRead();
                 readerAcquired = result.IsSuccess;
+                
+                // Clean up if we somehow got the lock
+                if (result.TryGetValue(out var guard))
+                {
+                    guard.Dispose();
+                }
+                
+                checkComplete.Release();
             });
 
-            await Task.Delay(100); // Let reader try while writer still holds lock
+            // Wait for reader to be ready and try to acquire the lock
+            await readerReady.WaitAsync(TimeSpan.FromSeconds(1));
+            // Give the reader time to actually try
+            await Task.Delay(50);
+            // Wait for the check to complete
+            await checkComplete.WaitAsync(TimeSpan.FromSeconds(1));
             
-            // Assert - reader should fail while writer holds lock
-            Assert.False(readerAcquired);
+            // Assert - reader on different thread should fail while writer holds lock
+            Assert.False(readerAcquired, "Reader on different thread should not acquire lock while writer holds it");
 
             // Release writer
             writeGuard.Dispose();
