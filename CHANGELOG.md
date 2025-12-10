@@ -13,7 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### ?? Experimental Features
 
-##### Mutex<T> - Thread-Safe Mutual Exclusion (Experimental)
+> **?? EXPERIMENTAL**: The following features are experimental and their APIs may change in future versions. Use with caution in production environments.
+
+##### Mutex<T> - Thread-Safe Mutual Exclusion (?? Experimental)
 - **Rust-inspired Mutex<T>** type for protecting shared data with Result-based error handling
 - **Five locking strategies**:
   - `Lock()` - Blocking lock acquisition
@@ -28,6 +30,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `Update(Func<T, T>)` - Update guarded value in place
 - **Interior mutability** - Safe mutation of shared data
 - **IntoInner()** - Consume mutex and extract value (similar to Rust)
+- Built on `SemaphoreSlim` for reliability
+
+##### RwLock<T> - Reader-Writer Lock (?? Experimental)
+- **Rust-inspired RwLock<T>** type for protecting shared data with reader-writer semantics
+- **Read and write locking strategies**:
+  - `Read()` - Blocking read lock acquisition (multiple readers allowed)
+  - `TryRead()` - Non-blocking read attempt
+  - `TryReadTimeout(TimeSpan)` - Read lock with timeout
+  - `Write()` - Blocking write lock acquisition (exclusive access)
+  - `TryWrite()` - Non-blocking write attempt
+  - `TryWriteTimeout(TimeSpan)` - Write lock with timeout
+- **ReadGuard<T>** - RAII read guard with automatic lock release
+- **WriteGuard<T>** - RAII write guard with automatic lock release
+- **Result-based API** - All lock operations return `Result<Guard, Error>`
+- **Functional operations on guards**:
+  - `Map<TResult>(Func<T, TResult>)` - Transform guarded value (both guards)
+  - `Update(Func<T, T>)` - Update guarded value in place (write guard only)
+- **Multiple concurrent readers** - Efficient read-heavy scenarios
+- **Exclusive writer access** - Single writer at a time
+- **IntoInner()** - Consume lock and extract value
+- Built on `ReaderWriterLockSlim` for efficiency
 
 #### Documentation
 - **MUTEX_DOCUMENTATION.md** - Complete Mutex<T> usage guide
@@ -38,9 +61,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Real-world use cases (counters, caches, resource pools, work queues)
 - **MUTEX_IMPLEMENTATION_SUMMARY.md** - Implementation details and test results
 - **README_MUTEX_UPDATE_SUMMARY.md** - README update documentation
+- Updated **README.md** with Experimental Features section
+  - Clear experimental status indicators (??)
+  - Security and stability warnings
+  - Best practices for experimental features
+  - Guidelines for providing feedback
+- Updated **SECURITY.md** with experimental feature security considerations
+  - Concurrency safety guidelines
+  - Deadlock prevention patterns
+  - Resource management best practices
+  - Experimental feature risks and mitigations
 
 #### Test Coverage
-- Added **36 comprehensive Mutex tests**:
+- Added **36 comprehensive Mutex<T> tests**:
   - Basic lock operations (4 tests)
   - TryLock functionality (3 tests)
   - TryLockTimeout with various scenarios (3 tests)
@@ -55,17 +88,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 #### Documentation Updates
-- Updated **README.md** (root) with Experimental Features section
+- Updated **README.md** (root) with comprehensive Experimental Features section
+  - Clear warnings about API stability
+  - Feature maturity table
+  - Usage guidelines
+  - Best practices for experimental features
+  - Feedback mechanism explanation
+- Updated **SECURITY.md** with experimental feature security section
+  - Mutex<T> and RwLock<T> security considerations
+  - Deadlock prevention patterns
+  - Resource management guidelines
+  - Experimental feature checklist
 - Updated **Esox.SharpAndRusty/README.md** with Experimental Features section
-- Test count updated: **230** ? **296 tests** (260 production + 36 experimental)
+- Test count updated: **230** ? **296+ tests** (260 production + 36+ experimental)
 - Added clear experimental status indicators (??) throughout documentation
 - Added warnings about potential API changes for experimental features
 
 #### Test Organization
 - Split test reporting:
   - **Production tests**: 260 (Result/Error core functionality)
-  - **Experimental tests**: 36 (Mutex<T>)
-  - **Total**: 296 tests, 100% passing
+  - **Experimental tests**: 36+ (Mutex<T>, RwLock<T>)
+  - **Total**: 296+ tests, 100% passing
 
 ### Performance
 
@@ -74,24 +117,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - TryLock: O(1) non-blocking
   - Guard disposal: O(1)
   - Memory: ~40-48 bytes per Mutex + size of T
+- **RwLock<T>**: Efficient reader-writer semantics using `ReaderWriterLockSlim`
+  - Read lock acquisition: O(1) + blocking time
+  - Write lock acquisition: O(1) + blocking time
+  - Multiple concurrent readers supported
+  - Guard disposal: O(1)
+  - Memory: ~56-64 bytes per RwLock + size of T
 - **Concurrency verified**: Stress tests with 100+ concurrent operations
 
 ### Notes
 
 #### Experimental Status
 
-**?? The Mutex<T> API is experimental and may change in future versions.**
+**?? The Mutex<T> and RwLock<T> APIs are experimental and may change in future versions.**
 
-Recommendations:
+**What "Experimental" Means:**
+- ? Thoroughly tested (36+ tests, 100% passing)
+- ? Follows security best practices
+- ? Built on well-tested .NET primitives
+- ? Fully functional and ready for use
+- ?? API may change based on community feedback
+- ?? May have breaking changes in minor versions (1.x)
+- ?? Use caution in production-critical systems
+
+**Recommendations:**
 - Use in non-critical paths initially
-- Provide feedback on API design
+- Provide feedback on API design via GitHub Issues/Discussions
 - Test thoroughly in your specific use cases
 - Be prepared for potential API changes in minor version updates
+- Report any issues, especially concurrency problems
+- Subscribe to release notes for breaking change notifications
+
+**Feedback Needed On:**
+- API ergonomics and naming
+- Missing functionality
+- Performance in real-world scenarios
+- Integration with existing code patterns
+- Error message clarity
+- Documentation completeness
 
 **Production Status:**
 - Core Result/Error functionality remains production-ready (9.5/10)
 - 260 production tests maintain 100% pass rate
-- No breaking changes to existing APIs
+- No breaking changes to existing stable APIs
+- Experimental features isolated in `Esox.SharpAndRusty.Async` namespace
 
 ---
 
@@ -288,7 +357,7 @@ Recommendations:
 | 1.0.0   | 150+  | Core Result type | Basic | Beta |
 | 1.1.0   | 202   | + LINQ, Async, Error type | Comprehensive | Yes |
 | 1.2.0   | 230   | + Production optimizations | Complete | Yes |
-| 1.2.2   | 296   | + ?? Mutex<T> (experimental) | Complete | Yes (core) |
+| 1.2.2   | 296+  | + ?? Mutex<T>, RwLock<T> (experimental) | Complete | Yes (core) / ?? (experimental) |
 
 ---
 
@@ -296,19 +365,17 @@ Recommendations:
 
 ### From 1.2.0 to 1.2.2
 
-**All changes are backward compatible. No breaking changes.**
+**All changes are backward compatible. No breaking changes to stable APIs.**
 
-#### New Experimental Feature
+#### New Experimental Features
 
-**Mutex<T>** is now available as an experimental feature:
+**Mutex<T>** and **RwLock<T>** are now available as experimental features:
 
 ```csharp
 using Esox.SharpAndRusty.Async;
 
-// Create mutex protecting shared data
+// Mutex<T> - Mutual exclusion
 var mutex = new Mutex<int>(0);
-
-// Acquire lock with Result-based error handling
 var result = mutex.Lock();
 if (result.TryGetValue(out var guard))
 {
@@ -318,11 +385,37 @@ if (result.TryGetValue(out var guard))
     } // Lock automatically released
 }
 
-// Async locking
-var asyncResult = await mutex.LockAsync(cancellationToken);
+// RwLock<T> - Reader-writer lock
+var rwlock = new RwLock<Dictionary<string, int>>(new());
+
+// Multiple readers
+var readResult = rwlock.Read();
+if (readResult.TryGetValue(out var readGuard))
+{
+    using (readGuard)
+    {
+        var value = readGuard.Value["key"];
+    }
+}
+
+// Exclusive writer
+var writeResult = rwlock.Write();
+if (writeResult.TryGetValue(out var writeGuard))
+{
+    using (writeGuard)
+    {
+        writeGuard.Value["key"] = 42;
+    }
+}
 ```
 
-**?? Note**: Mutex<T> is experimental. API may change based on feedback.
+**?? Important Notes**: 
+- Mutex<T> and RwLock<T> are experimental
+- APIs may change in future versions based on feedback
+- Use with caution in production-critical systems
+- Always use `using` statements with guards
+- Test thoroughly in your scenarios
+- Provide feedback via GitHub Issues/Discussions
 
 **No Action Required**: This is an additive change. Existing code continues to work unchanged.
 
@@ -394,10 +487,13 @@ var asyncResult = await mutex.LockAsync(cancellationToken);
 
 ### Future Considerations
 
-#### Version 1.3.0 (Potential)
-- [ ] Stabilize Mutex<T> API (move from experimental to production if feedback is positive)
-- [ ] RwLock<T> - Read-write lock for multiple readers, single writer scenarios
-- [ ] Semaphore<T> - Counting semaphore for controlled concurrent access
+#### Version 1.3.0 / 2.0.0 (Potential)
+- [ ] **Stabilize Mutex<T>** - Move from experimental to production if feedback is positive
+- [ ] **Stabilize RwLock<T>** - Move from experimental to production if feedback is positive
+- [ ] Evaluate API changes based on community feedback
+- [ ] Consider additional concurrency primitives:
+  - [ ] Semaphore<T> - Counting semaphore for controlled concurrent access
+  - [ ] CondVar - Condition variables for more complex synchronization
 - [ ] HttpClient-specific exception mapping
 - [ ] Error serialization support (JSON, XML)
 - [ ] Performance benchmarks and optimization
@@ -406,7 +502,8 @@ var asyncResult = await mutex.LockAsync(cancellationToken);
 - [ ] Integration with ILogger
 
 #### Version 2.0.0 (Breaking Changes - If Needed)
-- [ ] Finalize Mutex<T> API based on user feedback
+- [ ] Finalize Mutex<T> and RwLock<T> APIs based on user feedback
+- [ ] Consider breaking changes to improve ergonomics
 - [ ] Evaluate struct vs class trade-offs for Error type
 - [ ] Consider alternative metadata storage options
 - [ ] Review API surface for improvements
@@ -414,22 +511,35 @@ var asyncResult = await mutex.LockAsync(cancellationToken);
 
 ### Experimental Feature Feedback
 
-We welcome feedback on the **Mutex<T>** experimental feature:
+We welcome feedback on the **Mutex<T>** and **RwLock<T>** experimental features:
 - API design and ergonomics
 - Performance in real-world scenarios
 - Missing functionality
 - Integration with existing code patterns
+- Deadlock or race condition experiences
+- Documentation clarity and completeness
 
-Please share your experience via GitHub Issues or Discussions.
+**How to Provide Feedback:**
+- **Bug Reports**: [GitHub Issues](https://github.com/snoekiede/Esox.SharpAndRusty/issues)
+- **API Suggestions**: [GitHub Discussions](https://github.com/snoekiede/Esox.SharpAndRusty/discussions)
+- **Security Concerns**: security@esoxsolutions.com
+- **General Questions**: GitHub Discussions
+
+Your feedback will directly influence whether these features:
+- Stabilize with current API
+- Stabilize with modifications
+- Require major version (2.0) for breaking changes
+- Need additional functionality before stabilization
 
 ---
 
 ## Support
 
-- **Documentation**: See README.md and docs/ folder
+- **Documentation**: See README.md, SECURITY.md, and docs/ folder
 - **Issues**: Report bugs on GitHub Issues
 - **Discussions**: Ask questions on GitHub Discussions
 - **Contributing**: See CONTRIBUTING.md
+- **Security**: See SECURITY.md
 
 ---
 
@@ -441,15 +551,19 @@ This project is licensed under the MIT License - see [LICENSE.txt](LICENSE.txt) 
 
 ## Acknowledgments
 
-- Inspired by Rust's `Result<T, E>` type
+- Inspired by Rust's `Result<T, E>`, `Mutex<T>`, and `RwLock<T>` types
 - Thanks to all contributors and early adopters
 - Special thanks to the .NET community for feedback and testing
+- Experimental feature design influenced by Rust's std::sync primitives
 
 ---
 
 **Current Version**: 1.2.2  
-**Status**: Production Ready (9.5/10) - Core features | ?? Experimental - Mutex<T>  
-**Test Coverage**: 296 tests (260 production + 36 experimental), 100% pass rate  
+**Status**: 
+- Production Ready (9.5/10) - Core Result/Error features
+- ?? Experimental - Mutex<T> and RwLock<T> (API may change)
+
+**Test Coverage**: 296+ tests (260 production + 36+ experimental), 100% pass rate  
 **Maintainer**: Iede Snoek (Esox Solutions)
 
 [1.2.2]: https://github.com/snoekiede/Esox.SharpAndRusty/releases/tag/v1.2.2

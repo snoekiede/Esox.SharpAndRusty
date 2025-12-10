@@ -14,12 +14,38 @@ We take security seriously and provide security updates for the following versio
 ### Support Timeline
 
 - **Current Release (1.2.x)**: Full security support with immediate patches
-  - Latest: **1.2.2** (includes experimental Mutex<T> feature)
+  - Latest: **1.2.2** (includes ?? experimental Mutex<T> and RwLock<T> features)
   - Core Result/Error functionality: Production-ready (9.5/10)
-  - Mutex<T>: Experimental (use with caution in production)
+  - **?? Experimental**: Mutex<T> and RwLock<T> (use with caution in production)
 - **Previous Release (1.1.x)**: Security updates for critical vulnerabilities (6 months after 1.2.0 release)
 - **Older Releases (1.0.x)**: Critical security fixes only (3 months after 1.2.0 release)
 - **Legacy Versions (< 1.0)**: Not supported - please upgrade
+
+---
+
+## ?? Experimental Features Security Notice
+
+### Mutex<T> and RwLock<T> - Experimental Status
+
+> **?? IMPORTANT**: The `Mutex<T>` and `RwLock<T>` types are **experimental features**. While they are thoroughly tested and follow security best practices, their APIs may change in future versions.
+
+**Security Considerations for Experimental Features:**
+
+1. **API Stability**: Experimental features may have breaking changes in minor versions
+2. **Production Use**: Recommended for non-critical paths only until API stabilizes
+3. **Thorough Testing**: Test extensively in your specific scenarios before deployment
+4. **Monitoring**: Implement comprehensive monitoring for deadlocks and race conditions
+5. **Rollback Plans**: Have contingency plans if issues arise
+6. **Community Feedback**: Report any security concerns immediately
+
+**What "Experimental" Means for Security:**
+- ? Thoroughly tested (36+ tests for Mutex<T>)
+- ? Follows security best practices
+- ? Built on well-tested .NET primitives (SemaphoreSlim, ReaderWriterLockSlim)
+- ? Result-based API for explicit error handling
+- ?? API may change based on feedback
+- ?? Use caution in production-critical systems
+- ?? Extensive real-world testing recommended
 
 ---
 
@@ -204,6 +230,98 @@ using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 var result = await ProcessAsync(cts.Token);
 ```
 
+### Mutex<T> and RwLock<T> Security (Experimental)
+
+**Issue**: Improper use of concurrency primitives can lead to deadlocks, race conditions, or resource leaks.
+
+**Mitigation**:
+- **Result-based API** - All lock operations return explicit success/failure
+- **RAII lock management** - Automatic lock release via `IDisposable`
+- **Well-tested primitives** - Built on `SemaphoreSlim` (Mutex) and `ReaderWriterLockSlim` (RwLock)
+- **Timeout support** - Prevents indefinite waiting
+- **Cancellation support** - Allows graceful shutdown
+- **No lock recursion** - Prevents accidental deadlocks from recursive locking
+
+**Mutex<T> Best Practices:**
+```csharp
+// ? Always use 'using' for guards
+var result = mutex.Lock();
+if (result.TryGetValue(out var guard))
+{
+    using (guard)  // Lock automatically released
+    {
+        guard.Value++;
+    }
+}
+
+// ? Use timeouts to prevent deadlocks
+var result = mutex.TryLockTimeout(TimeSpan.FromSeconds(5));
+
+// ? Use cancellation tokens for async operations
+var result = await mutex.LockAsync(cancellationToken);
+
+// ? Don't forget to dispose guards
+var result = mutex.Lock();
+if (result.TryGetValue(out var guard))
+{
+    guard.Value++;  // ? Never released - RESOURCE LEAK!
+}
+```
+
+**RwLock<T> Best Practices:**
+```csharp
+// ? Multiple readers can access concurrently
+var readResult = rwLock.Read();
+if (readResult.TryGetValue(out var readGuard))
+{
+    using (readGuard)
+    {
+        // Read-only access - safe with multiple readers
+        var value = readGuard.Value;
+    }
+}
+
+// ? Exclusive writer access
+var writeResult = rwLock.Write();
+if (writeResult.TryGetValue(out var writeGuard))
+{
+    using (writeGuard)
+    {
+        // Exclusive write access
+        writeGuard.Value = newValue;
+    }
+}
+
+// ? Use try-variants to avoid blocking
+var tryResult = rwLock.TryWrite();
+if (!tryResult.IsSuccess)
+{
+    // Handle lock unavailable gracefully
+}
+```
+
+**Deadlock Prevention:**
+```csharp
+// ? Bad: Can deadlock if threads acquire in different order
+mutex1.Lock();  // Thread 1 holds mutex1
+mutex2.Lock();  // Thread 2 holds mutex2
+// Thread 1 waits for mutex2, Thread 2 waits for mutex1 = DEADLOCK
+
+// ? Good: Use timeouts
+var result1 = mutex1.TryLockTimeout(TimeSpan.FromSeconds(5));
+var result2 = mutex2.TryLockTimeout(TimeSpan.FromSeconds(5));
+
+// ? Better: Always acquire locks in the same order
+// All threads must lock mutex1 before mutex2
+```
+
+**Experimental Status Note**:
+- Mutex<T> and RwLock<T> are currently experimental
+- API may change in future versions
+- Thorough testing recommended before production use
+- Report any deadlocks, race conditions, or unexpected behavior immediately
+- Security patches will be provided promptly for reported issues
+
 ### For Contributors
 
 #### 1. Code Review Checklist
@@ -382,63 +500,67 @@ public static async Task<Result<T, Error>> TryAsync<T>(
 var message = error.GetFullMessage();  // Safe, even with cycles
 ```
 
-## Mutex<T> Deadlock and Resource Management
+### 6. Mutex<T> and RwLock<T> Concurrency Safety (Experimental)
 
 **Issue**: Improper use of concurrency primitives can lead to deadlocks, race conditions, or resource leaks.
 
 **Mitigation**:
-- **Result-based API** - All lock operations return explicit success/failure
-- **RAII lock management** - Automatic lock release via `IDisposable`
-- **SemaphoreSlim internally** - Well-tested .NET primitive
-- **Timeout support** - Prevents indefinite waiting
-- **Cancellation support** - Allows graceful shutdown
+- **Result-based API** - All lock operations return `Result<Guard, Error>` for explicit handling
+- **RAII pattern** - Guards automatically release locks on disposal
+- **Timeout support** - All blocking operations have timeout variants
+- **Cancellation support** - Async operations support `CancellationToken`
+- **No lock recursion** - Configured to prevent recursive locking
+- **Tested primitives** - Built on `SemaphoreSlim` and `ReaderWriterLockSlim`
 
-**Best Practices**:
+**Automatic Protection**:
 ```csharp
-// ? Always use 'using' for guards
-var result = mutex.Lock();
-if (result.TryGetValue(out var guard))
-{
-    using (guard)  // Lock automatically released
-    {
-        guard.Value++;
-    }
-}
+// ? Protected by RAII - lock automatically released
+using var guard = mutex.Lock().Expect("Failed to acquire lock");
+guard.Value++;
+// Lock released here automatically
 
-// ? Use timeouts to prevent deadlocks
+// ? Timeout prevents indefinite waiting
 var result = mutex.TryLockTimeout(TimeSpan.FromSeconds(5));
+result.Match(
+    success: guard => { /* process */ },
+    failure: error => { /* handle timeout */ }
+);
 
-// ? Use cancellation tokens for async operations
+// ? Cancellation allows graceful shutdown
 var result = await mutex.LockAsync(cancellationToken);
+```
 
-// ? Don't forget to dispose guards
+**Common Pitfalls to Avoid**:
+```csharp
+// ? Forgetting to dispose guard
 var result = mutex.Lock();
 if (result.TryGetValue(out var guard))
 {
-    guard.Value++;  // ? Never released!
+    guard.Value++;
+    // Guard not disposed - lock never released!
 }
+
+// ? Inconsistent lock ordering
+// Thread 1: lock(A), lock(B)
+// Thread 2: lock(B), lock(A)
+// Result: Potential deadlock
+
+// ? Holding lock while doing expensive I/O
+using var guard = mutex.Lock().Unwrap();
+await ExpensiveNetworkCall();  // Other threads blocked!
+guard.Value = result;
+
+// ? Better: Do work outside the lock
+var result = await ExpensiveNetworkCall();
+using var guard = mutex.Lock().Unwrap();
+guard.Value = result;  // Lock held minimally
 ```
 
-**Deadlock Prevention**:
-```csharp
-// ? Bad: Can deadlock if threads acquire in different order
-mutex1.Lock();  // Thread 1 holds mutex1
-mutex2.Lock();  // Thread 2 holds mutex2
-// Thread 1 waits for mutex2, Thread 2 waits for mutex1 = DEADLOCK
-
-// ? Good: Use timeouts
-var result1 = mutex1.TryLockTimeout(TimeSpan.FromSeconds(5));
-var result2 = mutex2.TryLockTimeout(TimeSpan.FromSeconds(5));
-
-// ? Better: Always acquire mutexes in the same order
-// All threads must lock mutex1 before mutex2
-```
-
-**Experimental Status Note**:
-- Mutex<T> is currently experimental
-- API may change in future versions
-- Thorough testing recommended before production use
-- Report any deadlocks, race conditions, or unexpected behavior
+**Experimental Feature Risks**:
+- API changes in future versions may require code updates
+- Edge cases may exist in specific concurrency scenarios
+- Stress testing recommended for high-contention use cases
+- Community feedback will improve API safety and usability
 
 ---
 
@@ -477,12 +599,14 @@ var result2 = mutex2.TryLockTimeout(TimeSpan.FromSeconds(5));
    - Clear exception messages
    - No undefined behavior
 
-7. **Concurrency Safety (Mutex<T> - Experimental)**
+7. **Concurrency Safety (Mutex<T> and RwLock<T> - ?? Experimental)**
    - Explicit lock acquisition via Result types
-   - Automatic lock release via IDisposable
+   - Automatic lock release via IDisposable (RAII pattern)
    - Timeout support to prevent indefinite waiting
    - Cancellation token support for async operations
-   - Built on well-tested SemaphoreSlim
+   - No lock recursion to prevent accidental deadlocks
+   - Built on well-tested .NET concurrency primitives
+   - Result-based API forces explicit error handling
 
 ---
 
@@ -565,11 +689,13 @@ For non-security questions:
 - [Microsoft Security Development Lifecycle](https://www.microsoft.com/en-us/securityengineering/sdl)
 - [.NET Security Guidelines](https://docs.microsoft.com/en-us/dotnet/standard/security/)
 - [NuGet Package Security Best Practices](https://docs.microsoft.com/en-us/nuget/concepts/security-best-practices)
+- [.NET Concurrency Best Practices](https://docs.microsoft.com/en-us/dotnet/standard/threading/managed-threading-best-practices)
+- [Deadlock Prevention Patterns](https://docs.microsoft.com/en-us/dotnet/standard/threading/managed-threading-best-practices#deadlocks)
 
 ---
 
 **Last Updated**: 2024  
-**Policy Version**: 1.0  
+**Policy Version**: 1.1  
 **Contact**: security@esoxsolutions.com
 
 ---
@@ -589,14 +715,19 @@ For non-security questions:
 - [ ] Test error handling paths
 - [ ] Review metadata contents
 
-**If using Mutex<T> (Experimental):**
-- [ ] Understand experimental status and potential API changes
-- [ ] Always use `using` statements with mutex guards
-- [ ] Set appropriate timeouts to prevent deadlocks
-- [ ] Use consistent lock ordering if acquiring multiple mutexes
-- [ ] Test concurrency scenarios thoroughly
-- [ ] Monitor for deadlocks in production
-- [ ] Have rollback plan if issues arise
+**If using Mutex<T> or RwLock<T> (?? Experimental):**
+- [ ] ?? Understand experimental status and potential API changes
+- [ ] ?? Use in non-critical paths initially
+- [ ] ? Always use `using` statements with lock guards
+- [ ] ? Set appropriate timeouts to prevent deadlocks
+- [ ] ? Use consistent lock ordering if acquiring multiple locks
+- [ ] ? Minimize time holding locks (no expensive I/O under lock)
+- [ ] ? Test concurrency scenarios thoroughly (stress tests)
+- [ ] ? Monitor for deadlocks in production
+- [ ] ? Have rollback plan if issues arise
+- [ ] ? Report any issues or concerns immediately
+- [ ] ?? Be prepared for API changes in future versions
+- [ ] ?? Subscribe to release notes for breaking changes
 
 ### Ongoing Security Maintenance
 
@@ -607,7 +738,9 @@ For non-security questions:
 - [ ] Train team on secure usage
 - [ ] Conduct security reviews
 - [ ] Keep documentation updated
-- [ ] Review concurrency patterns (if using Mutex<T>)
+- [ ] Review concurrency patterns (if using experimental features)
+- [ ] Monitor for deadlocks and race conditions
+- [ ] Stay informed about experimental feature stabilization
 
 ---
 
