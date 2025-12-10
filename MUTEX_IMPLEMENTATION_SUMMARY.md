@@ -190,9 +190,9 @@ var mutex = new Mutex<int>(0);
 
 // Type-safe access
 using var guard = mutex.Lock().Unwrap();
-int value = guard.Value;     // ? Type-safe
-guard.Value = 42;             // ? Type-safe
-// guard.Value = "string";    // ? Compile error
+int value = guard.Value;     // Type-safe
+guard.Value = 42;             // Type-safe
+// guard.Value = "string";    // Compile error
 ```
 
 ---
@@ -214,16 +214,16 @@ guard.Value = 42;             // ? Type-safe
 
 | Category | Tests | Status |
 |----------|-------|--------|
-| Basic Operations | 4 | ? All passing |
-| TryLock | 3 | ? All passing |
-| TryLockTimeout | 3 | ? All passing |
-| Async Lock | 4 | ? All passing |
-| Async Timeout | 3 | ? All passing |
-| MutexGuard Operations | 8 | ? All passing |
-| IntoInner | 3 | ? All passing |
-| Concurrency | 3 | ? All passing |
-| Disposal | 3 | ? All passing |
-| Complex Scenarios | 2 | ? All passing |
+| Basic Operations | 4 | All passing |
+| TryLock | 3 | All passing |
+| TryLockTimeout | 3 | All passing |
+| Async Lock | 4 | All passing |
+| Async Timeout | 3 | All passing |
+| MutexGuard Operations | 8 | All passing |
+| IntoInner | 3 | All passing |
+| Concurrency | 3 | All passing |
+| Disposal | 3 | All passing |
+| Complex Scenarios | 2 | All passing |
 
 ---
 
@@ -374,9 +374,9 @@ public class ThreadSafeCache<TKey, TValue> where TKey : notnull
 ### Concurrency Tests
 
 Passed stress tests with:
-- ? 100 concurrent tasks incrementing a counter - **perfect consistency**
-- ? 10 concurrent TryLock attempts - **only one succeeds**
-- ? 50 concurrent List additions - **all items preserved, no duplicates**
+- 100 concurrent tasks incrementing a counter - **perfect consistency**
+- 10 concurrent TryLock attempts - **only one succeeds**
+- 50 concurrent List additions - **all items preserved, no duplicates**
 
 ---
 
@@ -384,11 +384,11 @@ Passed stress tests with:
 
 ### Similarities
 
-? **RAII Lock Management** - Automatic release on scope exit
-? **Interior Mutability** - Modify shared data safely
-? **Type Safety** - Strong typing for protected data
-? **Explicit Locking** - Clear lock acquisition
-? **try_lock()** - Non-blocking lock attempts
+**RAII Lock Management** - Automatic release on scope exit
+**Interior Mutability** - Modify shared data safely
+**Type Safety** - Strong typing for protected data
+**Explicit Locking** - Clear lock acquisition
+**try_lock()** - Non-blocking lock attempts
 
 ### Differences
 
@@ -470,7 +470,7 @@ public Result<User, Error> GetUser(int id)
 using var guard = mutex.Lock().Unwrap();
 guard.Value = 42;
 
-// ? Bad
+// Bad
 var guard = mutex.Lock().Unwrap();
 guard.Value = 42;
 guard.Dispose(); // Easy to forget
@@ -484,7 +484,7 @@ var data = await LoadDataAsync();
 using var guard = mutex.Lock().Unwrap();
 guard.Value = data;
 
-// ? Bad - long operation in lock
+// Bad - long operation in lock
 using var guard = mutex.Lock().Unwrap();
 var data = await LoadDataAsync(); // Blocks others
 guard.Value = data;
@@ -630,14 +630,14 @@ public async Task<Result<Unit, Error>> EnqueueAsync(WorkItem item)
 
 ### What We Built
 
-? Rust-inspired Mutex<T> for C#
-? Full Result/Error integration
-? 5 different locking strategies
-? RAII lock management via IDisposable
-? Complete async/await support
-? Functional operations (Map, Update)
-? 36 comprehensive tests
-? Complete documentation
+Rust-inspired Mutex<T> for C#
+Full Result/Error integration
+5 different locking strategies
+RAII lock management via IDisposable
+Complete async/await support
+Functional operations (Map, Update)
+36 comprehensive tests
+Complete documentation
 
 ### Impact
 
@@ -661,20 +661,20 @@ public async Task<Result<Unit, Error>> EnqueueAsync(WorkItem item)
 
 The `Mutex<T>` implementation successfully brings Rust-inspired concurrent data protection to C# while maintaining the language's idioms and integrating perfectly with the existing Result/Error system. The implementation is:
 
-- ? **Production-ready** - Fully tested and documented
-- ? **Type-safe** - Compile-time guarantees
-- ? **Performant** - Low overhead, uses SemaphoreSlim
-- ? **Ergonomic** - RAII lock management
-- ? **Familiar** - Rust developers will recognize the patterns
-- ? **Async-ready** - Full async/await support
-- ? **Flexible** - Multiple locking strategies
+- **Production-ready** - Fully tested and documented
+- **Type-safe** - Compile-time guarantees
+- **Performant** - Low overhead, uses SemaphoreSlim
+- **Ergonomic** - RAII lock management
+- **Familiar** - Rust developers will recognize the patterns
+- **Async-ready** - Full async/await support
+- **Flexible** - Multiple locking strategies
 
 **Ready for use in the Esox.SharpAndRusty library!** ??
 
 ---
 
 **Version:** 1.2.1
-**Status:** ? Complete and tested
+**Status:** Complete and tested
 **Test Results:** 296/296 passing (100%)
 **Location:** Esox.SharpAndRusty/Async/Mutex.cs
-**Maintainer:** Iede Snoek (Esox Solutions)
+**Maintainer:** Iede Snoek (Code Nomad)

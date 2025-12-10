@@ -13,15 +13,15 @@ Updated all major documentation files to clearly mark `Mutex<T>` and `RwLock<T>`
 **Location**: Features list at the top
 
 Added clear indicators:
-- ?? **Mutex<T>**: Rust-inspired mutual exclusion primitive
-- ?? **RwLock<T>**: Rust-inspired reader-writer lock
+- **Mutex<T>**: Rust-inspired mutual exclusion primitive
+- **RwLock<T>**: Rust-inspired reader-writer lock
 - Warning: "These experimental features are thoroughly tested but their APIs may evolve based on community feedback."
 
 #### Added Comprehensive "Experimental Features" Section
 
 **New Content**:
 1. **Prominent Warning Box**:
-   - ?? WARNING: EXPERIMENTAL
+   - WARNING: EXPERIMENTAL
    - API stability not guaranteed
    - May have breaking changes in minor versions
    - Use with caution in production
@@ -63,7 +63,7 @@ Added clear indicators:
 
 #### Updated "Testing" Section
 
-- Added ?? indicators for experimental test suites
+- Added indicators for experimental test suites
 - Clarified test count: 296+ tests (260 production + 36+ experimental)
 - Separated experimental tests in documentation
 
@@ -72,9 +72,9 @@ Added clear indicators:
 #### Updated "Supported Versions" Section
 
 **Added Experimental Feature Note**:
-- Latest: **1.2.2** (includes ?? experimental Mutex<T> and RwLock<T> features)
+- Latest: **1.2.3** (includes experimental Mutex<T> and RwLock<T> features)
 - Core Result/Error functionality: Production-ready (9.5/10)
-- **?? Experimental**: Mutex<T> and RwLock<T> (use with caution in production)
+- **Experimental**: Mutex<T> and RwLock<T> (use with caution in production)
 
 #### Added New Section: "?? Experimental Features Security Notice"
 
@@ -88,13 +88,13 @@ Added clear indicators:
    - Community feedback encouragement
 
 2. **What "Experimental" Means for Security**:
-   - ? Thoroughly tested
-   - ? Follows security best practices
-   - ? Built on well-tested .NET primitives
-   - ? Result-based API for explicit error handling
-   - ?? API may change based on feedback
-   - ?? Use caution in production-critical systems
-   - ?? Extensive real-world testing recommended
+   - Thoroughly tested
+   - Follows security best practices
+   - Built on well-tested .NET primitives
+   - Result-based API for explicit error handling
+   - API may change based on feedback
+   - Use caution in production-critical systems
+   - Extensive real-world testing recommended
 
 #### Enhanced "Mutex<T> and RwLock<T> Security" Section
 
@@ -102,17 +102,17 @@ Added clear indicators:
 
 1. **Mutex<T> Best Practices**:
    ```csharp
-   // ? Always use 'using' for guards
-   // ? Use timeouts to prevent deadlocks
-   // ? Use cancellation tokens for async operations
-   // ? Don't forget to dispose guards
+   // Always use 'using' for guards
+   // Use timeouts to prevent deadlocks
+   // Use cancellation tokens for async operations
+   // Don't forget to dispose guards
    ```
 
 2. **RwLock<T> Best Practices**:
    ```csharp
-   // ? Multiple readers can access concurrently
-   // ? Exclusive writer access
-   // ? Use try-variants to avoid blocking
+   // Multiple readers can access concurrently
+   // Exclusive writer access
+   // Use try-variants to avoid blocking
    ```
 
 3. **Deadlock Prevention Patterns**:
@@ -148,17 +148,17 @@ Added clear indicators:
 #### Enhanced "Security Checklist" Appendix
 
 **Added Experimental Feature Checklist**:
-- [ ] ?? Understand experimental status
-- [ ] ?? Use in non-critical paths initially
-- [ ] ? Always use `using` statements
-- [ ] ? Set appropriate timeouts
-- [ ] ? Use consistent lock ordering
-- [ ] ? Minimize time holding locks
-- [ ] ? Test concurrency scenarios
-- [ ] ? Monitor for deadlocks
-- [ ] ? Have rollback plan
-- [ ] ?? Be prepared for API changes
-- [ ] ?? Subscribe to release notes
+- [ ] Understand experimental status
+- [ ] Use in non-critical paths initially
+- [ ] Always use `using` statements
+- [ ] Set appropriate timeouts
+- [ ] Use consistent lock ordering
+- [ ] Minimize time holding locks
+- [ ] Test concurrency scenarios
+- [ ] Monitor for deadlocks
+- [ ] Have rollback plan
+- [ ] Be prepared for API changes
+- [ ] Subscribe to release notes
 
 #### Updated "Additional Resources" Section
 
@@ -174,12 +174,12 @@ Added:
 
 1. **Added Prominent Warning**:
    ```
-   > **?? EXPERIMENTAL**: The following features are experimental and their APIs 
+   > **EXPERIMENTAL**: The following features are experimental and their APIs 
    > may change in future versions. Use with caution in production environments.
    ```
 
 2. **Enhanced Mutex<T> Entry**:
-   - Added ?? indicator to title
+   - Added indicator to title
    - Maintained feature list
    - Added "Built on SemaphoreSlim" note
 
@@ -202,8 +202,8 @@ Added:
 **Expanded Experimental Status Documentation**:
 
 1. **What "Experimental" Means**:
-   - ? Positive aspects (tested, secure, functional)
-   - ?? Cautions (API changes, use carefully)
+   - Positive aspects (tested, secure, functional)
+   - Cautions (API changes, use carefully)
 
 2. **Recommendations**:
    - Where to use
@@ -230,7 +230,7 @@ Added experimental status column:
 
 | Version | Features | Production Ready |
 |---------|----------|------------------|
-| 1.2.2   | + ?? Mutex<T>, RwLock<T> (experimental) | Yes (core) / ?? (experimental) |
+| 1.2.3   | + Mutex<T>, RwLock<T> (experimental) | Yes (core) / ?? (experimental) |
 
 #### Enhanced Migration Guide
 
@@ -278,16 +278,16 @@ Added experimental status column:
 ```
 **Status**: 
 - Production Ready (9.5/10) - Core Result/Error features
-- ?? Experimental - Mutex<T> and RwLock<T> (API may change)
+- Experimental - Mutex<T> and RwLock<T> (API may change)
 ```
 
 ## Visual Indicators Used
 
 Throughout all documentation:
-- ?? - Experimental feature indicator
-- ?? - Warning or caution
-- ? - Recommended practice or positive aspect
-- ? - Anti-pattern or what to avoid
+- Experimental feature indicator
+- Warning or caution
+- Recommended practice or positive aspect
+- Anti-pattern or what to avoid
 
 ## Impact
 
@@ -335,27 +335,27 @@ Throughout all documentation:
 ## Documentation Quality
 
 ### Completeness
-- ? All major documentation files updated
-- ? Consistent messaging across files
-- ? Both features (Mutex and RwLock) documented
-- ? Security, usage, and migration all covered
+- All major documentation files updated
+- Consistent messaging across files
+- Both features (Mutex and RwLock) documented
+- Security, usage, and migration all covered
 
 ### Clarity
-- ? Visual indicators (??, ??, ?, ?) used consistently
-- ? Warning boxes for important information
-- ? Code examples for clarity
-- ? Clear distinction between production and experimental
+- Visual indicators (??, ??, ?, ?) used consistently
+- Warning boxes for important information
+- Code examples for clarity
+- Clear distinction between production and experimental
 
 ### Usability
-- ? Easy-to-find sections
-- ? Practical examples
-- ? Checklists for action items
-- ? Links to additional resources
+- Easy-to-find sections
+- Practical examples
+- Checklists for action items
+- Links to additional resources
 
 ## Next Steps
 
 ### Immediate
-1. ? Documentation updated (this task)
+1. Documentation updated (this task)
 2. Consider adding RwLock<T> tests similar to Mutex<T>
 3. Monitor community feedback on experimental features
 

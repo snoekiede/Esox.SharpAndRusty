@@ -249,15 +249,15 @@ public sealed class Error
 {
     private readonly Error? _source;  // Immutable
 }
-// ? Design ensures no cycles
-// ? PLUS runtime detection for defense in depth
+// Design ensures no cycles
+// PLUS runtime detection for defense in depth
 ```
 
 ### Java
 ```java
 // Java's Throwable allows circular references
 Throwable cause = getCause();
-// ?? Must manually check for cycles
+// Must manually check for cycles
 ```
 
 ## Benefits
@@ -272,9 +272,9 @@ Throwable cause = getCause();
 
 The `Error` type now has **complete protection** against error chain issues:
 
-? **Depth Limit** - Truncates at 50 levels  
-? **Circular Detection** - HashSet-based cycle detection  
-? **Immutable Design** - Prevents circular references by construction  
-? **Clear Messaging** - Informative output for both scenarios  
+**Depth Limit** - Truncates at 50 levels  
+**Circular Detection** - HashSet-based cycle detection  
+**Immutable Design** - Prevents circular references by construction  
+**Clear Messaging** - Informative output for both scenarios  
 
 **Result:** A production-ready error type that's bulletproof against all error chain edge cases! ???

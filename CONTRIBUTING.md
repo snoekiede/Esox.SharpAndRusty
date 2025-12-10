@@ -783,6 +783,6 @@ dotnet pack -c Release
 
 ---
 
-**Last Updated:** 2024
-**Version:** 1.2.0
+**Last Updated:** 2025
+**Version:** 1.2.3
 **Maintainer:** Iede Snoek (Esox Solutions)

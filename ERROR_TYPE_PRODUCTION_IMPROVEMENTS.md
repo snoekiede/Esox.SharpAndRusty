@@ -296,12 +296,12 @@ All improvements are **100% backward compatible**. Existing code continues to wo
 
 | Aspect | Before | After | Improvement |
 |--------|--------|-------|-------------|
-| Memory Efficiency | ?? Concern with metadata | ? Optimized | ImmutableDictionary |
-| Stack Safety | ?? No depth limit | ? Protected | 50-level limit |
-| Exception Mapping | ?? Basic (7 types) | ? Comprehensive (11 types) | +4 common types |
-| Performance | ?? File info always on | ? Configurable | Default faster |
-| Type Safety | ?? Any object | ? Validated | Early failure |
-| Test Coverage | ? Good (202 tests) | ? Excellent (218 tests) | +16 tests |
+| Memory Efficiency | Concern with metadata | Optimized | ImmutableDictionary |
+| Stack Safety | No depth limit | Protected | 50-level limit |
+| Exception Mapping | Basic (7 types) | Comprehensive (11 types) | +4 common types |
+| Performance | File info always on | Configurable | Default faster |
+| Type Safety | Any object | Validated | Early failure |
+| Test Coverage | Good (202 tests) | Excellent (218 tests) | +16 tests |
 
 ---
 

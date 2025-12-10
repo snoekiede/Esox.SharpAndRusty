@@ -644,6 +644,3 @@ The library includes comprehensive test coverage with **296+ unit tests** coveri
 - Value extraction methods
 - Null handling for nullable types
 
-Run tests:
-```bash
-dotnet test

@@ -39,13 +39,13 @@ We take security seriously and provide security updates for the following versio
 6. **Community Feedback**: Report any security concerns immediately
 
 **What "Experimental" Means for Security:**
-- ? Thoroughly tested (36+ tests for Mutex<T>)
-- ? Follows security best practices
-- ? Built on well-tested .NET primitives (SemaphoreSlim, ReaderWriterLockSlim)
-- ? Result-based API for explicit error handling
-- ?? API may change based on feedback
-- ?? Use caution in production-critical systems
-- ?? Extensive real-world testing recommended
+- Thoroughly tested (36+ tests for Mutex<T>)
+- Follows security best practices
+- Built on well-tested .NET primitives (SemaphoreSlim, ReaderWriterLockSlim)
+- Result-based API for explicit error handling
+- API may change based on feedback
+- Use caution in production-critical systems
+- Extensive real-world testing recommended
 
 ---
 
@@ -244,7 +244,7 @@ var result = await ProcessAsync(cts.Token);
 
 **Mutex<T> Best Practices:**
 ```csharp
-// ? Always use 'using' for guards
+// Always use 'using' for guards
 var result = mutex.Lock();
 if (result.TryGetValue(out var guard))
 {
@@ -254,23 +254,23 @@ if (result.TryGetValue(out var guard))
     }
 }
 
-// ? Use timeouts to prevent deadlocks
+// Use timeouts to prevent deadlocks
 var result = mutex.TryLockTimeout(TimeSpan.FromSeconds(5));
 
 // ? Use cancellation tokens for async operations
 var result = await mutex.LockAsync(cancellationToken);
 
-// ? Don't forget to dispose guards
+// Don't forget to dispose guards
 var result = mutex.Lock();
 if (result.TryGetValue(out var guard))
 {
-    guard.Value++;  // ? Never released - RESOURCE LEAK!
+    guard.Value++;  // Never released - RESOURCE LEAK!
 }
 ```
 
 **RwLock<T> Best Practices:**
 ```csharp
-// ? Multiple readers can access concurrently
+// Multiple readers can access concurrently
 var readResult = rwLock.Read();
 if (readResult.TryGetValue(out var readGuard))
 {
@@ -302,16 +302,16 @@ if (!tryResult.IsSuccess)
 
 **Deadlock Prevention:**
 ```csharp
-// ? Bad: Can deadlock if threads acquire in different order
+// Bad: Can deadlock if threads acquire in different order
 mutex1.Lock();  // Thread 1 holds mutex1
 mutex2.Lock();  // Thread 2 holds mutex2
 // Thread 1 waits for mutex2, Thread 2 waits for mutex1 = DEADLOCK
 
-// ? Good: Use timeouts
+// Good: Use timeouts
 var result1 = mutex1.TryLockTimeout(TimeSpan.FromSeconds(5));
 var result2 = mutex2.TryLockTimeout(TimeSpan.FromSeconds(5));
 
-// ? Better: Always acquire locks in the same order
+// Better: Always acquire locks in the same order
 // All threads must lock mutex1 before mutex2
 ```
 
@@ -351,11 +351,11 @@ All code must pass security review before merging:
 ```csharp
 public Error WithMetadata(string key, object value)
 {
-    // ? Always validate arguments
+    // Always validate arguments
     if (key is null) throw new ArgumentNullException(nameof(key));
     if (value is null) throw new ArgumentNullException(nameof(value));
     
-    // ? Validate business rules
+    // Validate business rules
     if (!IsMetadataTypeValid(value))
     {
         throw new ArgumentException(
@@ -369,11 +369,11 @@ public Error WithMetadata(string key, object value)
 
 **Immutability:**
 ```csharp
-// ? Use readonly fields
+// Use readonly fields
 private readonly string _message;
 private readonly ImmutableDictionary<string, object>? _metadata;
 
-// ? Return new instances, don't modify existing
+// Return new instances, don't modify existing
 public Error WithContext(string contextMessage)
 {
     return new Error(contextMessage, _kind, this, null, null);
@@ -382,7 +382,7 @@ public Error WithContext(string contextMessage)
 
 **Resource Cleanup:**
 ```csharp
-// ? Proper async disposal
+// Proper async disposal
 public async Task<Result<T, Error>> ProcessAsync(CancellationToken cancellationToken)
 {
     await using var resource = await AcquireResourceAsync();
@@ -449,7 +449,7 @@ public Error CreateUserFacingError(Error internalError)
 
 **Protected by Design**:
 ```csharp
-// ? Type validation prevents this
+// Type validation prevents this
 error.WithMetadata("connection", databaseConnection);  // Throws ArgumentException
 
 // ? Only safe types allowed
@@ -514,25 +514,25 @@ var message = error.GetFullMessage();  // Safe, even with cycles
 
 **Automatic Protection**:
 ```csharp
-// ? Protected by RAII - lock automatically released
+// Protected by RAII - lock automatically released
 using var guard = mutex.Lock().Expect("Failed to acquire lock");
 guard.Value++;
 // Lock released here automatically
 
-// ? Timeout prevents indefinite waiting
+// Timeout prevents indefinite waiting
 var result = mutex.TryLockTimeout(TimeSpan.FromSeconds(5));
 result.Match(
     success: guard => { /* process */ },
     failure: error => { /* handle timeout */ }
 );
 
-// ? Cancellation allows graceful shutdown
+// Cancellation allows graceful shutdown
 var result = await mutex.LockAsync(cancellationToken);
 ```
 
 **Common Pitfalls to Avoid**:
 ```csharp
-// ? Forgetting to dispose guard
+// Forgetting to dispose guard
 var result = mutex.Lock();
 if (result.TryGetValue(out var guard))
 {
@@ -540,17 +540,17 @@ if (result.TryGetValue(out var guard))
     // Guard not disposed - lock never released!
 }
 
-// ? Inconsistent lock ordering
+// Inconsistent lock ordering
 // Thread 1: lock(A), lock(B)
 // Thread 2: lock(B), lock(A)
 // Result: Potential deadlock
 
-// ? Holding lock while doing expensive I/O
+// Holding lock while doing expensive I/O
 using var guard = mutex.Lock().Unwrap();
 await ExpensiveNetworkCall();  // Other threads blocked!
 guard.Value = result;
 
-// ? Better: Do work outside the lock
+// Better: Do work outside the lock
 var result = await ExpensiveNetworkCall();
 using var guard = mutex.Lock().Unwrap();
 guard.Value = result;  // Lock held minimally
@@ -694,7 +694,7 @@ For non-security questions:
 
 ---
 
-**Last Updated**: 2024  
+**Last Updated**: 2025  
 **Policy Version**: 1.1  
 **Contact**: security@esoxsolutions.com
 

@@ -11,9 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-#### ?? Experimental Features
+#### Experimental Features
 
-> **?? EXPERIMENTAL**: The following features are experimental and their APIs may change in future versions. Use with caution in production environments.
+> **EXPERIMENTAL**: The following features are experimental and their APIs may change in future versions. Use with caution in production environments.
 
 ##### Mutex<T> - Thread-Safe Mutual Exclusion (?? Experimental)
 - **Rust-inspired Mutex<T>** type for protecting shared data with Result-based error handling
@@ -129,16 +129,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Experimental Status
 
-**?? The Mutex<T> and RwLock<T> APIs are experimental and may change in future versions.**
+**The Mutex<T> and RwLock<T> APIs are experimental and may change in future versions.**
 
 **What "Experimental" Means:**
-- ? Thoroughly tested (36+ tests, 100% passing)
-- ? Follows security best practices
-- ? Built on well-tested .NET primitives
-- ? Fully functional and ready for use
-- ?? API may change based on community feedback
-- ?? May have breaking changes in minor versions (1.x)
-- ?? Use caution in production-critical systems
+- Thoroughly tested (36+ tests, 100% passing)
+- Follows security best practices
+- Built on well-tested .NET primitives
+- Fully functional and ready for use
+- API may change based on community feedback
+- May have breaking changes in minor versions (1.x)
+- Use caution in production-critical systems
 
 **Recommendations:**
 - Use in non-critical paths initially
@@ -409,7 +409,7 @@ if (writeResult.TryGetValue(out var writeGuard))
 }
 ```
 
-**?? Important Notes**: 
+**Important Notes**: 
 - Mutex<T> and RwLock<T> are experimental
 - APIs may change in future versions based on feedback
 - Use with caution in production-critical systems
@@ -561,7 +561,7 @@ This project is licensed under the MIT License - see [LICENSE.txt](LICENSE.txt) 
 **Current Version**: 1.2.2  
 **Status**: 
 - Production Ready (9.5/10) - Core Result/Error features
-- ?? Experimental - Mutex<T> and RwLock<T> (API may change)
+- Experimental - Mutex<T> and RwLock<T> (API may change)
 
 **Test Coverage**: 296+ tests (260 production + 36+ experimental), 100% pass rate  
 **Maintainer**: Iede Snoek (Esox Solutions)

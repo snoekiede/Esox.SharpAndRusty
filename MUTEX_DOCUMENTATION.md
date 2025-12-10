@@ -703,19 +703,19 @@ public class PooledResource<T> : IDisposable
 
 ### Similarities
 
-? **RAII Lock Management**
+**RAII Lock Management**
 - Both use RAII for automatic lock release
 - Rust: `drop(guard)`, C#: `guard.Dispose()`
 
-? **Interior Mutability**
+**Interior Mutability**
 - Both allow mutation of shared data
 - Rust: `*guard = value`, C#: `guard.Value = value`
 
-? **Type Safety**
+**Type Safety**
 - Both provide compile-time type safety
 - Protected data type is part of the type signature
 
-? **Explicit Lock Acquisition**
+**Explicit Lock Acquisition**
 - Both make locking explicit
 - Rust: `mutex.lock()`, C#: `mutex.Lock()`
 
@@ -794,7 +794,7 @@ if (result.TryGetValue(out var guard))
     }
 }
 
-// ? Bad - might forget to dispose
+// Bad - might forget to dispose
 var result = mutex.Lock();
 if (result.TryGetValue(out var guard))
 {
@@ -806,7 +806,7 @@ if (result.TryGetValue(out var guard))
 ### 2. **Keep Critical Sections Short**
 
 ```csharp
-// ? Good - minimal work while locked
+// Good - minimal work while locked
 var data = await LoadDataAsync();
 var result = mutex.Lock();
 if (result.TryGetValue(out var guard))
@@ -817,7 +817,7 @@ if (result.TryGetValue(out var guard))
     }
 }
 
-// ? Bad - long operation while locked
+// Bad - long operation while locked
 var result = mutex.Lock();
 if (result.TryGetValue(out var guard))
 {
@@ -881,7 +881,7 @@ result.Match(
 ### 5. **Prefer Functional Operations**
 
 ```csharp
-// ? Good - functional style
+// Good - functional style
 var result = mutex.Lock()
     .Map(guard =>
     {
@@ -892,7 +892,7 @@ var result = mutex.Lock()
         }
     });
 
-// ? Acceptable but less functional
+// Acceptable but less functional
 var result = mutex.Lock();
 if (result.TryGetValue(out var guard))
 {
@@ -907,15 +907,15 @@ if (result.TryGetValue(out var guard))
 ### 6. **Avoid Deadlocks**
 
 ```csharp
-// ? Bad - potential deadlock
+// Bad - potential deadlock
 var result1 = mutex1.Lock();
 var result2 = mutex2.Lock(); // Might deadlock if another thread locks in opposite order
 
-// ? Better - use timeout
+// Better - use timeout
 var result1 = mutex1.TryLockTimeout(TimeSpan.FromSeconds(5));
 var result2 = mutex2.TryLockTimeout(TimeSpan.FromSeconds(5));
 
-// ? Best - consistent lock ordering
+// Best - consistent lock ordering
 // Always acquire mutexes in the same order across all threads
 ```
 
@@ -959,10 +959,10 @@ var result2 = mutex2.TryLockTimeout(TimeSpan.FromSeconds(5));
 
 1. **Prefer async methods in async contexts**:
    ```csharp
-   // ? Good - uses async properly
+   // Good - uses async properly
    var result = await mutex.LockAsync();
    
-   // ? Bad - blocks thread in async method
+   // Bad - blocks thread in async method
    var result = mutex.Lock();
    ```
 
@@ -975,13 +975,13 @@ var result2 = mutex2.TryLockTimeout(TimeSpan.FromSeconds(5));
 
 3. **Batch operations when possible**:
    ```csharp
-   // ? Good - one lock for multiple operations
+   // Good - one lock for multiple operations
    using var guard = mutex.Lock().Unwrap();
    guard.Value.Add(item1);
    guard.Value.Add(item2);
    guard.Value.Add(item3);
    
-   // ? Bad - multiple locks
+   // Bad - multiple locks
    mutex.Lock().Unwrap().Value.Add(item1);
    mutex.Lock().Unwrap().Value.Add(item2);
    mutex.Lock().Unwrap().Value.Add(item3);
@@ -993,13 +993,13 @@ var result2 = mutex2.TryLockTimeout(TimeSpan.FromSeconds(5));
 
 The `Mutex<T>` type provides:
 
-- ? **Type-Safe Concurrency** - Compiler-enforced exclusive access
-- ? **Explicit Error Handling** - Result-based API for failures
-- ? **RAII Lock Management** - Automatic release via disposal
-- ? **Async Support** - Full async/await integration
-- ? **Flexible Locking** - Blocking, try, timeout, and async variants
-- ? **Functional Operations** - Map, Update, and more
-- ? **Rich Error Context** - Detailed error information with metadata
+- **Type-Safe Concurrency** - Compiler-enforced exclusive access
+- **Explicit Error Handling** - Result-based API for failures
+- **RAII Lock Management** - Automatic release via disposal
+- **Async Support** - Full async/await integration
+- **Flexible Locking** - Blocking, try, timeout, and async variants
+- **Functional Operations** - Map, Update, and more
+- **Rich Error Context** - Detailed error information with metadata
 
 Use `Mutex<T>` when you need:
 - Thread-safe access to shared mutable data
@@ -1017,5 +1017,5 @@ Use `Mutex<T>` when you need:
 ---
 
 **Version:** 1.2.1  
-**Status:** ? Production Ready  
+**Status:** Production Ready  
 **Test Coverage:** 36 tests, 100% passing
