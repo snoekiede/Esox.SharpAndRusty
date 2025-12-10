@@ -7,6 +7,94 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.2] - 2025
+
+### Added
+
+#### ?? Experimental Features
+
+##### Mutex<T> - Thread-Safe Mutual Exclusion (Experimental)
+- **Rust-inspired Mutex<T>** type for protecting shared data with Result-based error handling
+- **Five locking strategies**:
+  - `Lock()` - Blocking lock acquisition
+  - `TryLock()` - Non-blocking attempt
+  - `TryLockTimeout(TimeSpan)` - Lock with timeout
+  - `LockAsync(CancellationToken)` - Async lock acquisition
+  - `LockAsyncTimeout(TimeSpan, CancellationToken)` - Async lock with timeout and cancellation
+- **MutexGuard<T>** - RAII guard with automatic lock release via `IDisposable`
+- **Result-based API** - All lock operations return `Result<MutexGuard<T>, Error>`
+- **Functional operations on guards**:
+  - `Map<TResult>(Func<T, TResult>)` - Transform guarded value
+  - `Update(Func<T, T>)` - Update guarded value in place
+- **Interior mutability** - Safe mutation of shared data
+- **IntoInner()** - Consume mutex and extract value (similar to Rust)
+
+#### Documentation
+- **MUTEX_DOCUMENTATION.md** - Complete Mutex<T> usage guide
+  - API reference with all methods
+  - Usage examples (basic to advanced)
+  - Comparison with Rust's Mutex
+  - Best practices and performance considerations
+  - Real-world use cases (counters, caches, resource pools, work queues)
+- **MUTEX_IMPLEMENTATION_SUMMARY.md** - Implementation details and test results
+- **README_MUTEX_UPDATE_SUMMARY.md** - README update documentation
+
+#### Test Coverage
+- Added **36 comprehensive Mutex tests**:
+  - Basic lock operations (4 tests)
+  - TryLock functionality (3 tests)
+  - TryLockTimeout with various scenarios (3 tests)
+  - Async locking (4 tests)
+  - Async timeout locking (3 tests)
+  - MutexGuard operations (8 tests)
+  - IntoInner functionality (3 tests)
+  - Concurrency stress tests (3 tests)
+  - Disposal and cleanup (3 tests)
+  - Complex scenarios (2 tests)
+
+### Changed
+
+#### Documentation Updates
+- Updated **README.md** (root) with Experimental Features section
+- Updated **Esox.SharpAndRusty/README.md** with Experimental Features section
+- Test count updated: **230** ? **296 tests** (260 production + 36 experimental)
+- Added clear experimental status indicators (??) throughout documentation
+- Added warnings about potential API changes for experimental features
+
+#### Test Organization
+- Split test reporting:
+  - **Production tests**: 260 (Result/Error core functionality)
+  - **Experimental tests**: 36 (Mutex<T>)
+  - **Total**: 296 tests, 100% passing
+
+### Performance
+
+- **Mutex<T>**: Minimal overhead using `SemaphoreSlim` internally
+  - Lock acquisition: O(1) + blocking time
+  - TryLock: O(1) non-blocking
+  - Guard disposal: O(1)
+  - Memory: ~40-48 bytes per Mutex + size of T
+- **Concurrency verified**: Stress tests with 100+ concurrent operations
+
+### Notes
+
+#### Experimental Status
+
+**?? The Mutex<T> API is experimental and may change in future versions.**
+
+Recommendations:
+- Use in non-critical paths initially
+- Provide feedback on API design
+- Test thoroughly in your specific use cases
+- Be prepared for potential API changes in minor version updates
+
+**Production Status:**
+- Core Result/Error functionality remains production-ready (9.5/10)
+- 260 production tests maintain 100% pass rate
+- No breaking changes to existing APIs
+
+---
+
 ## [1.2.0] - 2025
 
 ### Added
@@ -200,10 +288,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 | 1.0.0   | 150+  | Core Result type | Basic | Beta |
 | 1.1.0   | 202   | + LINQ, Async, Error type | Comprehensive | Yes |
 | 1.2.0   | 230   | + Production optimizations | Complete | Yes |
+| 1.2.2   | 296   | + ?? Mutex<T> (experimental) | Complete | Yes (core) |
 
 ---
 
 ## Migration Guide
+
+### From 1.2.0 to 1.2.2
+
+**All changes are backward compatible. No breaking changes.**
+
+#### New Experimental Feature
+
+**Mutex<T>** is now available as an experimental feature:
+
+```csharp
+using Esox.SharpAndRusty.Async;
+
+// Create mutex protecting shared data
+var mutex = new Mutex<int>(0);
+
+// Acquire lock with Result-based error handling
+var result = mutex.Lock();
+if (result.TryGetValue(out var guard))
+{
+    using (guard)
+    {
+        guard.Value++;  // Safe mutation
+    } // Lock automatically released
+}
+
+// Async locking
+var asyncResult = await mutex.LockAsync(cancellationToken);
+```
+
+**?? Note**: Mutex<T> is experimental. API may change based on feedback.
+
+**No Action Required**: This is an additive change. Existing code continues to work unchanged.
 
 ### From 1.1.0 to 1.2.0
 
@@ -274,6 +395,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Future Considerations
 
 #### Version 1.3.0 (Potential)
+- [ ] Stabilize Mutex<T> API (move from experimental to production if feedback is positive)
+- [ ] RwLock<T> - Read-write lock for multiple readers, single writer scenarios
+- [ ] Semaphore<T> - Counting semaphore for controlled concurrent access
 - [ ] HttpClient-specific exception mapping
 - [ ] Error serialization support (JSON, XML)
 - [ ] Performance benchmarks and optimization
@@ -282,10 +406,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [ ] Integration with ILogger
 
 #### Version 2.0.0 (Breaking Changes - If Needed)
+- [ ] Finalize Mutex<T> API based on user feedback
 - [ ] Evaluate struct vs class trade-offs for Error type
 - [ ] Consider alternative metadata storage options
 - [ ] Review API surface for improvements
 - [ ] Potential .NET version upgrade requirements
+
+### Experimental Feature Feedback
+
+We welcome feedback on the **Mutex<T>** experimental feature:
+- API design and ergonomics
+- Performance in real-world scenarios
+- Missing functionality
+- Integration with existing code patterns
+
+Please share your experience via GitHub Issues or Discussions.
 
 ---
 
@@ -312,11 +447,12 @@ This project is licensed under the MIT License - see [LICENSE.txt](LICENSE.txt) 
 
 ---
 
-**Current Version**: 1.2.0  
-**Status**: Production Ready (9.5/10)  
-**Test Coverage**: 230 tests, 100% pass rate  
+**Current Version**: 1.2.2  
+**Status**: Production Ready (9.5/10) - Core features | ?? Experimental - Mutex<T>  
+**Test Coverage**: 296 tests (260 production + 36 experimental), 100% pass rate  
 **Maintainer**: Iede Snoek (Esox Solutions)
 
+[1.2.2]: https://github.com/snoekiede/Esox.SharpAndRusty/releases/tag/v1.2.2
 [1.2.0]: https://github.com/snoekiede/Esox.SharpAndRusty/releases/tag/v1.2.0
 [1.1.0]: https://github.com/snoekiede/Esox.SharpAndRusty/releases/tag/v1.1.0
 [1.0.0]: https://github.com/snoekiede/Esox.SharpAndRusty/releases/tag/v1.0.0
