@@ -25,6 +25,7 @@ This library is provided "as is" without warranty of any kind, either express or
 - ✅ **Full Async Support**: Complete async/await integration with `MapAsync`, `BindAsync`, `TapAsync`, and more
 - ✅ **Cancellation Support**: All async methods support `CancellationToken` for graceful operation cancellation
 - ✅ **.NET 10 Compatible**: Built for the latest .NET platform with C# 14
+- 🧪 **Experimental: Mutex<T>**: Rust-inspired mutual exclusion primitive with Result-based locking
 
 ## Installation
 
@@ -410,8 +411,8 @@ var detailedError = error.CaptureStackTrace(includeFileInfo: true);    // Detail
 
 **Production Features:**
 - ✅ **ImmutableDictionary** - Efficient metadata storage with structural sharing
-- ✅ **Type-Safe Metadata** - Generic overloads for compile-time type safety
-- ✅ **Metadata type validation** - Validates types at addition time, not serialization
+- ✅ **Type-safe metadata API** - Generic overloads for compile-time type safety
+- ✅ **Metadata type validation** - Validates at addition time, not serialization
 - ✅ **Depth Limiting** - Error chains truncated at 50 levels (prevents stack overflow)
 - ✅ **Circular Reference Detection** - HashSet-based cycle detection
 - ✅ **Expanded Exception Mapping** - 11 common exception types automatically mapped
@@ -641,7 +642,7 @@ var message = result.Match(
 
 ## Testing
 
-The library includes comprehensive test coverage with **230 unit tests** covering:
+The library includes comprehensive test coverage with **296 unit tests** (including 36 experimental Mutex tests) covering:
 - Basic creation and inspection
 - Pattern matching
 - Equality and hash code
@@ -662,9 +663,78 @@ The library includes comprehensive test coverage with **230 unit tests** coverin
   - Circular reference detection
   - Full error chain formatting
   - Equality and hash code
+- **🧪 Experimental Mutex<T>** (36 tests)
+  - Lock acquisition and release
+  - Try-lock and timeout variants
+  - Async locking with cancellation
+  - Concurrency stress tests
+  - RAII guard management
 - Exception handling (Try/TryAsync)
 - Side effects (Inspect/InspectErr)
 - Value extraction methods
 - Null handling for nullable types
+
+````````
+
+---
+
+**Experimental Features**
+
+### 🧪 Mutex<T> - Thread-Safe Mutual Exclusion
+
+**Status:** Experimental - API may change in future versions
+
+A Rust-inspired `Mutex<T>` type for protecting shared data with Result-based error handling:
+
+```csharp
+using Esox.SharpAndRusty.Async;
+using Esox.SharpAndRusty.Types;
+
+// Create a mutex protecting shared data
+var mutex = new Mutex<int>(0);
+
+// Acquire lock with Result-based error handling
+var result = mutex.Lock();
+if (result.TryGetValue(out var guard))
+{
+    using (guard)
+    {
+        guard.Value++;  // Safe mutation
+    } // Lock automatically released
+}
+
+// Non-blocking try
+var tryResult = mutex.TryLock();
+
+// Async locking with cancellation
+var asyncResult = await mutex.LockAsync(cancellationToken);
+```
+
+**Key Features:**
+- ✅ **Result-Based Locking** - All lock operations return `Result<MutexGuard<T>, Error>`
+- ✅ **RAII Lock Management** - Automatic lock release via `IDisposable`
+- ✅ **Multiple Lock Strategies** - Blocking, try-lock, timeout, and async variants
+- ✅ **Type-Safe** - Compile-time guarantees for protected data access
+- ✅ **Async-Ready** - Full async/await support with cancellation tokens
+
+**Locking Methods:**
+- `Lock()` - Blocking lock acquisition
+- `TryLock()` - Non-blocking attempt
+- `TryLockTimeout(TimeSpan)` - Lock with timeout
+- `LockAsync(CancellationToken)` - Async lock
+- `LockAsyncTimeout(TimeSpan, CancellationToken)` - Async lock with timeout
+
+**⚠️ Experimental Notice:**
+
+The `Mutex<T>` API is currently experimental and may undergo changes based on user feedback and real-world usage patterns. While fully tested (36 comprehensive tests), we recommend:
+
+- Using it in non-critical paths initially
+- Providing feedback on the API design
+- Testing thoroughly in your specific use cases
+- Being prepared for potential API changes in minor version updates
+
+See [MUTEX_DOCUMENTATION.md](../MUTEX_DOCUMENTATION.md) for complete documentation and usage examples.
+
+## Why Use Result Types?
 
 

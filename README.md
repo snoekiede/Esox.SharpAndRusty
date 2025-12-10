@@ -25,6 +25,7 @@ This library is provided "as is" without warranty of any kind, either express or
 - ✅ **Full Async Support**: Complete async/await integration with `MapAsync`, `BindAsync`, `TapAsync`, and more
 - ✅ **Cancellation Support**: All async methods support `CancellationToken` for graceful operation cancellation
 - ✅ **.NET 10 Compatible**: Built for the latest .NET platform with C# 14
+- 🧪 **Experimental: Mutex<T>**: Rust-inspired mutual exclusion primitive with Result-based locking (see [Experimental Features](#experimental-features))
 
 ## Installation
 
@@ -560,9 +561,35 @@ var message = result.Match(
 - ✅ **Cancellable Operations**: Graceful cancellation of long-running async operations
 - ✅ **Debugging Support**: Metadata attachment and full error chain display for debugging
 
+## Production Readiness
+
+This library is production-ready with:
+- ✅ Full equality implementation
+- ✅ Comprehensive API surface
+- ✅ Exception handling helpers
+- ✅ Extensive test coverage (**296 tests total: 260 production + 36 experimental, 100% passing**)
+- ✅ Proper null handling
+- ✅ Argument validation
+- ✅ Clear documentation
+- ✅ **Full LINQ query syntax support**
+- ✅ **Complete async/await integration**
+- ✅ **Cancellation token support for all async operations**
+- ✅ **Advanced error handling features** (MapError, Expect, Tap, etc.")
+- ✅ **Rich Error type with context chaining and metadata**
+- ✅ **Collection operations** (Combine, Partition)
+- ✅ **100% backward compatibility**
+- ✅ **Production-optimized Error type** (ImmutableDictionary, depth limits, circular detection)
+- ✅ **Type-safe metadata API** with compile-time guarantees
+- ✅ **Memory-efficient** with structural sharing
+- ✅ **Stack-safe** with depth and cycle protection
+
+**Note:** The `Mutex<T>` feature is currently experimental. Core Result/Error functionality is production-ready.
+
+**Production Readiness Score: 9.5/10** 🎉
+
 ## Testing
 
-The library includes comprehensive test coverage with **230 unit tests** covering:
+The library includes comprehensive test coverage with **296 unit tests** (including 36 experimental Mutex tests) covering:
 - Basic creation and inspection
 - Pattern matching
 - Equality and hash code
@@ -583,66 +610,13 @@ The library includes comprehensive test coverage with **230 unit tests** coverin
   - Circular reference detection
   - Full error chain formatting
   - Equality and hash code
+- **🧪 Experimental Mutex<T>** (36 tests)
+  - Lock acquisition and release
+  - Try-lock and timeout variants
+  - Async locking with cancellation
+  - Concurrency stress tests
+  - RAII guard management
 - Exception handling (Try/TryAsync)
 - Side effects (Inspect/InspectErr)
 - Value extraction methods
 - Null handling for nullable types
-
-Run tests:
-```bash
-dotnet test
-```
-
-## Production Readiness
-
-This library is production-ready with:
-- ✅ Full equality implementation
-- ✅ Comprehensive API surface
-- ✅ Exception handling helpers
-- ✅ Extensive test coverage (**230 tests, 100% passing**)
-- ✅ Proper null handling
-- ✅ Argument validation
-- ✅ Clear documentation
-- ✅ **Full LINQ query syntax support**
-- ✅ **Complete async/await integration**
-- ✅ **Cancellation token support for all async operations**
-- ✅ **Advanced error handling features** (MapError, Expect, Tap, etc.)
-- ✅ **Rich Error type with context chaining and metadata**
-- ✅ **Collection operations** (Combine, Partition)
-- ✅ **100% backward compatibility**
-- ✅ **Production-optimized Error type** (ImmutableDictionary, depth limits, circular detection)
-- ✅ **Type-safe metadata API** with compile-time guarantees
-- ✅ **Memory-efficient** with structural sharing
-- ✅ **Stack-safe** with depth and cycle protection
-
-**Production Readiness Score: 9.5/10** 🎉
-
-See [Esox.SharpAndRusty/RESULT_TYPE_IMPROVEMENTS.md](Esox.SharpAndRusty/RESULT_TYPE_IMPROVEMENTS.md) for detailed information about production-ready features.
-
-See [Esox.SharpAndRusty/ADVANCED_FEATURES.md](Esox.SharpAndRusty/ADVANCED_FEATURES.md) for comprehensive guide on advanced features including async support, collection operations, and error transformation.
-
-See [ERROR_TYPE.md](ERROR_TYPE.md) for complete Error type documentation and examples.
-
-See [ERROR_TYPE_PRODUCTION_IMPROVEMENTS.md](ERROR_TYPE_PRODUCTION_IMPROVEMENTS.md) for detailed production optimization information.
-
-See [CIRCULAR_REFERENCE_PROTECTION.md](CIRCULAR_REFERENCE_PROTECTION.md) for information about error chain safety features.
-
-See [CANCELLATION_TOKEN_SUPPORT.md](CANCELLATION_TOKEN_SUPPORT.md) for detailed information about cancellation token support in async operations.
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## License
-
-MIT License - see LICENSE file for details
-
-## Acknowledgments
-
-Inspired by Rust's `Result<T, E>` type and functional programming principles. This library brings idiomatic Rust error handling patterns to the C# ecosystem while respecting .NET conventions and best practices.
