@@ -232,10 +232,27 @@ namespace Esox.SharpAndRust.Tests.Async
 
             Result<ReadGuard<int>, Error> readResult;
             
+            // Use a TaskCompletionSource to ensure we wait for the separate thread
+            var tcs = new TaskCompletionSource<Result<ReadGuard<int>, Error>>();
+            
             try
             {
-                // Try to read from a different thread to avoid recursion
-                readResult = Task.Run(() => rwlock.TryRead()).Result;
+                // Try to read from a dedicated thread to avoid recursion policy
+                var thread = new Thread(() =>
+                {
+                    try
+                    {
+                        var result = rwlock.TryRead();
+                        tcs.SetResult(result);
+                    }
+                    catch (Exception ex)
+                    {
+                        tcs.SetException(ex);
+                    }
+                });
+                
+                thread.Start();
+                readResult = tcs.Task.Result;
             }
             finally
             {
@@ -304,11 +321,28 @@ namespace Esox.SharpAndRust.Tests.Async
 
             var timeout = TimeSpan.FromMilliseconds(100);
             Result<ReadGuard<int>, Error> readResult;
+            
+            // Use a TaskCompletionSource to ensure we wait for the separate thread
+            var tcs = new TaskCompletionSource<Result<ReadGuard<int>, Error>>();
 
             try
             {
-                // Act - Try from different thread to avoid recursion
-                readResult = await Task.Run(() => rwlock.TryReadTimeout(timeout));
+                // Act - Force execution on a new thread to avoid recursion
+                var thread = new Thread(() =>
+                {
+                    try
+                    {
+                        var result = rwlock.TryReadTimeout(timeout);
+                        tcs.SetResult(result);
+                    }
+                    catch (Exception ex)
+                    {
+                        tcs.SetException(ex);
+                    }
+                });
+                
+                thread.Start();
+                readResult = await tcs.Task;
             }
             finally
             {
