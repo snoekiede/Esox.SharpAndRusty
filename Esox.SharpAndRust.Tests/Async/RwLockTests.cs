@@ -221,20 +221,34 @@ namespace Esox.SharpAndRust.Tests.Async
             var rwlock = new RwLock<int>(42);
             
             // Act - Acquire write lock on this thread
-            var writeGuard = rwlock.Write();
+            var writeResult = rwlock.Write();
+            Assert.True(writeResult.IsSuccess); // Ensure we got the write lock
 
-            // Try to read from a different thread to avoid recursion
-            var result = Task.Run(() => rwlock.TryRead()).Result;
+            if (!writeResult.TryGetValue(out var writeGuard))
+            {
+                Assert.Fail("Failed to acquire write lock");
+                return;
+            }
+
+            Result<ReadGuard<int>, Error> readResult;
+            
+            try
+            {
+                // Try to read from a different thread to avoid recursion
+                readResult = Task.Run(() => rwlock.TryRead()).Result;
+            }
+            finally
+            {
+                // Cleanup
+                writeGuard.Dispose();
+            }
 
             // Assert
-            Assert.True(result.IsFailure);
-            if (result.TryGetError(out var error))
+            Assert.True(readResult.IsFailure, $"Expected read to fail, but got IsSuccess={readResult.IsSuccess}, IsFailure={readResult.IsFailure}");
+            if (readResult.TryGetError(out var error))
             {
                 Assert.Equal(ErrorKind.ResourceExhausted, error.Kind);
             }
-
-            // Cleanup
-            if (writeGuard.TryGetValue(out var guard)) guard.Dispose();
         }
 
         [Fact]
@@ -279,23 +293,37 @@ namespace Esox.SharpAndRust.Tests.Async
         {
             // Arrange
             var rwlock = new RwLock<int>(42);
-            var writeGuard = rwlock.Write();
-            var timeout = TimeSpan.FromMilliseconds(100);
+            var writeResult = rwlock.Write();
+            Assert.True(writeResult.IsSuccess); // Ensure we got the write lock
+            
+            if (!writeResult.TryGetValue(out var writeGuard))
+            {
+                Assert.Fail("Failed to acquire write lock");
+                return;
+            }
 
-            // Act - Try from different thread to avoid recursion
-            var result = await Task.Run(() => rwlock.TryReadTimeout(timeout));
+            var timeout = TimeSpan.FromMilliseconds(100);
+            Result<ReadGuard<int>, Error> readResult;
+
+            try
+            {
+                // Act - Try from different thread to avoid recursion
+                readResult = await Task.Run(() => rwlock.TryReadTimeout(timeout));
+            }
+            finally
+            {
+                // Cleanup
+                writeGuard.Dispose();
+            }
 
             // Assert
-            Assert.True(result.IsFailure);
-            if (result.TryGetError(out var error))
+            Assert.True(readResult.IsFailure, $"Expected read to fail, but got IsSuccess={readResult.IsSuccess}");
+            if (readResult.TryGetError(out var error))
             {
                 // Can be Timeout or InvalidOperation depending on lock state
                 Assert.True(error.Kind == ErrorKind.Timeout || error.Kind == ErrorKind.InvalidOperation,
                     $"Expected Timeout or InvalidOperation, got {error.Kind}");
             }
-
-            // Cleanup
-            if (writeGuard.TryGetValue(out var guard)) guard.Dispose();
         }
 
         #endregion
