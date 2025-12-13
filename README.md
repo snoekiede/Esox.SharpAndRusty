@@ -13,6 +13,7 @@ This library is provided "as is" without warranty of any kind, either express or
 - ✅ **Type-Safe Error Handling**: Explicitly represent success and failure states in your type signatures
 - ✅ **Rust-Inspired API**: Familiar patterns for developers coming from Rust or functional programming
 - ✅ **Rich Error Type**: Rust-inspired `Error` type with context chaining, metadata, and error categorization
+- ✅ **Unit Type**: Rust-inspired `Unit` type for operations that don't return meaningful values
 - ✅ **Zero Overhead**: Implemented as a `readonly struct` for optimal performance
 - ✅ **Functional Composition**: Chain operations with `Map`, `Bind`, `MapError`, and `OrElse`
 - ✅ **Pattern Matching**: Use the `Match` method for elegant success/failure handling
@@ -419,155 +420,64 @@ var detailedError = error.CaptureStackTrace(includeFileInfo: true);    // Detail
 See [ERROR_TYPE.md](ERROR_TYPE.md) for comprehensive Error type documentation.
 See [ERROR_TYPE_PRODUCTION_IMPROVEMENTS.md](ERROR_TYPE_PRODUCTION_IMPROVEMENTS.md) for detailed production optimization information.
 
-## API Reference
+### Unit Type for Void Results
 
-### `Result<T, E>` Type
+The library includes a `Unit` type for operations that can fail but don't return meaningful values on success, similar to Rust's `()` type:
 
-#### Properties
-- `bool IsSuccess` - Returns `true` if the result represents success
-- `bool IsFailure` - Returns `true` if the result represents failure
-
-#### Static Factory Methods
-- `Result<T, E> Ok(T value)` - Creates a successful result
-- `Result<T, E> Err(E error)` - Creates a failed result
-- `Result<T, E> Try(Func<T> operation, Func<Exception, E> errorHandler)` - Execute operation with exception handling
-- `Task<Result<T, E>> TryAsync(Func<Task<T>> operation, Func<Exception, E> errorHandler)` - Async version of Try
-
-#### Instance Methods
-- `R Match<R>(Func<T, R> success, Func<E, R> failure)` - Pattern match on the result
-- `bool TryGetValue(out T value)` - Try to get the success value
-- `bool TryGetError(out E error)` - Try to get the error value
-- `T UnwrapOr(T defaultValue)` - Get value or return default
-- `T UnwrapOrElse(Func<E, T> defaultFactory)` - Get value or compute default
-- `Result<T, E> OrElse(Func<E, Result<T, E>> alternative)` - Provide alternative on failure
-- `Result<T, E> Inspect(Action<T> action)` - Execute action on success value
-- `Result<T, E> InspectErr(Action<E> action)` - Execute action on error value
-
-#### Equality Methods
-- `bool Equals(Result<T, E> other)` - Check equality
-- `int GetHashCode()` - Get hash code
-- `bool operator ==(Result<T, E> left, Result<T, E> right)` - Equality operator
-- `bool operator !=(Result<T, E> left, Result<T, E> right)` - Inequality operator
-- `string ToString()` - Returns `"Ok(value)"` or `"Err(error)"`
-
-### `Error` Type
-
-A rich error type inspired by Rust's error handling patterns with **production-grade optimizations**.
-
-#### Static Factory Methods
-- `Error New(string message)` - Creates a new error
-- `Error New(string message, ErrorKind kind)` - Creates an error with a specific kind
-- `Error FromException(Exception exception)` - Converts an exception to an error (maps 11+ exception types)
-
-#### Instance Methods
-- `Error WithContext(string contextMessage)` - Adds context to the error
-- `Error WithMetadata(string key, object value)` - Attaches metadata (validates types)
-- `Error WithMetadata<T>(string key, T value) where T : struct` - Type-safe metadata attachment
-- `Error WithKind(ErrorKind kind)` - Changes the error kind
-- `Error CaptureStackTrace(bool includeFileInfo = false)` - Captures the current stack trace (configurable)
-- `bool TryGetMetadata(string key, out object? value)` - Gets metadata
-- `bool TryGetMetadata<T>(string key, out T? value)` - Type-safe metadata retrieval
-- `string GetFullMessage()` - Gets the full error chain as a string (depth-limited, circular-safe)
-
-#### Properties
-- `string Message` - The error message
-- `ErrorKind Kind` - The error category (14 predefined kinds)
-- `Error? Source` - The source error (if chained)
-- `string? StackTrace` - The captured stack trace
-- `bool HasSource` - Whether this error has a source
-
-#### Production Features
-- **ImmutableDictionary** for metadata - O(log n) operations with structural sharing
-- **Type-safe metadata API** - Generic overloads for compile-time type safety
-- **Metadata type validation** - Validates at addition time (primitives, DateTime, Guid, enums, value types)
-- **Depth limiting** - Error chains truncated at 50 levels to prevent stack overflow
-- **Circular reference detection** - HashSet-based cycle detection prevents infinite loops
-- **Expanded exception mapping** - 11 common exception types automatically categorized
-- **Configurable stack traces** - Optional file info for performance tuning
-- **Equality support** - Proper `Equals`, `GetHashCode`, `==`, `!=` operators
-
-**Performance Characteristics:**
-- Metadata addition: O(log n) with structural sharing
-- Depth limit: Bounded at 50 levels
-- Circular detection: O(1) per node
-- Memory: Immutable with structural sharing
-
-See [ERROR_TYPE_PRODUCTION_IMPROVEMENTS.md](ERROR_TYPE_PRODUCTION_IMPROVEMENTS.md) for complete optimization details.
-
-### Error Extensions
-
-Extension methods for working with `Result<T, Error>`:
-
-#### `Context` / `ContextAsync`
 ```csharp
-Result<T, Error> Context(this Result<T, Error> result, string contextMessage)
-```
-Adds context to an error in a Result.
+using Esox.SharpAndRusty.Types;
 
-#### `WithMetadata` / `WithMetadataAsync`
-```csharp
-Result<T, Error> WithMetadata(this Result<T, Error> result, string key, object value)
-```
-Attaches metadata to an error in a Result.
-
-#### `Try` / `TryAsync`
-```csharp
-Result<T, Error> Try<T>(Func<T> operation)
-Task<Result<T, Error>> TryAsync<T>(Func<Task<T>> operation, CancellationToken cancellationToken = default)
-```
-Executes operations and converts exceptions to errors automatically.
-
-See [ERROR_TYPE.md](ERROR_TYPE.md) for complete Error type documentation.
-
-## Why Use Result Types?
-
-### Traditional Exception-Based Approach
-```csharp
-public User GetUser(int id)
+// Operation that can fail but doesn't return a value
+public Result<Unit, Error> TerminateLogger()
 {
-    var user = database.FindUser(id);
-    if (user == null)
-        throw new NotFoundException($"User {id} not found");
-    return user;
+    if (_alreadyTerminated)
+    {
+        return Result<Unit, Error>.Err(
+            Error.New("Logger has already been terminated")
+                .WithKind(ErrorKind.InvalidState)
+        );
+    }
+    
+    _logger.Shutdown();
+    _alreadyTerminated = true;
+    
+    return Result<Unit, Error>.Ok(Unit.Value);
 }
 
-// Caller has no indication this method can throw
-User user = GetUser(123); // Might throw at runtime!
-```
-
-### Result-Based Approach
-```csharp
-public Result<User, string> GetUser(int id)
-{
-    var user = database.FindUser(id);
-    if (user == null)
-        return Result<User, string>.Err($"User {id} not found");
-    return Result<User, string>.Ok(user);
-}
-
-// Failure is explicit in the type signature
-Result<User, string> result = GetUser(123);
-var message = result.Match(
-    success: user => $"Found: {user.Name}",
-    failure: error => $"Error: {error}"
+// Usage with pattern matching
+var result = TerminateLogger();
+result.Match(
+    success: _ => Console.WriteLine("Logger terminated successfully"),
+    failure: error => Console.WriteLine($"Failed: {error.Message}")
 );
+
+// File operations that return Unit
+public Result<Unit, Error> SaveToFile(string path, string content)
+{
+    try
+    {
+        File.WriteAllText(path, content);
+        return Result<Unit, Error>.Ok(Unit.Value);
+    }
+    catch (Exception ex)
+    {
+        return Result<Unit, Error>.Err(Error.FromException(ex));
+    }
+}
+
+// Check for errors
+if (result.TryGetError(out var error))
+{
+    Console.WriteLine($"Operation failed: {error.Kind} - {error.Message}");
+}
 ```
 
-## Benefits
-
-- ✅ **Explicit Error Handling**: Method signatures clearly communicate potential failures
-- ✅ **Type Safety**: Compile-time guarantees about error handling
-- ✅ **Rich Error Context**: Chain error context as failures propagate up the call stack
-- ✅ **Error Categorization**: 14 predefined error kinds for appropriate handling
-- ✅ **Performance**: Avoid exception overhead for expected failure cases
-- ✅ **Composability**: Easily chain operations with functional combinators
-- ✅ **Testability**: Easier to test both success and failure paths
-- ✅ **No Null References**: Avoid `NullReferenceException` by making errors explicit
-- ✅ **Better Code Flow**: Failures don't break the natural flow of your code
-- ✅ **LINQ Integration**: Use familiar C# query syntax for error handling workflows
-- ✅ **Async/Await Support**: Full integration with async patterns including cancellation
-- ✅ **Cancellable Operations**: Graceful cancellation of long-running async operations
-- ✅ **Debugging Support**: Metadata attachment and full error chain display for debugging
+**Key Features:**
+- ✅ **Single Value Semantics**: All `Unit` instances are equal
+- ✅ **Perfect for Result Types**: Use `Result<Unit, E>` for operations without return values
+- ✅ **Rust-Inspired**: Matches Rust's `()` type behavior  
+- ✅ **Zero Overhead**: Readonly struct with minimal memory footprint
+- ✅ **String Representation**: `ToString()` returns `"()"` for debugging
 
 ## Production Readiness
 
@@ -575,15 +485,16 @@ This library is production-ready with:
 - ✅ Full equality implementation
 - ✅ Comprehensive API surface
 - ✅ Exception handling helpers
-- ✅ Extensive test coverage (**296 tests total: 260 production + 36 experimental, 100% passing**)
+- ✅ Extensive test coverage (**323 tests total: 267 production + 19 Unit type + 37 RwLock experimental, 100% passing**)
 - ✅ Proper null handling
 - ✅ Argument validation
 - ✅ Clear documentation
 - ✅ **Full LINQ query syntax support**
 - ✅ **Complete async/await integration**
 - ✅ **Cancellation token support for all async operations**
-- ✅ **Advanced error handling features** (MapError, Expect, Tap, etc.")
+- ✅ **Advanced error handling features** (MapError, Expect, Tap, etc.)
 - ✅ **Rich Error type with context chaining and metadata**
+- ✅ **Unit type for void operations**
 - ✅ **Collection operations** (Combine, Partition)
 - ✅ **100% backward compatibility**
 - ✅ **Production-optimized Error type** (ImmutableDictionary, depth limits, circular detection)
@@ -597,50 +508,12 @@ This library is production-ready with:
 |---------|--------|-------|------------------|
 | Result<T, E> | ✅ Stable | 137 | Yes (9.5/10) |
 | Error Type | ✅ Stable | 123 | Yes (9.5/10) |
+| Unit Type | ✅ Stable | 19 | Yes (10/10) |
 | LINQ Support | ✅ Stable | Integrated | Yes |
 | Async/Await | ✅ Stable | 37 | Yes |
 | Mutex<T> | 🧪 Experimental | 36 | Use with caution |
-| RwLock<T> | 🧪 Experimental | TBD | Use with caution |
+| RwLock<T> | 🧪 Experimental | 37 | Use with caution |
 
-**Core Result/Error Functionality**: Production-ready (9.5/10)
+**Core Result/Error/Unit Functionality**: Production-ready (9.5/10)
 **Experimental Mutex/RwLock**: Thoroughly tested but API may change
-
-## Testing
-
-The library includes comprehensive test coverage with **296+ unit tests** covering:
-- Basic creation and inspection
-- Pattern matching
-- Equality and hash code
-- Map and Bind operations
-- **LINQ query syntax integration** (SelectMany, Select, from/select)
-- **Advanced features** (MapError, Expect, Tap, Contains)
-- **Collection operations** (Combine, Partition)
-- **Full async support** (MapAsync, BindAsync, TapAsync, OrElseAsync, CombineAsync)
-- **Cancellation token support** (all async methods with cancellation scenarios)
-- **Error type** (123 comprehensive tests)
-  - Context chaining and error propagation
-  - Type-safe metadata with generics
-  - Metadata type validation
-  - Exception conversion with 11 exception types
-  - Error kind modification
-  - Stack trace capture (configurable)
-  - Depth limiting (50 levels)
-  - Circular reference detection
-  - Full error chain formatting
-  - Equality and hash code
-- **🧪 Experimental Mutex<T>** (36 tests)
-  - Lock acquisition and release
-  - Try-lock and timeout variants
-  - Async locking with cancellation
-  - Concurrency stress tests
-  - RAII guard management
-- **🧪 Experimental RwLock<T>** (tests in development)
-  - Read and write lock operations
-  - Multiple concurrent readers
-  - Exclusive writer access
-  - Guard management and disposal
-- Exception handling (Try/TryAsync)
-- Side effects (Inspect/InspectErr)
-- Value extraction methods
-- Null handling for nullable types
 

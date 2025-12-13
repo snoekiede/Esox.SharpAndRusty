@@ -13,6 +13,7 @@ This library is provided "as is" without warranty of any kind, either express or
 - ✅ **Type-Safe Error Handling**: Explicitly represent success and failure states in your type signatures
 - ✅ **Rust-Inspired API**: Familiar patterns for developers coming from Rust or functional programming
 - ✅ **Rich Error Type**: Rust-inspired `Error` type with context chaining, metadata, and error categorization
+- ✅ **Unit Type**: Rust-inspired `Unit` type for operations that don't return meaningful values
 - ✅ **Zero Overhead**: Implemented as a `readonly struct` for optimal performance
 - ✅ **Functional Composition**: Chain operations with `Map`, `Bind`, `MapError`, and `OrElse`
 - ✅ **Pattern Matching**: Use the `Match` method for elegant success/failure handling
