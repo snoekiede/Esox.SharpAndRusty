@@ -7,6 +7,88 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.4] - 2025
+
+### Added
+
+#### Unit Type
+- **Unit type** - Rust-inspired unit type `()` for representing the absence of a value
+  - `Unit.Value` - Singleton instance
+  - Structural equality - all Unit values are equal
+  - Full comparison support - implements `IEquatable<Unit>` and `IComparable<Unit>`
+  - Useful for `Result<Unit, E>` when operations succeed/fail without producing a value
+  - Common use cases:
+    - Validation operations that don't return data
+    - Side-effect operations (logging, caching, notifications)
+    - Operations where success is the only meaningful information
+  - Zero-overhead - implemented as `readonly struct`
+  - ToString representation: `"()"`
+
+#### Test Coverage
+- Added **10 comprehensive Unit type tests**:
+  - Singleton instance behavior (1 test)
+  - Equality operations (3 tests)
+  - Comparison operations (2 tests)
+  - GetHashCode consistency (1 test)
+  - ToString representation (1 test)
+  - Integration with Result type (2 tests)
+
+### Changed
+
+#### Documentation Updates
+- Updated **README.md** (root) with Unit type section
+  - Added Unit type feature to features list
+  - Added usage examples for Unit type
+  - Added Unit type API reference
+  - Updated example code to show Unit in action
+- Test count updated: **296** ? **306 tests** (270 production + 36 experimental)
+- Added Unit type to Feature Maturity table
+
+#### API Additions
+- `Result<Unit, E>` now a recommended pattern for void-like operations
+- Unit type fully compatible with all Result operations (Map, Bind, LINQ, etc.)
+
+### Performance
+
+- **Unit type**: Zero overhead as `readonly struct`
+  - Instance size: 0 bytes (empty struct)
+  - All operations: O(1)
+  - No allocations
+  - Value type semantics
+  - JIT can optimize away in many cases
+
+### Notes
+
+#### Unit Type Usage Patterns
+
+**When to Use Unit:**
+- Validation operations: `Result<Unit, ValidationError>`
+- Side-effect operations: `Result<Unit, string>`
+- Operations where only success/failure matters
+- Void-replacement in functional pipelines
+
+**Example Patterns:**
+```csharp
+// Validation
+Result<Unit, string> ValidateUser(User user) => ...;
+
+// Side effects
+Result<Unit, Error> SendNotification(Message msg) => ...;
+
+// Chaining void operations
+var result = from _ in Initialize()
+             from __ in Configure()
+             from ___ in Start()
+             select Unit.Value;
+```
+
+**Comparison with Rust:**
+- Rust: `Result<(), E>` 
+- C#: `Result<Unit, E>`
+- Identical semantics and use cases
+
+---
+
 ## [1.2.2] - 2025
 
 ### Added
@@ -358,214 +440,85 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 | 1.1.0   | 202   | + LINQ, Async, Error type | Comprehensive | Yes |
 | 1.2.0   | 230   | + Production optimizations | Complete | Yes |
 | 1.2.2   | 296+  | + ?? Mutex<T>, RwLock<T> (experimental) | Complete | Yes (core) / ?? (experimental) |
+| 1.2.4   | 306+  | + Unit type | Complete | Yes |
 
 ---
 
 ## Migration Guide
 
-### From 1.2.0 to 1.2.2
+### From 1.2.4 to 1.2.6
 
 **All changes are backward compatible. No breaking changes to stable APIs.**
 
-#### New Experimental Features
+#### No Action Required
+- This is a patch version with no user-facing changes.
 
-**Mutex<T>** and **RwLock<T>** are now available as experimental features:
+### From 1.2.2 to 1.2.4
+
+**All changes are backward compatible. No breaking changes to stable APIs.**
+
+#### New Unit Type
+
+**Unit** type is now available for representing the absence of a value:
 
 ```csharp
-using Esox.SharpAndRusty.Async;
+using Esox.SharpAndRusty.Types;
 
-// Mutex<T> - Mutual exclusion
-var mutex = new Mutex<int>(0);
-var result = mutex.Lock();
-if (result.TryGetValue(out var guard))
+// Use Unit for operations that succeed/fail without producing a value
+public Result<Unit, string> ValidateInput(string input)
 {
-    using (guard)
-    {
-        guard.Value++;  // Safe mutation
-    } // Lock automatically released
+    if (string.IsNullOrEmpty(input))
+        return Result<Unit, string>.Err("Input cannot be empty");
+    
+    return Result<Unit, string>.Ok(Unit.Value);
 }
 
-// RwLock<T> - Reader-writer lock
-var rwlock = new RwLock<Dictionary<string, int>>(new());
+// Using the result
+var result = ValidateInput(userInput);
+result.Match(
+    success: _ => Console.WriteLine("Validation succeeded"),
+    failure: error => Console.WriteLine($"Validation failed: {error}")
+);
 
-// Multiple readers
-var readResult = rwlock.Read();
-if (readResult.TryGetValue(out var readGuard))
-{
-    using (readGuard)
-    {
-        var value = readGuard.Value["key"];
-    }
-}
+// Chaining with LINQ
+var result = from _ in ValidateInput(input)
+             from __ in ProcessData()
+             select Unit.Value;
 
-// Exclusive writer
-var writeResult = rwlock.Write();
-if (writeResult.TryGetValue(out var writeGuard))
-{
-    using (writeGuard)
-    {
-        writeGuard.Value["key"] = 42;
-    }
-}
+// All Unit values are equal
+Unit.Value == Unit.Value;  // Always true
+Unit.Value.ToString();      // Returns "()"
 ```
 
-**Important Notes**: 
-- Mutex<T> and RwLock<T> are experimental
-- APIs may change in future versions based on feedback
-- Use with caution in production-critical systems
-- Always use `using` statements with guards
-- Test thoroughly in your scenarios
-- Provide feedback via GitHub Issues/Discussions
+**When to Use Unit:**
+- Validation operations that don't return data
+- Side-effect operations (logging, caching, notifications)
+- Operations where success is the only meaningful information
+- As a replacement for void in functional pipelines
+
+**Rust Equivalent:**
+```rust
+// Rust
+fn validate_input(input: &str) -> Result<(), String> { ... }
+```
+```csharp
+// C# with Esox.SharpAndRusty
+Result<Unit, string> ValidateInput(string input) { ... }
+```
 
 **No Action Required**: This is an additive change. Existing code continues to work unchanged.
 
-### From 1.1.0 to 1.2.0
+### From 1.2.0 to 1.2.2
 
-**All changes are backward compatible. No breaking changes.**
-
-#### Recommended Upgrades
-
-1. **Use type-safe metadata API**:
-   ```csharp
-   // Old way (still works)
-   error.WithMetadata("count", (object)42);
-   var count = (int)error.TryGetMetadata("count", out var value) ? value : 0;
-   
-   // New way (recommended)
-   error.WithMetadata("count", 42);
-   if (error.TryGetMetadata("count", out int count))
-   {
-       // Use count directly, no casting
-   }
-   ```
-
-2. **Use configurable stack traces**:
-   ```csharp
-   // Old way (always includes file info - slower)
-   var error = Error.New("Test").CaptureStackTrace();
-   
-   // New way (configurable)
-   var error = Error.New("Test").CaptureStackTrace(includeFileInfo: false);  // Fast
-   var detailed = Error.New("Test").CaptureStackTrace(includeFileInfo: true); // Detailed
-   ```
-
-3. **Benefit from automatic optimizations**:
-   - ImmutableDictionary is used automatically (no code changes needed)
-   - Depth limiting protects against deep chains automatically
-   - Circular reference detection works transparently
-
-### From 1.0.0 to 1.1.0
-
-**All changes are backward compatible. No breaking changes.**
-
-#### New Features Available
-
-1. **LINQ query syntax**:
-   ```csharp
-   var result = from x in GetValue()
-                from y in GetOtherValue()
-                select x + y;
-   ```
-
-2. **Async operations**:
-   ```csharp
-   var result = await GetValueAsync()
-       .MapAsync(async x => await ProcessAsync(x))
-       .BindAsync(async x => await ValidateAsync(x));
-   ```
-
-3. **Error type with context**:
-   ```csharp
-   var result = Try(() => File.ReadAllText("config.json"))
-       .Context("Failed to load configuration")
-       .WithMetadata("path", "config.json");
-   ```
-
----
-
-## Roadmap
-
-### Future Considerations
-
-#### Version 1.3.0 / 2.0.0 (Potential)
-- [ ] **Stabilize Mutex<T>** - Move from experimental to production if feedback is positive
-- [ ] **Stabilize RwLock<T>** - Move from experimental to production if feedback is positive
-- [ ] Evaluate API changes based on community feedback
-- [ ] Consider additional concurrency primitives:
-  - [ ] Semaphore<T> - Counting semaphore for controlled concurrent access
-  - [ ] CondVar - Condition variables for more complex synchronization
-- [ ] HttpClient-specific exception mapping
-- [ ] Error serialization support (JSON, XML)
-- [ ] Performance benchmarks and optimization
-- [ ] Additional LINQ operators (Where with error messages)
-- [ ] Retry policies and resilience patterns
-- [ ] Integration with ILogger
-
-#### Version 2.0.0 (Breaking Changes - If Needed)
-- [ ] Finalize Mutex<T> and RwLock<T> APIs based on user feedback
-- [ ] Consider breaking changes to improve ergonomics
-- [ ] Evaluate struct vs class trade-offs for Error type
-- [ ] Consider alternative metadata storage options
-- [ ] Review API surface for improvements
-- [ ] Potential .NET version upgrade requirements
-
-### Experimental Feature Feedback
-
-We welcome feedback on the **Mutex<T>** and **RwLock<T>** experimental features:
-- API design and ergonomics
-- Performance in real-world scenarios
-- Missing functionality
-- Integration with existing code patterns
-- Deadlock or race condition experiences
-- Documentation clarity and completeness
-
-**How to Provide Feedback:**
-- **Bug Reports**: [GitHub Issues](https://github.com/snoekiede/Esox.SharpAndRusty/issues)
-- **API Suggestions**: [GitHub Discussions](https://github.com/snoekiede/Esox.SharpAndRusty/discussions)
-- **Security Concerns**: security@esoxsolutions.com
-- **General Questions**: GitHub Discussions
-
-Your feedback will directly influence whether these features:
-- Stabilize with current API
-- Stabilize with modifications
-- Require major version (2.0) for breaking changes
-- Need additional functionality before stabilization
-
----
-
-## Support
-
-- **Documentation**: See README.md, SECURITY.md, and docs/ folder
-- **Issues**: Report bugs on GitHub Issues
-- **Discussions**: Ask questions on GitHub Discussions
-- **Contributing**: See CONTRIBUTING.md
-- **Security**: See SECURITY.md
-
----
-
-## License
-
-This project is licensed under the MIT License - see [LICENSE.txt](LICENSE.txt) for details.
-
----
-
-## Acknowledgments
-
-- Inspired by Rust's `Result<T, E>`, `Mutex<T>`, and `RwLock<T>` types
-- Thanks to all contributors and early adopters
-- Special thanks to the .NET community for feedback and testing
-- Experimental feature design influenced by Rust's std::sync primitives
-
----
-
-**Current Version**: 1.2.2  
+**Current Version**: 1.2.4  
 **Status**: 
-- Production Ready (9.5/10) - Core Result/Error features
+- Production Ready (9.5/10) - Core Result/Error/Unit features
 - Experimental - Mutex<T> and RwLock<T> (API may change)
 
-**Test Coverage**: 296+ tests (260 production + 36+ experimental), 100% pass rate  
+**Test Coverage**: 306+ tests (270 production + 36 experimental), 100% pass rate  
 **Maintainer**: Iede Snoek (Esox Solutions)
 
+[1.2.4]: https://github.com/snoekiede/Esox.SharpAndRusty/releases/tag/v1.2.4
 [1.2.2]: https://github.com/snoekiede/Esox.SharpAndRusty/releases/tag/v1.2.2
 [1.2.0]: https://github.com/snoekiede/Esox.SharpAndRusty/releases/tag/v1.2.0
 [1.1.0]: https://github.com/snoekiede/Esox.SharpAndRusty/releases/tag/v1.1.0

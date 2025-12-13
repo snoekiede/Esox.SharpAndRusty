@@ -13,6 +13,7 @@ This library is provided "as is" without warranty of any kind, either express or
 - ✅ **Type-Safe Error Handling**: Explicitly represent success and failure states in your type signatures
 - ✅ **Rust-Inspired API**: Familiar patterns for developers coming from Rust or functional programming
 - ✅ **Rich Error Type**: Rust-inspired `Error` type with context chaining, metadata, and error categorization
+- ✅ **Unit Type**: Rust-inspired unit type `()` for representing the absence of a value in `Result<Unit, E>`
 - ✅ **Zero Overhead**: Implemented as a `readonly struct` for optimal performance
 - ✅ **Functional Composition**: Chain operations with `Map`, `Bind`, `MapError`, and `OrElse`
 - ✅ **Pattern Matching**: Use the `Match` method for elegant success/failure handling
@@ -135,6 +136,45 @@ if (result.TryGetError(out var error))
 {
     Console.WriteLine($"Error occurred: {error}");
 }
+```
+
+### Unit Type for Void Results
+
+When you need a Result type but have no meaningful value to return on success, use the `Unit` type:
+
+```csharp
+using Esox.SharpAndRusty.Types;
+
+// Operation that succeeds with no value or fails with an error
+public Result<Unit, string> ValidateInput(string input)
+{
+    if (string.IsNullOrEmpty(input))
+        return Result<Unit, string>.Err("Input cannot be empty");
+    
+    // Success with no value
+    return Result<Unit, string>.Ok(Unit.Value);
+}
+
+// Using the result
+var result = ValidateInput(userInput);
+result.Match(
+    success: _ => Console.WriteLine("Validation succeeded"),
+    failure: error => Console.WriteLine($"Validation failed: {error}")
+);
+
+// Chaining operations with Unit
+var result = ValidateInput(userInput)
+    .Bind(_ => ProcessInput())
+    .Bind(_ => SaveData());
+
+// LINQ syntax with Unit
+var result = from _ in ValidateInput(userInput)
+             from __ in ProcessInput()
+             select Unit.Value;
+
+// All Unit values are equal
+Unit.Value == Unit.Value;  // Always true
+Unit.Value.ToString();      // Returns "()"
 ```
 
 ### Pattern Matching
@@ -450,6 +490,56 @@ See [ERROR_TYPE_PRODUCTION_IMPROVEMENTS.md](ERROR_TYPE_PRODUCTION_IMPROVEMENTS.m
 - `bool operator !=(Result<T, E> left, Result<T, E> right)` - Inequality operator
 - `string ToString()` - Returns `"Ok(value)"` or `"Err(error)"`
 
+### `Unit` Type
+
+A type that represents the absence of a value, inspired by Rust's unit type `()`.
+
+#### Static Members
+- `static readonly Unit Value` - The singleton instance
+
+#### Instance Methods
+- `bool Equals(Unit other)` - Always returns `true` (all Units are equal)
+- `int GetHashCode()` - Always returns `0`
+- `string ToString()` - Returns `"()"`
+- `int CompareTo(Unit other)` - Always returns `0`
+
+#### Operators
+- `==`, `!=` - Equality operators (all Units are equal)
+- `<`, `>`, `<=`, `>=` - Comparison operators
+
+#### Usage
+Use `Unit` as the success type in `Result<Unit, E>` for operations that succeed or fail but don't produce a value:
+- Validation operations that don't return data
+- Side-effect operations (logging, caching, notifications)
+- Operations where success is the only meaningful information
+- As a replacement for void in functional pipelines
+
+**Example:**
+```csharp
+// Validation without return value
+Result<Unit, string> ValidateUser(User user) => 
+    user.IsValid 
+        ? Result<Unit, string>.Ok(Unit.Value)
+        : Result<Unit, string>.Err("Invalid user");
+
+// Side-effect operation
+Result<Unit, Error> SendNotification(Message msg) =>
+    EmailService.Send(msg)
+        ? Result<Unit, Error>.Ok(Unit.Value)
+        : Result<Unit, Error>.Err(Error.New("Send failed"));
+
+// Chaining void operations with LINQ
+var result = from _ in Initialize()
+             from __ in Configure()
+             from ___ in Start()
+             select Unit.Value;
+```
+
+**Rust Comparison:**
+- Rust: `Result<(), E>`
+- C#: `Result<Unit, E>`
+- Identical semantics and use cases
+
 ### `Error` Type
 
 A rich error type inspired by Rust's error handling patterns with **production-grade optimizations**.
@@ -575,7 +665,7 @@ This library is production-ready with:
 - ✅ Full equality implementation
 - ✅ Comprehensive API surface
 - ✅ Exception handling helpers
-- ✅ Extensive test coverage (**296 tests total: 260 production + 36 experimental, 100% passing**)
+- ✅ Extensive test coverage (**306 tests total: 270 production + 36 experimental, 100% passing**)
 - ✅ Proper null handling
 - ✅ Argument validation
 - ✅ Clear documentation
@@ -584,6 +674,7 @@ This library is production-ready with:
 - ✅ **Cancellation token support for all async operations**
 - ✅ **Advanced error handling features** (MapError, Expect, Tap, etc.")
 - ✅ **Rich Error type with context chaining and metadata**
+- ✅ **Unit type for void-like results**
 - ✅ **Collection operations** (Combine, Partition)
 - ✅ **100% backward compatibility**
 - ✅ **Production-optimized Error type** (ImmutableDictionary, depth limits, circular detection)
@@ -597,17 +688,18 @@ This library is production-ready with:
 |---------|--------|-------|------------------|
 | Result<T, E> | ✅ Stable | 137 | Yes (9.5/10) |
 | Error Type | ✅ Stable | 123 | Yes (9.5/10) |
+| Unit Type | ✅ Stable | 10 | Yes |
 | LINQ Support | ✅ Stable | Integrated | Yes |
 | Async/Await | ✅ Stable | 37 | Yes |
 | Mutex<T> | 🧪 Experimental | 36 | Use with caution |
 | RwLock<T> | 🧪 Experimental | TBD | Use with caution |
 
-**Core Result/Error Functionality**: Production-ready (9.5/10)
+**Core Result/Error/Unit Functionality**: Production-ready (9.5/10)
 **Experimental Mutex/RwLock**: Thoroughly tested but API may change
 
 ## Testing
 
-The library includes comprehensive test coverage with **296+ unit tests** covering:
+The library includes comprehensive test coverage with **306+ unit tests** covering:
 - Basic creation and inspection
 - Pattern matching
 - Equality and hash code
@@ -628,6 +720,13 @@ The library includes comprehensive test coverage with **296+ unit tests** coveri
   - Circular reference detection
   - Full error chain formatting
   - Equality and hash code
+- **Unit type** (10 comprehensive tests)
+  - Singleton instance behavior
+  - Structural equality
+  - Comparison operations
+  - Integration with Result type
+  - LINQ query syntax support
+  - ToString representation
 - **🧪 Experimental Mutex<T>** (36 tests)
   - Lock acquisition and release
   - Try-lock and timeout variants
