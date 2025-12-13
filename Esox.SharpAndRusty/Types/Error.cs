@@ -460,6 +460,11 @@ namespace Esox.SharpAndRusty.Types
         ResourceExhausted,
 
         /// <summary>
+        /// Indicates that an operation failed due to the object being in an invalid state.
+        /// </summary>
+        InvalidState,
+
+        /// <summary>
         /// An unclassified error.
         /// </summary>
         Other

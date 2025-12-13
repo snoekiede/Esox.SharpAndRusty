@@ -58,8 +58,8 @@
         /// <exception cref="ArgumentNullException">Thrown when success or failure function is null.</exception>
         public R Match<R>(Func<T, R> success, Func<E, R> failure)
         {
-            if (success is null) throw new ArgumentNullException(nameof(success));
-            if (failure is null) throw new ArgumentNullException(nameof(failure));
+            ArgumentNullException.ThrowIfNull(success);
+            ArgumentNullException.ThrowIfNull(failure);
             
             return IsSuccess ? success(_value) : failure(_error);
         }
