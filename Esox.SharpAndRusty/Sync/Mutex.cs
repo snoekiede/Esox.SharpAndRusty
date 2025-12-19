@@ -1,10 +1,11 @@
 using Esox.SharpAndRusty.Types;
 
-namespace Esox.SharpAndRusty.Async
+namespace Esox.SharpAndRusty.Sync
 {
     /// <summary>
     /// A mutual exclusion primitive useful for protecting shared data, inspired by Rust's std::sync::Mutex.
     /// This type provides interior mutability with exclusive access semantics and integrates with Result/Error types.
+    /// Works in both synchronous and asynchronous contexts.
     /// </summary>
     /// <typeparam name="T">The type of the value protected by the mutex.</typeparam>
     /// <remarks>
@@ -12,6 +13,7 @@ namespace Esox.SharpAndRusty.Async
     /// runtime locks and returns Result types to handle lock acquisition failures gracefully.
     /// 
     /// The mutex uses SemaphoreSlim internally for async-compatible locking and proper disposal semantics.
+    /// Both synchronous (Lock, TryLock) and asynchronous (LockAsync, LockAsyncTimeout) methods are available.
     /// </remarks>
     public sealed class Mutex<T> : IDisposable
     {

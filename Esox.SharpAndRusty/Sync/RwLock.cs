@@ -1,11 +1,12 @@
 using Esox.SharpAndRusty.Types;
 
-namespace Esox.SharpAndRusty.Async
+namespace Esox.SharpAndRusty.Sync
 {
     /// <summary>
     /// A reader-writer lock for protecting shared data, inspired by Rust's std::sync::RwLock.
     /// This type allows multiple concurrent readers or a single writer, providing interior mutability
     /// with shared/exclusive access semantics and integrates with Result/Error types.
+    /// Works in both synchronous and asynchronous contexts.
     /// </summary>
     /// <typeparam name="T">The type of the value protected by the RwLock.</typeparam>
     /// <remarks>

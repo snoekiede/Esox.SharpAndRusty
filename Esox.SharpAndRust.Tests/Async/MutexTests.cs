@@ -1,4 +1,4 @@
-using Esox.SharpAndRusty.Async;
+using Esox.SharpAndRusty.Sync;
 using Esox.SharpAndRusty.Types;
 using Xunit;
 

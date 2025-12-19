@@ -25,7 +25,8 @@ This library is provided "as is" without warranty of any kind, either express or
 - ✅ **Full Async Support**: Complete async/await integration with `MapAsync`, `BindAsync`, `TapAsync`, and more
 - ✅ **Cancellation Support**: All async methods support `CancellationToken` for graceful operation cancellation
 - ✅ **.NET 10 Compatible**: Built for the latest .NET platform with C# 14
-- 🧪 **Experimental: Mutex<T>**: Rust-inspired mutual exclusion primitive with Result-based locking
+- 🧪 **Experimental: Mutex<T>**: Rust-inspired mutual exclusion primitive with Result-based locking (works in both sync and async contexts)
+- 🧪 **Experimental: RwLock<T>**: Rust-inspired reader-writer lock for shared data access (works in both sync and async contexts)
 
 ## Installation
 
@@ -674,26 +675,26 @@ The library includes comprehensive test coverage with **296 unit tests** (includ
 - Value extraction methods
 - Null handling for nullable types
 
-````````
-
 ---
 
 **Experimental Features**
 
-### 🧪 Mutex<T> - Thread-Safe Mutual Exclusion
+### 🧪 Mutex<T> & RwLock<T> - Thread-Safe Synchronization Primitives
 
 **Status:** Experimental - API may change in future versions
 
-A Rust-inspired `Mutex<T>` type for protecting shared data with Result-based error handling:
+Rust-inspired synchronization primitives for protecting shared data, suitable for both synchronous and asynchronous contexts:
+
+#### Mutex<T> - Mutual Exclusion
 
 ```csharp
-using Esox.SharpAndRusty.Async;
+using Esox.SharpAndRusty.Sync;
 using Esox.SharpAndRusty.Types;
 
 // Create a mutex protecting shared data
 var mutex = new Mutex<int>(0);
 
-// Acquire lock with Result-based error handling
+// Synchronous locking
 var result = mutex.Lock();
 if (result.TryGetValue(out var guard))
 {
@@ -710,30 +711,69 @@ var tryResult = mutex.TryLock();
 var asyncResult = await mutex.LockAsync(cancellationToken);
 ```
 
-**Key Features:**
-- ✅ **Result-Based Locking** - All lock operations return `Result<MutexGuard<T>, Error>`
-- ✅ **RAII Lock Management** - Automatic lock release via `IDisposable`
-- ✅ **Multiple Lock Strategies** - Blocking, try-lock, timeout, and async variants
-- ✅ **Type-Safe** - Compile-time guarantees for protected data access
-- ✅ **Async-Ready** - Full async/await support with cancellation tokens
+#### RwLock<T> - Reader-Writer Lock
 
-**Locking Methods:**
-- `Lock()` - Blocking lock acquisition
+```csharp
+using Esox.SharpAndRusty.Sync;
+using Esox.SharpAndRusty.Types;
+
+// Create a reader-writer lock
+var rwlock = new RwLock<int>(42);
+
+// Multiple readers can access simultaneously
+var readResult = rwlock.Read();
+if (readResult.TryGetValue(out var readGuard))
+{
+    using (readGuard)
+    {
+        Console.WriteLine(readGuard.Value); // Read-only access
+    }
+}
+
+// Exclusive writer access
+var writeResult = rwlock.Write();
+if (writeResult.TryGetValue(out var writeGuard))
+{
+    using (writeGuard)
+    {
+        writeGuard.Value = 100; // Exclusive write access
+    }
+}
+```
+
+**Key Features:**
+- ✅ **Result-Based Locking** - All lock operations return `Result<Guard<T>, Error>`
+- ✅ **RAII Lock Management** - Automatic lock release via `IDisposable`
+- ✅ **Multiple Lock Strategies** - Blocking, try-lock, and timeout variants
+- ✅ **Type-Safe** - Compile-time guarantees for protected data access
+- ✅ **Sync & Async Support** - Works in both synchronous and asynchronous contexts
+- ✅ **Reader-Writer Optimization** - `RwLock<T>` allows concurrent readers
+
+**Mutex<T> Methods:**
+- `Lock()` - Blocking lock acquisition (sync)
 - `TryLock()` - Non-blocking attempt
 - `TryLockTimeout(TimeSpan)` - Lock with timeout
 - `LockAsync(CancellationToken)` - Async lock
 - `LockAsyncTimeout(TimeSpan, CancellationToken)` - Async lock with timeout
 
+**RwLock<T> Methods:**
+- `Read()` - Acquire read lock (allows concurrent readers)
+- `TryRead()` - Non-blocking read attempt
+- `TryReadTimeout(TimeSpan)` - Read with timeout
+- `Write()` - Acquire exclusive write lock
+- `TryWrite()` - Non-blocking write attempt
+- `TryWriteTimeout(TimeSpan)` - Write with timeout
+
 **⚠️ Experimental Notice:**
 
-The `Mutex<T>` API is currently experimental and may undergo changes based on user feedback and real-world usage patterns. While fully tested (36 comprehensive tests), we recommend:
+The `Mutex<T>` and `RwLock<T>` APIs are currently experimental and may undergo changes based on user feedback and real-world usage patterns. While fully tested, we recommend:
 
-- Using it in non-critical paths initially
+- Using them in non-critical paths initially
 - Providing feedback on the API design
 - Testing thoroughly in your specific use cases
 - Being prepared for potential API changes in minor version updates
 
-See [MUTEX_DOCUMENTATION.md](../MUTEX_DOCUMENTATION.md) for complete documentation and usage examples.
+See [MUTEX_DOCUMENTATION.md](../MUTEX_DOCUMENTATION.md) for complete `Mutex<T>` documentation and usage examples.
 
 ## Why Use Result Types?
 
