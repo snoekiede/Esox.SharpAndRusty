@@ -1,6 +1,6 @@
 ﻿# Esox.SharpAndRusty
 
-A production-ready C# library that brings Rust-inspired `Result<T, E>` type to .NET, providing a type-safe way to handle operations that can succeed or fail without relying on exceptions for control flow.
+A production-ready C# library that brings Rust-inspired patterns to .NET, including `Result<T, E>` for type-safe error handling and `Option<T>` for representing optional values without null references.
 
 ## ⚠️ Disclaimer
 
@@ -11,6 +11,7 @@ This library is provided "as is" without warranty of any kind, either express or
 ## Features
 
 - ✅ **Type-Safe Error Handling**: Explicitly represent success and failure states in your type signatures
+- ✅ **Option Type**: Rust-inspired `Option<T>` for representing optional values without null references
 - ✅ **Rust-Inspired API**: Familiar patterns for developers coming from Rust or functional programming
 - ✅ **Rich Error Type**: Rust-inspired `Error` type with context chaining, metadata, and error categorization
 - ✅ **Zero Overhead**: Implemented as a `readonly struct` for optimal performance
@@ -70,11 +71,126 @@ var richResult = ErrorExtensions.Try(() => int.Parse("42"))
     .Context("Failed to parse user age")
     .WithMetadata("input", "42")
     .WithKind(ErrorKind.ParseError);
+
+// Use Option<T> for optional values
+Option<int> FindUser(int id) => id > 0 
+    ? new Option<int>.Some(id) 
+    : new Option<int>.None();
+
+var userOption = FindUser(42);
+var message = userOption switch
+{
+    Option<int>.Some(var id) => $"Found user {id}",
+    Option<int>.None => "User not found",
+    _ => "Unknown"
+};
 ```
 
 ## Usage Examples
 
-### Basic Operations
+### Option<T> - Type-Safe Optional Values
+
+The `Option<T>` type represents an optional value - either `Some(value)` or `None`. This provides a type-safe alternative to nullable reference types and eliminates null reference exceptions.
+
+#### Creating Options
+
+```csharp
+using Esox.SharpAndRusty.Types;
+
+// Create Some with a value
+var someOption = new Option<int>.Some(42);
+
+// Create None (no value)
+var noneOption = new Option<int>.None();
+
+// Real-world example: Safe dictionary lookup
+Option<string> GetConfigValue(Dictionary<string, string> config, string key)
+{
+    return config.TryGetValue(key, out var value)
+        ? new Option<string>.Some(value)
+        : new Option<string>.None();
+}
+```
+
+#### Pattern Matching with Options
+
+```csharp
+Option<User> FindUser(int userId) => /* ... */;
+
+var user = FindUser(123);
+var greeting = user switch
+{
+    Option<User>.Some(var u) => $"Hello, {u.Name}!",
+    Option<User>.None => "User not found",
+    _ => "Unknown"
+};
+
+// Or use if pattern
+if (user is Option<User>.Some(var foundUser))
+{
+    Console.WriteLine($"Processing user: {foundUser.Name}");
+}
+```
+
+#### Using Options in Collections
+
+```csharp
+var users = new List<Option<User>>
+{
+    new Option<User>.Some(new User { Id = 1, Name = "Alice" }),
+    new Option<User>.None(),
+    new Option<User>.Some(new User { Id = 2, Name = "Bob" })
+};
+
+// Extract all valid users
+var validUsers = users
+    .OfType<Option<User>.Some>()
+    .Select(opt => opt.Value)
+    .ToList();
+// Result: [User(Alice), User(Bob)]
+```
+
+#### Record Features
+
+```csharp
+// Options are records, so you get equality by value
+var opt1 = new Option<int>.Some(42);
+var opt2 = new Option<int>.Some(42);
+Console.WriteLine(opt1 == opt2); // True
+
+// Use with expressions to create modified copies
+var updated = opt1 with { Value = 43 };
+Console.WriteLine(updated); // Some { Value = 43 }
+
+// Use in dictionaries and hash sets
+var dict = new Dictionary<Option<string>, int>
+{
+    { new Option<string>.Some("key"), 1 },
+    { new Option<string>.None(), 0 }
+};
+```
+
+#### Comparison with Nullable Types
+
+```csharp
+// Traditional nullable approach - prone to null reference exceptions
+string? GetName(int id) => /* might return null */;
+var name = GetName(123);
+Console.WriteLine(name.Length); // NullReferenceException if null!
+
+// Option approach - compiler forces you to handle None case
+Option<string> GetNameSafe(int id) => /* returns Some or None */;
+var nameOption = GetNameSafe(123);
+var length = nameOption switch
+{
+    Option<string>.Some(var n) => n.Length,
+    Option<string>.None => 0,
+    _ => 0
+};
+// No risk of NullReferenceException!
+```
+
+### Result<T, E> - Basic Operations
 
 ```csharp
 // Creating results
@@ -446,6 +562,52 @@ See [ERROR_TYPE_PRODUCTION_IMPROVEMENTS.md](../ERROR_TYPE_PRODUCTION_IMPROVEMENT
 
 ## API Reference
 
+### `Option<T>` Type
+
+A type-safe way to represent optional values, eliminating null reference exceptions.
+
+#### Creating Options
+- `new Option<T>.Some(T value)` - Creates an option containing a value
+- `new Option<T>.None()` - Creates an empty option
+
+#### Pattern Matching
+```csharp
+var result = option switch
+{
+    Option<T>.Some(var value) => /* handle value */,
+    Option<T>.None => /* handle absence */,
+    _ => /* fallback */
+};
+```
+
+#### Type Checks
+- `option is Option<T>.Some` - Check if option contains a value
+- `option is Option<T>.None` - Check if option is empty
+- `option is Option<T>.Some(var value)` - Extract value with pattern matching
+
+#### Record Features
+- **Equality**: Options support value-based equality
+- **Hash Code**: Safe to use in collections (HashSet, Dictionary)
+- **With Expressions**: Create modified copies with `with { Value = newValue }`
+- **ToString**: Automatically formatted as `"Some { Value = ... }"` or `"None { }"`
+
+#### Example Usage
+```csharp
+// Type-safe dictionary lookup
+Option<string> GetConfig(string key)
+{
+    return config.TryGetValue(key, out var value)
+        ? new Option<string>.Some(value)
+        : new Option<string>.None();
+}
+
+// Extract values from collections
+var validValues = options
+    .OfType<Option<T>.Some>()
+    .Select(opt => opt.Value)
+    .ToList();
+```
+
 ### `Result<T, E>` Type
 
 #### Properties
@@ -628,14 +790,16 @@ var message = result.Match(
 ## Benefits
 
 - ✅ **Explicit Error Handling**: Method signatures clearly communicate potential failures
+- ✅ **Type-Safe Optional Values**: `Option<T>` eliminates null reference exceptions
 - ✅ **Type Safety**: Compile-time guarantees about error handling
 - ✅ **Rich Error Context**: Chain error context as failures propagate up the call stack
 - ✅ **Error Categorization**: 14 predefined error kinds for appropriate handling
 - ✅ **Performance**: Avoid exception overhead for expected failure cases
 - ✅ **Composability**: Easily chain operations with functional combinators
 - ✅ **Testability**: Easier to test both success and failure paths
-- ✅ **No Null References**: Avoid `NullReferenceException` by making errors explicit
+- ✅ **No Null References**: Use `Option<T>` and `Result<T, E>` to avoid `NullReferenceException`
 - ✅ **Better Code Flow**: Failures don't break the natural flow of your code
+- ✅ **Pattern Matching**: Leverage C# pattern matching for elegant value handling
 - ✅ **LINQ Integration**: Use familiar C# query syntax for error handling workflows
 - ✅ **Async/Await Support**: Full integration with async patterns including cancellation
 - ✅ **Cancellable Operations**: Graceful cancellation of long-running async operations
@@ -643,16 +807,24 @@ var message = result.Match(
 
 ## Testing
 
-The library includes comprehensive test coverage with **296 unit tests** (including 36 experimental Mutex tests) covering:
-- Basic creation and inspection
-- Pattern matching
-- Equality and hash code
-- Map and Bind operations
-- **LINQ query syntax integration** (SelectMany, Select, from/select)
-- **Advanced features** (MapError, Expect, Tap, Contains)
-- **Collection operations** (Combine, Partition)
-- **Full async support** (MapAsync, BindAsync, TapAsync, OrElseAsync, CombineAsync)
-- **Cancellation token support** (all async methods with cancellation scenarios)
+The library includes comprehensive test coverage with **339 unit tests** covering:
+- **Result<T, E>** (260 tests)
+  - Basic creation and inspection
+  - Pattern matching
+  - Equality and hash code
+  - Map and Bind operations
+  - LINQ query syntax integration (SelectMany, Select, from/select)
+  - Advanced features (MapError, Expect, Tap, Contains)
+  - Collection operations (Combine, Partition)
+  - Full async support (MapAsync, BindAsync, TapAsync, OrElseAsync, CombineAsync)
+  - Cancellation token support (all async methods with cancellation scenarios)
+- **Option<T>** (43 tests)
+  - Creation and value access
+  - Pattern matching with switch expressions
+  - Equality and hash code
+  - Record functionality (with expressions, ToString)
+  - Collection integration (List, HashSet, Dictionary, LINQ)
+  - Edge cases (nested options, tuples, null handling)
 - **Error type** (64 comprehensive tests)
   - Context chaining and error propagation
   - Type-safe metadata with generics
