@@ -7,6 +7,164 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.0] - 2025-01-XX
+
+### Added
+
+#### Option<T> Type
+- **Option<T> type** - Rust-inspired optional value type for type-safe nullable values
+  - `Option<T>.Some(value)` - Represents the presence of a value
+  - `Option<T>.None()` - Represents the absence of a value
+  - Pattern matching support with C# switch expressions
+  - Type-safe alternative to nullable reference types
+  - Eliminates `NullReferenceException` by forcing explicit handling
+  - Implemented as abstract record with nested sealed records
+  - Full structural equality and value-based comparison
+  - Works seamlessly with collections (List, HashSet, Dictionary)
+  - LINQ integration - filter and transform options easily
+  - Record features: with expressions, ToString, GetHashCode
+  - Common use cases:
+    - Dictionary lookups without TryGetValue pattern
+    - Optional configuration values
+    - Search/query operations that may not find results
+    - Function parameters that are truly optional
+    - API responses with optional fields
+
+#### Test Coverage
+- Added **43 comprehensive Option<T> tests**:
+  - Creation tests (4 tests) - Some, None, null handling, complex types
+  - Value access tests (2 tests) - accessing and multiple access patterns
+  - Pattern matching tests (5 tests) - switch expressions, type checks, deconstruction
+  - Equality tests (7 tests) - value equality, None equality, Some vs None
+  - GetHashCode tests (5 tests) - hash consistency, HashSet and Dictionary usage
+  - ToString tests (3 tests) - string representation for debugging
+  - Type tests (3 tests) - abstract record inheritance, generic types, nullable support
+  - Collection tests (3 tests) - List storage, LINQ filtering, value extraction
+  - Record functionality tests (4 tests) - with expressions, type preservation
+  - Edge cases (5 tests) - default values, complex objects, tuples, nested options
+  - Null handling tests (2 tests) - not equal to null checks
+
+### Changed
+
+#### Breaking Changes
+- **Namespace change**: Moved `Mutex<T>` and `RwLock<T>` from `Esox.SharpAndRusty.Async` to `Esox.SharpAndRusty.Sync`
+  - Rationale: Both types work in synchronous AND asynchronous contexts
+  - `Mutex<T>` has both sync (`Lock()`, `TryLock()`) and async (`LockAsync()`) methods
+  - `RwLock<T>` has synchronous methods that work in any context
+  - **Migration**: Update `using Esox.SharpAndRusty.Async;` to `using Esox.SharpAndRusty.Sync;`
+
+#### Documentation Updates
+- Updated **README.md** with comprehensive Option<T> documentation
+  - Added Option<T> to features list
+  - Added "Option<T> - Type-Safe Optional Values" section with examples
+  - Documented pattern matching with switch expressions
+  - Showed collection integration and LINQ usage
+  - Added comparison with nullable types showing advantages
+  - Added API Reference section for Option<T>
+  - Updated Benefits section to highlight Option<T>
+  - Updated Quick Start with Option<T> example
+- Test count updated: **306** ? **339 tests** (303 production + 36 experimental)
+  - Result<T, E>: 260 tests
+  - Option<T>: 43 tests (new)
+  - Error type: 64 tests
+  - Mutex<T> & RwLock<T>: 36 tests (experimental)
+
+#### API Additions
+- `Option<T>.Some(T value)` - Create option with value
+- `Option<T>.None()` - Create empty option
+- Pattern matching via switch expressions and is patterns
+- Full record functionality (equality, hash code, with expressions)
+
+### Performance
+
+- **Option<T> type**: Zero allocation for value types when using positional records
+  - Implemented as records for value-based equality
+  - Abstract record with nested sealed records
+  - Efficient pattern matching via type checks
+  - Safe to use as dictionary keys
+  - LINQ-compatible for filtering and transformation
+
+### Notes
+
+#### Option<T> Usage Patterns
+
+**When to Use Option<T>:**
+- Dictionary or collection lookups
+- Optional configuration or settings
+- Search operations that may not find results
+- Avoiding null checks and potential NullReferenceExceptions
+- Making optional parameters explicit in APIs
+- Representing missing or undefined values
+
+**Example Patterns:**
+```csharp
+// Safe dictionary lookup
+Option<string> GetConfig(string key) =>
+    config.TryGetValue(key, out var value)
+        ? new Option<string>.Some(value)
+        : new Option<string>.None();
+
+// Pattern matching
+var message = option switch
+{
+    Option<User>.Some(var user) => $"Hello, {user.Name}!",
+    Option<User>.None => "User not found",
+    _ => "Unknown"
+};
+
+// Collection filtering
+var validUsers = users
+    .OfType<Option<User>.Some>()
+    .Select(opt => opt.Value)
+    .ToList();
+```
+
+**Comparison with Rust:**
+- Rust: `Option<T>` with `Some(T)` and `None`
+- C#: `Option<T>` with `Option<T>.Some(T)` and `Option<T>.None()`
+- Similar semantics and use cases
+- C# version leverages pattern matching via switch expressions
+
+**Migration from Nullable:**
+```csharp
+// Before: nullable with null checks
+string? name = GetName();
+if (name != null)
+    Console.WriteLine(name.Length); // Still risky!
+
+// After: Option with pattern matching
+var nameOption = GetNameSafe();
+var length = nameOption switch
+{
+    Option<string>.Some(var n) => n.Length,
+    Option<string>.None => 0,
+    _ => 0
+};
+```
+
+#### Breaking Changes in 1.3.0
+
+**Namespace Migration for Mutex<T> and RwLock<T>:**
+
+The `Mutex<T>` and `RwLock<T>` types have been moved from `Esox.SharpAndRusty.Async` to `Esox.SharpAndRusty.Sync` to better reflect their dual nature - they work in both synchronous and asynchronous contexts.
+
+**What you need to change:**
+```csharp
+// Old (v1.2.x)
+using Esox.SharpAndRusty.Async;
+
+// New (v1.3.0+)
+using Esox.SharpAndRusty.Sync;
+```
+
+**Rationale:**
+- Both types support synchronous operations (`Lock()`, `TryLock()`, `Read()`, `Write()`)
+- `Mutex<T>` also supports async operations (`LockAsync()`, `LockAsyncTimeout()`)
+- The `Async` namespace was misleading
+- The `Sync` namespace better represents synchronization primitives
+
+---
+
 ## [1.2.4] - 2025
 
 ### Added

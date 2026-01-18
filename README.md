@@ -1,6 +1,6 @@
 ﻿# Esox.SharpAndRusty
 
-A production-ready C# library that brings Rust-inspired `Result<T, E>` type to .NET, providing a type-safe way to handle operations that can succeed or fail without relying on exceptions for control flow.
+A production-ready C# library that brings Rust-inspired patterns to .NET, including `Result<T, E>` for type-safe error handling and `Option<T>` for representing optional values without null references.
 
 ## ⚠️ Disclaimer
 
@@ -11,9 +11,9 @@ This library is provided "as is" without warranty of any kind, either express or
 ## Features
 
 - ✅ **Type-Safe Error Handling**: Explicitly represent success and failure states in your type signatures
+- ✅ **Option Type**: Rust-inspired `Option<T>` for representing optional values without null references
 - ✅ **Rust-Inspired API**: Familiar patterns for developers coming from Rust or functional programming
 - ✅ **Rich Error Type**: Rust-inspired `Error` type with context chaining, metadata, and error categorization
-- ✅ **Unit Type**: Rust-inspired unit type `()` for representing the absence of a value in `Result<Unit, E>`
 - ✅ **Zero Overhead**: Implemented as a `readonly struct` for optimal performance
 - ✅ **Functional Composition**: Chain operations with `Map`, `Bind`, `MapError`, and `OrElse`
 - ✅ **Pattern Matching**: Use the `Match` method for elegant success/failure handling
@@ -26,15 +26,8 @@ This library is provided "as is" without warranty of any kind, either express or
 - ✅ **Full Async Support**: Complete async/await integration with `MapAsync`, `BindAsync`, `TapAsync`, and more
 - ✅ **Cancellation Support**: All async methods support `CancellationToken` for graceful operation cancellation
 - ✅ **.NET 10 Compatible**: Built for the latest .NET platform with C# 14
-
-### 🧪 Experimental Features
-
-> **⚠️ EXPERIMENTAL**: The following features are experimental and may change in future versions. Use with caution in production environments.
-
-- 🧪 **Mutex<T>**: Rust-inspired mutual exclusion primitive with Result-based locking (see [Experimental Features](#experimental-features-1))
-- 🧪 **RwLock<T>**: Rust-inspired reader-writer lock with Result-based locking (see [Experimental Features](#experimental-features-1))
-
-These experimental features are thoroughly tested but their APIs may evolve based on community feedback.
+- 🧪 **Experimental: Mutex<T>**: Rust-inspired mutual exclusion primitive with Result-based locking (works in both sync and async contexts)
+- 🧪 **Experimental: RwLock<T>**: Rust-inspired reader-writer lock for shared data access (works in both sync and async contexts)
 
 ## Installation
 
@@ -78,11 +71,126 @@ var richResult = ErrorExtensions.Try(() => int.Parse("42"))
     .Context("Failed to parse user age")
     .WithMetadata("input", "42")
     .WithKind(ErrorKind.ParseError);
+
+// Use Option<T> for optional values
+Option<int> FindUser(int id) => id > 0 
+    ? new Option<int>.Some(id) 
+    : new Option<int>.None();
+
+var userOption = FindUser(42);
+var message = userOption switch
+{
+    Option<int>.Some(var id) => $"Found user {id}",
+    Option<int>.None => "User not found",
+    _ => "Unknown"
+};
 ```
 
 ## Usage Examples
 
-### Basic Operations
+### Option<T> - Type-Safe Optional Values
+
+The `Option<T>` type represents an optional value - either `Some(value)` or `None`. This provides a type-safe alternative to nullable reference types and eliminates null reference exceptions.
+
+#### Creating Options
+
+```csharp
+using Esox.SharpAndRusty.Types;
+
+// Create Some with a value
+var someOption = new Option<int>.Some(42);
+
+// Create None (no value)
+var noneOption = new Option<int>.None();
+
+// Real-world example: Safe dictionary lookup
+Option<string> GetConfigValue(Dictionary<string, string> config, string key)
+{
+    return config.TryGetValue(key, out var value)
+        ? new Option<string>.Some(value)
+        : new Option<string>.None();
+}
+```
+
+#### Pattern Matching with Options
+
+```csharp
+Option<User> FindUser(int userId) => /* ... */;
+
+var user = FindUser(123);
+var greeting = user switch
+{
+    Option<User>.Some(var u) => $"Hello, {u.Name}!",
+    Option<User>.None => "User not found",
+    _ => "Unknown"
+};
+
+// Or use if pattern
+if (user is Option<User>.Some(var foundUser))
+{
+    Console.WriteLine($"Processing user: {foundUser.Name}");
+}
+```
+
+#### Using Options in Collections
+
+```csharp
+var users = new List<Option<User>>
+{
+    new Option<User>.Some(new User { Id = 1, Name = "Alice" }),
+    new Option<User>.None(),
+    new Option<User>.Some(new User { Id = 2, Name = "Bob" })
+};
+
+// Extract all valid users
+var validUsers = users
+    .OfType<Option<User>.Some>()
+    .Select(opt => opt.Value)
+    .ToList();
+// Result: [User(Alice), User(Bob)]
+```
+
+#### Record Features
+
+```csharp
+// Options are records, so you get equality by value
+var opt1 = new Option<int>.Some(42);
+var opt2 = new Option<int>.Some(42);
+Console.WriteLine(opt1 == opt2); // True
+
+// Use with expressions to create modified copies
+var updated = opt1 with { Value = 43 };
+Console.WriteLine(updated); // Some { Value = 43 }
+
+// Use in dictionaries and hash sets
+var dict = new Dictionary<Option<string>, int>
+{
+    { new Option<string>.Some("key"), 1 },
+    { new Option<string>.None(), 0 }
+};
+```
+
+#### Comparison with Nullable Types
+
+```csharp
+// Traditional nullable approach - prone to null reference exceptions
+string? GetName(int id) => /* might return null */;
+var name = GetName(123);
+Console.WriteLine(name.Length); // NullReferenceException if null!
+
+// Option approach - compiler forces you to handle None case
+Option<string> GetNameSafe(int id) => /* returns Some or None */;
+var nameOption = GetNameSafe(123);
+var length = nameOption switch
+{
+    Option<string>.Some(var n) => n.Length,
+    Option<string>.None => 0,
+    _ => 0
+};
+// No risk of NullReferenceException!
+```
+
+### Result<T, E> - Basic Operations
 
 ```csharp
 // Creating results
@@ -136,45 +244,16 @@ if (result.TryGetError(out var error))
 {
     Console.WriteLine($"Error occurred: {error}");
 }
-```
 
-### Unit Type for Void Results
+// Option 5: Expect a value or throw
+var age = result.Expect("Age not available");
+// Throws InvalidOperationException with message "Age not available" if error
 
-When you need a Result type but have no meaningful value to return on success, use the `Unit` type:
-
-```csharp
-using Esox.SharpAndRusty.Types;
-
-// Operation that succeeds with no value or fails with an error
-public Result<Unit, string> ValidateInput(string input)
+// Option 6: Check if result contains a value
+if (result.Contains(42))
 {
-    if (string.IsNullOrEmpty(input))
-        return Result<Unit, string>.Err("Input cannot be empty");
-    
-    // Success with no value
-    return Result<Unit, string>.Ok(Unit.Value);
+    Console.WriteLine("User is 42 years old");
 }
-
-// Using the result
-var result = ValidateInput(userInput);
-result.Match(
-    success: _ => Console.WriteLine("Validation succeeded"),
-    failure: error => Console.WriteLine($"Validation failed: {error}")
-);
-
-// Chaining operations with Unit
-var result = ValidateInput(userInput)
-    .Bind(_ => ProcessInput())
-    .Bind(_ => SaveData());
-
-// LINQ syntax with Unit
-var result = from _ in ValidateInput(userInput)
-             from __ in ProcessInput()
-             select Unit.Value;
-
-// All Unit values are equal
-Unit.Value == Unit.Value;  // Always true
-Unit.Value.ToString();      // Returns "()"
 ```
 
 ### Pattern Matching
@@ -207,12 +286,12 @@ Result<int, string> GetUserAge() => Result<int, string>.Ok(25);
 
 // Transform the success value
 var result = GetUserAge()
-    .Map(age => $"User is {age} years old");
+    .Map<int, string, string>(age => $"User is {age} years old");
 // Result: Ok("User is 25 years old")
 
 // Errors propagate automatically
 Result<int, string> failed = Result<int, string>.Err("User not found");
-var mappedFailed = failed.Map(age => $"User is {age} years old");
+var mappedFailed = failed.Map<int, string, string>(age => $"User is {age} years old");
 // Result: Err("User not found")
 ```
 
@@ -311,13 +390,14 @@ var result = from x in GetValue()
              from validated in ValidatePositive(x)
              select validated * 2;
 ```
+
 ### Combining Map and Bind
 
 ```csharp
 var result = ParseInt("42")
-    .Map(x => x * 2)              // Transform value: 42 -> 84
-    .Bind(x => Divide(x, 2))      // Chain operation: 84 / 2 = 42
-    .Map(x => $"Result: {x}");    // Transform to string
+    .Map<int, string, int>(x => x * 2)              // Transform value: 42 -> 84
+    .Bind(x => Divide(x, 2))                         // Chain operation: 84 / 2 = 42
+    .Map<int, string, string>(x => $"Result: {x}"); // Transform to string
 // Result: Ok("Result: 42")
 ```
 
@@ -350,7 +430,7 @@ Execute side effects without transforming the result:
 var result = GetUser(userId)
     .Inspect(user => Logger.Info($"Found user: {user.Name}"))
     .InspectErr(error => Logger.Error($"User lookup failed: {error}"))
-    .Map(user => user.Email);
+    .Map<User, string, string>(user => user.Email);
 
 // Logs are written, but result is transformed only on success
 ```
@@ -449,17 +529,84 @@ var detailedError = error.CaptureStackTrace(includeFileInfo: true);    // Detail
 **Production Features:**
 - ✅ **ImmutableDictionary** - Efficient metadata storage with structural sharing
 - ✅ **Type-safe metadata API** - Generic overloads for compile-time type safety
-- ✅ **Metadata type validation** - Validates types at addition time, not serialization
+- ✅ **Metadata type validation** - Validates at addition time, not serialization
 - ✅ **Depth Limiting** - Error chains truncated at 50 levels (prevents stack overflow)
 - ✅ **Circular Reference Detection** - HashSet-based cycle detection
 - ✅ **Expanded Exception Mapping** - 11 common exception types automatically mapped
 - ✅ **Configurable Stack Traces** - Optional file info for performance tuning
-- ✅ **Metadata Retrieval Performance** - O(log n) for adding metadata, O(1) for depth limit check
+- ✅ **Metadata Type Validation** - Validates types at addition time, not serialization
 
-See [ERROR_TYPE.md](ERROR_TYPE.md) for comprehensive Error type documentation.
-See [ERROR_TYPE_PRODUCTION_IMPROVEMENTS.md](ERROR_TYPE_PRODUCTION_IMPROVEMENTS.md) for detailed production optimization information.
+**Error Kind Categories:**
+- `NotFound` - Entity not found
+- `InvalidInput` - Invalid data
+- `PermissionDenied` - Insufficient privileges
+- `Timeout` - Operation timed out
+- `Interrupted` - Operation cancelled/interrupted
+- `ParseError` - Parsing failed
+- `Io` - I/O error
+- `ResourceExhausted` - Out of memory, disk full, etc.
+- `InvalidOperation` - Operation invalid for current state
+- And more... (14 categories total)
+
+**Exception to ErrorKind Mapping:**
+- `FileNotFoundException`, `DirectoryNotFoundException` → `NotFound`
+- `TaskCanceledException`, `OperationCanceledException` → `Interrupted`
+- `FormatException` → `ParseError`
+- `OutOfMemoryException` → `ResourceExhausted`
+- `TimeoutException` → `Timeout`
+- `UnauthorizedAccessException` → `PermissionDenied`
+- And more...
+
+See [ERROR_TYPE.md](../ERROR_TYPE.md) for comprehensive Error type documentation.
+See [ERROR_TYPE_PRODUCTION_IMPROVEMENTS.md](../ERROR_TYPE_PRODUCTION_IMPROVEMENTS.md) for detailed production optimization information.
 
 ## API Reference
+
+### `Option<T>` Type
+
+A type-safe way to represent optional values, eliminating null reference exceptions.
+
+#### Creating Options
+- `new Option<T>.Some(T value)` - Creates an option containing a value
+- `new Option<T>.None()` - Creates an empty option
+
+#### Pattern Matching
+```csharp
+var result = option switch
+{
+    Option<T>.Some(var value) => /* handle value */,
+    Option<T>.None => /* handle absence */,
+    _ => /* fallback */
+};
+```
+
+#### Type Checks
+- `option is Option<T>.Some` - Check if option contains a value
+- `option is Option<T>.None` - Check if option is empty
+- `option is Option<T>.Some(var value)` - Extract value with pattern matching
+
+#### Record Features
+- **Equality**: Options support value-based equality
+- **Hash Code**: Safe to use in collections (HashSet, Dictionary)
+- **With Expressions**: Create modified copies with `with { Value = newValue }`
+- **ToString**: Automatically formatted as `"Some { Value = ... }"` or `"None { }"`
+
+#### Example Usage
+```csharp
+// Type-safe dictionary lookup
+Option<string> GetConfig(string key)
+{
+    return config.TryGetValue(key, out var value)
+        ? new Option<string>.Some(value)
+        : new Option<string>.None();
+}
+
+// Extract values from collections
+var validValues = options
+    .OfType<Option<T>.Some>()
+    .Select(opt => opt.Value)
+    .ToList();
+```
 
 ### `Result<T, E>` Type
 
@@ -490,55 +637,77 @@ See [ERROR_TYPE_PRODUCTION_IMPROVEMENTS.md](ERROR_TYPE_PRODUCTION_IMPROVEMENTS.m
 - `bool operator !=(Result<T, E> left, Result<T, E> right)` - Inequality operator
 - `string ToString()` - Returns `"Ok(value)"` or `"Err(error)"`
 
-### `Unit` Type
+### Extension Methods (ResultExtensions)
 
-A type that represents the absence of a value, inspired by Rust's unit type `()`.
-
-#### Static Members
-- `static readonly Unit Value` - The singleton instance
-
-#### Instance Methods
-- `bool Equals(Unit other)` - Always returns `true` (all Units are equal)
-- `int GetHashCode()` - Always returns `0`
-- `string ToString()` - Returns `"()"`
-- `int CompareTo(Unit other)` - Always returns `0`
-
-#### Operators
-- `==`, `!=` - Equality operators (all Units are equal)
-- `<`, `>`, `<=`, `>=` - Comparison operators
-
-#### Usage
-Use `Unit` as the success type in `Result<Unit, E>` for operations that succeed or fail but don't produce a value:
-- Validation operations that don't return data
-- Side-effect operations (logging, caching, notifications)
-- Operations where success is the only meaningful information
-- As a replacement for void in functional pipelines
+#### `Map<T, E, U>`
+Transforms the success value while propagating errors:
+```csharp
+Result<U, E> Map<T, E, U>(this Result<T, E> result, Func<T, U> mapper)
+```
 
 **Example:**
 ```csharp
-// Validation without return value
-Result<Unit, string> ValidateUser(User user) => 
-    user.IsValid 
-        ? Result<Unit, string>.Ok(Unit.Value)
-        : Result<Unit, string>.Err("Invalid user");
-
-// Side-effect operation
-Result<Unit, Error> SendNotification(Message msg) =>
-    EmailService.Send(msg)
-        ? Result<Unit, Error>.Ok(Unit.Value)
-        : Result<Unit, Error>.Err(Error.New("Send failed"));
-
-// Chaining void operations with LINQ
-var result = from _ in Initialize()
-             from __ in Configure()
-             from ___ in Start()
-             select Unit.Value;
+var result = Result<int, string>.Ok(5);
+var mapped = result.Map<int, string, string>(x => $"Value: {x}");
+// Result: Ok("Value: 5")
 ```
 
-**Rust Comparison:**
-- Rust: `Result<(), E>`
-- C#: `Result<Unit, E>`
-- Identical semantics and use cases
+#### `Bind<T, E, U>`
+Chains operations that return results (also known as `flatMap` or `andThen`):
+```csharp
+Result<U, E> Bind<T, E, U>(this Result<T, E> result, Func<T, Result<U, E>> binder)
+```
+
+**Example:**
+```csharp
+var result = Result<int, string>.Ok(10)
+    .Bind(x => x > 0 
+        ? Result<int, string>.Ok(x * 2) 
+        : Result<int, string>.Err("Must be positive"));
+// Result: Ok(20)
+```
+
+#### `Select<U>` (LINQ Support)
+Projects the success value (enables `select` in LINQ queries):
+```csharp
+Result<U, E> Select<U>(this Result<T, E> result, Func<T, U> selector)
+```
+
+**Example:**
+```csharp
+var result = from x in Result<int, string>.Ok(10)
+             select x * 2;
+             // Result: Ok(20)
+```
+
+#### `SelectMany<U>` (LINQ Support)
+Chains results (enables `from` in LINQ queries):
+```csharp
+Result<U, E> SelectMany<U>(this Result<T, E> result, Func<T, Result<U, E>> selector)
+```
+
+**Example:**
+```csharp
+var result = from x in ParseInt("10")
+             from y in ParseInt("20")
+             select x + y;
+// Result: Ok(30)
+```
+
+#### `Unwrap<T, E>`
+Extracts the success value or throws an exception (use with caution):
+```csharp
+T Unwrap<T, E>(this Result<T, E> result)
+```
+
+**Example:**
+```csharp
+var result = Result<int, string>.Ok(42);
+var value = result.Unwrap(); // Returns 42
+
+var failed = Result<int, string>.Err("Error");
+var willThrow = failed.Unwrap(); // Throws InvalidOperationException
+```
 
 ### `Error` Type
 
@@ -582,32 +751,7 @@ A rich error type inspired by Rust's error handling patterns with **production-g
 - Circular detection: O(1) per node
 - Memory: Immutable with structural sharing
 
-See [ERROR_TYPE_PRODUCTION_IMPROVEMENTS.md](ERROR_TYPE_PRODUCTION_IMPROVEMENTS.md) for complete optimization details.
-
-### Error Extensions
-
-Extension methods for working with `Result<T, Error>`:
-
-#### `Context` / `ContextAsync`
-```csharp
-Result<T, Error> Context(this Result<T, Error> result, string contextMessage)
-```
-Adds context to an error in a Result.
-
-#### `WithMetadata` / `WithMetadataAsync`
-```csharp
-Result<T, Error> WithMetadata(this Result<T, Error> result, string key, object value)
-```
-Attaches metadata to an error in a Result.
-
-#### `Try` / `TryAsync`
-```csharp
-Result<T, Error> Try<T>(Func<T> operation)
-Task<Result<T, Error>> TryAsync<T>(Func<Task<T>> operation, CancellationToken cancellationToken = default)
-```
-Executes operations and converts exceptions to errors automatically.
-
-See [ERROR_TYPE.md](ERROR_TYPE.md) for complete Error type documentation.
+See [ERROR_TYPE_PRODUCTION_IMPROVEMENTS.md](../ERROR_TYPE_PRODUCTION_IMPROVEMENTS.md) for complete optimization details.
 
 ## Why Use Result Types?
 
@@ -646,70 +790,42 @@ var message = result.Match(
 ## Benefits
 
 - ✅ **Explicit Error Handling**: Method signatures clearly communicate potential failures
+- ✅ **Type-Safe Optional Values**: `Option<T>` eliminates null reference exceptions
 - ✅ **Type Safety**: Compile-time guarantees about error handling
 - ✅ **Rich Error Context**: Chain error context as failures propagate up the call stack
 - ✅ **Error Categorization**: 14 predefined error kinds for appropriate handling
 - ✅ **Performance**: Avoid exception overhead for expected failure cases
 - ✅ **Composability**: Easily chain operations with functional combinators
 - ✅ **Testability**: Easier to test both success and failure paths
-- ✅ **No Null References**: Avoid `NullReferenceException` by making errors explicit
+- ✅ **No Null References**: Use `Option<T>` and `Result<T, E>` to avoid `NullReferenceException`
 - ✅ **Better Code Flow**: Failures don't break the natural flow of your code
+- ✅ **Pattern Matching**: Leverage C# pattern matching for elegant value handling
 - ✅ **LINQ Integration**: Use familiar C# query syntax for error handling workflows
 - ✅ **Async/Await Support**: Full integration with async patterns including cancellation
 - ✅ **Cancellable Operations**: Graceful cancellation of long-running async operations
 - ✅ **Debugging Support**: Metadata attachment and full error chain display for debugging
 
-## Production Readiness
-
-This library is production-ready with:
-- ✅ Full equality implementation
-- ✅ Comprehensive API surface
-- ✅ Exception handling helpers
-- ✅ Extensive test coverage (**306 tests total: 270 production + 36 experimental, 100% passing**)
-- ✅ Proper null handling
-- ✅ Argument validation
-- ✅ Clear documentation
-- ✅ **Full LINQ query syntax support**
-- ✅ **Complete async/await integration**
-- ✅ **Cancellation token support for all async operations**
-- ✅ **Advanced error handling features** (MapError, Expect, Tap, etc.")
-- ✅ **Rich Error type with context chaining and metadata**
-- ✅ **Unit type for void-like results**
-- ✅ **Collection operations** (Combine, Partition)
-- ✅ **100% backward compatibility**
-- ✅ **Production-optimized Error type** (ImmutableDictionary, depth limits, circular detection)
-- ✅ **Type-safe metadata API** with compile-time guarantees
-- ✅ **Memory-efficient** with structural sharing
-- ✅ **Stack-safe** with depth and cycle protection
-
-### Feature Maturity
-
-| Feature | Status | Tests | Production Ready |
-|---------|--------|-------|------------------|
-| Result<T, E> | ✅ Stable | 137 | Yes (9.5/10) |
-| Error Type | ✅ Stable | 123 | Yes (9.5/10) |
-| Unit Type | ✅ Stable | 10 | Yes |
-| LINQ Support | ✅ Stable | Integrated | Yes |
-| Async/Await | ✅ Stable | 37 | Yes |
-| Mutex<T> | 🧪 Experimental | 36 | Use with caution |
-| RwLock<T> | 🧪 Experimental | TBD | Use with caution |
-
-**Core Result/Error/Unit Functionality**: Production-ready (9.5/10)
-**Experimental Mutex/RwLock**: Thoroughly tested but API may change
-
 ## Testing
 
-The library includes comprehensive test coverage with **306+ unit tests** covering:
-- Basic creation and inspection
-- Pattern matching
-- Equality and hash code
-- Map and Bind operations
-- **LINQ query syntax integration** (SelectMany, Select, from/select)
-- **Advanced features** (MapError, Expect, Tap, Contains)
-- **Collection operations** (Combine, Partition)
-- **Full async support** (MapAsync, BindAsync, TapAsync, OrElseAsync, CombineAsync)
-- **Cancellation token support** (all async methods with cancellation scenarios)
-- **Error type** (123 comprehensive tests)
+The library includes comprehensive test coverage with **339 unit tests** covering:
+- **Result<T, E>** (260 tests)
+  - Basic creation and inspection
+  - Pattern matching
+  - Equality and hash code
+  - Map and Bind operations
+  - LINQ query syntax integration (SelectMany, Select, from/select)
+  - Advanced features (MapError, Expect, Tap, Contains)
+  - Collection operations (Combine, Partition)
+  - Full async support (MapAsync, BindAsync, TapAsync, OrElseAsync, CombineAsync)
+  - Cancellation token support (all async methods with cancellation scenarios)
+- **Option<T>** (43 tests)
+  - Creation and value access
+  - Pattern matching with switch expressions
+  - Equality and hash code
+  - Record functionality (with expressions, ToString)
+  - Collection integration (List, HashSet, Dictionary, LINQ)
+  - Edge cases (nested options, tuples, null handling)
+- **Error type** (64 comprehensive tests)
   - Context chaining and error propagation
   - Type-safe metadata with generics
   - Metadata type validation
@@ -720,26 +836,117 @@ The library includes comprehensive test coverage with **306+ unit tests** coveri
   - Circular reference detection
   - Full error chain formatting
   - Equality and hash code
-- **Unit type** (10 comprehensive tests)
-  - Singleton instance behavior
-  - Structural equality
-  - Comparison operations
-  - Integration with Result type
-  - LINQ query syntax support
-  - ToString representation
 - **🧪 Experimental Mutex<T>** (36 tests)
   - Lock acquisition and release
   - Try-lock and timeout variants
   - Async locking with cancellation
   - Concurrency stress tests
   - RAII guard management
-- **🧪 Experimental RwLock<T>** (tests in development)
-  - Read and write lock operations
-  - Multiple concurrent readers
-  - Exclusive writer access
-  - Guard management and disposal
 - Exception handling (Try/TryAsync)
 - Side effects (Inspect/InspectErr)
 - Value extraction methods
 - Null handling for nullable types
+
+---
+
+**Experimental Features**
+
+### 🧪 Mutex<T> & RwLock<T> - Thread-Safe Synchronization Primitives
+
+**Status:** Experimental - API may change in future versions
+
+Rust-inspired synchronization primitives for protecting shared data, suitable for both synchronous and asynchronous contexts:
+
+#### Mutex<T> - Mutual Exclusion
+
+```csharp
+using Esox.SharpAndRusty.Sync;
+using Esox.SharpAndRusty.Types;
+
+// Create a mutex protecting shared data
+var mutex = new Mutex<int>(0);
+
+// Synchronous locking
+var result = mutex.Lock();
+if (result.TryGetValue(out var guard))
+{
+    using (guard)
+    {
+        guard.Value++;  // Safe mutation
+    } // Lock automatically released
+}
+
+// Non-blocking try
+var tryResult = mutex.TryLock();
+
+// Async locking with cancellation
+var asyncResult = await mutex.LockAsync(cancellationToken);
+```
+
+#### RwLock<T> - Reader-Writer Lock
+
+```csharp
+using Esox.SharpAndRusty.Sync;
+using Esox.SharpAndRusty.Types;
+
+// Create a reader-writer lock
+var rwlock = new RwLock<int>(42);
+
+// Multiple readers can access simultaneously
+var readResult = rwlock.Read();
+if (readResult.TryGetValue(out var readGuard))
+{
+    using (readGuard)
+    {
+        Console.WriteLine(readGuard.Value); // Read-only access
+    }
+}
+
+// Exclusive writer access
+var writeResult = rwlock.Write();
+if (writeResult.TryGetValue(out var writeGuard))
+{
+    using (writeGuard)
+    {
+        writeGuard.Value = 100; // Exclusive write access
+    }
+}
+```
+
+**Key Features:**
+- ✅ **Result-Based Locking** - All lock operations return `Result<Guard<T>, Error>`
+- ✅ **RAII Lock Management** - Automatic lock release via `IDisposable`
+- ✅ **Multiple Lock Strategies** - Blocking, try-lock, and timeout variants
+- ✅ **Type-Safe** - Compile-time guarantees for protected data access
+- ✅ **Sync & Async Support** - Works in both synchronous and asynchronous contexts
+- ✅ **Reader-Writer Optimization** - `RwLock<T>` allows concurrent readers
+
+**Mutex<T> Methods:**
+- `Lock()` - Blocking lock acquisition (sync)
+- `TryLock()` - Non-blocking attempt
+- `TryLockTimeout(TimeSpan)` - Lock with timeout
+- `LockAsync(CancellationToken)` - Async lock
+- `LockAsyncTimeout(TimeSpan, CancellationToken)` - Async lock with timeout
+
+**RwLock<T> Methods:**
+- `Read()` - Acquire read lock (allows concurrent readers)
+- `TryRead()` - Non-blocking read attempt
+- `TryReadTimeout(TimeSpan)` - Read with timeout
+- `Write()` - Acquire exclusive write lock
+- `TryWrite()` - Non-blocking write attempt
+- `TryWriteTimeout(TimeSpan)` - Write with timeout
+
+**⚠️ Experimental Notice:**
+
+The `Mutex<T>` and `RwLock<T>` APIs are currently experimental and may undergo changes based on user feedback and real-world usage patterns. While fully tested, we recommend:
+
+- Using them in non-critical paths initially
+- Providing feedback on the API design
+- Testing thoroughly in your specific use cases
+- Being prepared for potential API changes in minor version updates
+
+See [MUTEX_DOCUMENTATION.md](../MUTEX_DOCUMENTATION.md) for complete `Mutex<T>` documentation and usage examples.
+
+## Why Use Result Types?
+
 
