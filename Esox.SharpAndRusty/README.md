@@ -1,4 +1,4 @@
-﻿# Esox.SharpAndRusty
+﻿﻿# Esox.SharpAndRusty
 
 A production-ready C# library that brings Rust-inspired patterns to .NET, including `Result<T, E>` for type-safe error handling and `Option<T>` for representing optional values without null references.
 
@@ -28,6 +28,7 @@ This library is provided "as is" without warranty of any kind, either express or
 - ✅ **.NET 10 Compatible**: Built for the latest .NET platform with C# 14
 - 🧪 **Experimental: Mutex<T>**: Rust-inspired mutual exclusion primitive with Result-based locking (works in both sync and async contexts)
 - 🧪 **Experimental: RwLock<T>**: Rust-inspired reader-writer lock for shared data access (works in both sync and async contexts)
+- ✅ **Alternative Result DU**: `ExtendedResult<T, E>` — a record-based discriminated union with pattern matching and LINQ support
 
 ## Installation
 
@@ -87,6 +88,77 @@ var message = userOption switch
 ```
 
 ## Usage Examples
+
+### ExtendedResult<T, E> — Record Alternative
+
+`ExtendedResult<T, E>` is an immutable discriminated union implemented as a record with two cases:
+- `ExtendedResult<T, E>.Success(T Value)`
+- `ExtendedResult<T, E>.Failure(E Error)`
+
+It offers ergonomic pattern matching, safe accessors, and a rich set of extension methods for functional composition and LINQ.
+
+#### Creating and Matching
+
+```csharp
+using Esox.SharpAndRusty.Types;
+
+var ok = ExtendedResult<int, string>.Ok(42);
+var err = ExtendedResult<int, string>.Err("Not found");
+
+// Pattern matching with C#
+var text = ok switch
+{
+    ExtendedResult<int, string>.Success s => $"Value: {s.Value}",
+    ExtendedResult<int, string>.Failure f => $"Error: {f.Error}",
+    _ => "Unknown"
+};
+```
+
+#### Safe Value Extraction
+
+```csharp
+if (ok.TryGetValue(out var value)) { /* use value */ }
+if (err.TryGetError(out var error)) { /* use error */ }
+
+var v1 = ok.UnwrapOr(0);                          // 42
+var v2 = err.UnwrapOrElse(e => e.Length);         // computes from error
+```
+
+#### Functional Extensions (import namespace)
+
+```csharp
+using Esox.SharpAndRusty.Extensions;
+
+var mapped = ok.Map(x => x * 2);                  // Success(84)
+var bound = ok.Bind(x => ExtendedResult<int, string>.Ok(x + 1));
+var projected = ok.Select(x => x.ToString());     // LINQ select
+var composed = from x in ok
+               from y in ExtendedResult<int, string>.Ok(8)
+               select x + y;                      // Success(50)
+
+var changedError = err.MapError(e => e.Length);   // Failure(int)
+var tapped = ok.Tap(v => Log(v), e => LogErr(e)); // side effects only
+```
+
+#### Collections
+
+```csharp
+var list = new[]
+{
+    ExtendedResult<int, string>.Ok(1),
+    ExtendedResult<int, string>.Ok(2),
+    ExtendedResult<int, string>.Err("bad"),
+};
+
+var combined = list.Combine();                    // Failure("bad")
+var (successes, failures) = list.Partition();     // ([1,2], ["bad"]) 
+```
+
+#### Thread Safety
+
+`ExtendedResult<T, E>` instances are immutable and safe to share across threads. Thread safety of values inside (T/E) and delegates passed to Map/Bind/etc. depends on those objects.
+
+---
 
 ### Option<T> - Type-Safe Optional Values
 
@@ -709,49 +781,25 @@ var failed = Result<int, string>.Err("Error");
 var willThrow = failed.Unwrap(); // Throws InvalidOperationException
 ```
 
-### `Error` Type
+### `ExtendedResult<T, E>` Type (API)
 
-A rich error type inspired by Rust's error handling patterns with **production-grade optimizations**.
-
-#### Static Factory Methods
-- `Error New(string message)` - Creates a new error
-- `Error New(string message, ErrorKind kind)` - Creates an error with a specific kind
-- `Error FromException(Exception exception)` - Converts an exception to an error (maps 11+ exception types)
+#### Static Methods
+- `ExtendedResult<T, E> Ok(T value)`
+- `ExtendedResult<T, E> Err(E error)`
+- `ExtendedResult<T, E> Try(Func<T> operation, Func<Exception, E> errorHandler)`
+- `Task<ExtendedResult<T, E>> TryAsync(Func<Task<T>> operation, Func<Exception, E> errorHandler)`
 
 #### Instance Methods
-- `Error WithContext(string contextMessage)` - Adds context to the error
-- `Error WithMetadata(string key, object value)` - Attaches metadata (validates types)
-- `Error WithMetadata<T>(string key, T value) where T : struct` - Type-safe metadata attachment
-- `Error WithKind(ErrorKind kind)` - Changes the error kind
-- `Error CaptureStackTrace(bool includeFileInfo = false)` - Captures the current stack trace (configurable)
-- `bool TryGetMetadata(string key, out object? value)` - Gets metadata
-- `bool TryGetMetadata<T>(string key, out T? value)` - Type-safe metadata retrieval
-- `string GetFullMessage()` - Gets the full error chain as a string (depth-limited, circular-safe)
+- `bool TryGetValue(out T value)`
+- `bool TryGetError(out E error)`
+- `T UnwrapOr(T defaultValue)`
+- `T UnwrapOrElse(Func<E, T> defaultFactory)`
+- `ExtendedResult<T, E> Inspect(Action<T> action)`
+- `ExtendedResult<T, E> InspectErr(Action<E> action)`
 
-#### Properties
-- `string Message` - The error message
-- `ErrorKind Kind` - The error category (14 predefined kinds)
-- `Error? Source` - The source error (if chained)
-- `string? StackTrace` - The captured stack trace
-- `bool HasSource` - Whether this error has a source
+> Note: `Unwrap` and `Expect` are extension methods provided by `ExtendedResultExtensions`.
 
-#### Production Features
-- **ImmutableDictionary** for metadata - O(log n) operations with structural sharing
-- **Type-safe metadata API** - Generic overloads for compile-time type safety
-- **Metadata type validation** - Validates at addition time (primitives, DateTime, Guid, enums, value types)
-- **Depth limiting** - Error chains truncated at 50 levels to prevent stack overflow
-- **Circular reference detection** - HashSet-based cycle detection prevents infinite loops
-- **Expanded exception mapping** - 11 common exception types automatically categorized
-- **Configurable stack traces** - Optional file info for performance tuning
-- **Equality support** - Proper `Equals`, `GetHashCode`, `==`, `!=` operators
-
-**Performance Characteristics:**
-- Metadata addition: O(log n) with structural sharing
-- Depth limit: Bounded at 50 levels
-- Circular detection: O(1) per node
-- Memory: Immutable with structural sharing
-
-See [ERROR_TYPE_PRODUCTION_IMPROVEMENTS.md](../ERROR_TYPE_PRODUCTION_IMPROVEMENTS.md) for complete optimization details.
+---
 
 ## Why Use Result Types?
 
