@@ -1,4 +1,4 @@
-﻿﻿# Esox.SharpAndRusty
+﻿﻿﻿# Esox.SharpAndRusty
 
 A production-ready C# library that brings Rust-inspired patterns to .NET, including `Result<T, E>` for type-safe error handling and `Option<T>` for representing optional values without null references.
 
@@ -89,11 +89,11 @@ var message = userOption switch
 
 ## Usage Examples
 
-### ExtendedResult<T, E> — Record Alternative
+### ExtendedResult<T, TE> — Record Alternative
 
-`ExtendedResult<T, E>` is an immutable discriminated union implemented as a record with two cases:
-- `ExtendedResult<T, E>.Success(T Value)`
-- `ExtendedResult<T, E>.Failure(E Error)`
+`ExtendedResult<T, TE>` is an immutable discriminated union implemented as a record with two cases:
+- `ExtendedResult<T, TE>.Success(T Value)`
+- `ExtendedResult<T, TE>.Failure(TE Error)`
 
 It offers ergonomic pattern matching, safe accessors, and a rich set of extension methods for functional composition and LINQ.
 
@@ -156,7 +156,7 @@ var (successes, failures) = list.Partition();     // ([1,2], ["bad"])
 
 #### Thread Safety
 
-`ExtendedResult<T, E>` instances are immutable and safe to share across threads. Thread safety of values inside (T/E) and delegates passed to Map/Bind/etc. depends on those objects.
+`ExtendedResult<T, TE>` instances are immutable and safe to share across threads. Thread safety of values inside (T/TE) and delegates passed to Map/Bind/etc. depends on those objects.
 
 ---
 
@@ -781,23 +781,41 @@ var failed = Result<int, string>.Err("Error");
 var willThrow = failed.Unwrap(); // Throws InvalidOperationException
 ```
 
-### `ExtendedResult<T, E>` Type (API)
+### `ExtendedResult<T, TE>` Type (API)
 
 #### Static Methods
-- `ExtendedResult<T, E> Ok(T value)`
-- `ExtendedResult<T, E> Err(E error)`
-- `ExtendedResult<T, E> Try(Func<T> operation, Func<Exception, E> errorHandler)`
-- `Task<ExtendedResult<T, E>> TryAsync(Func<Task<T>> operation, Func<Exception, E> errorHandler)`
+- `ExtendedResult<T, TE> Ok(T value)` - Creates a successful result
+- `ExtendedResult<T, TE> Err(TE error)` - Creates a failed result
+- `ExtendedResult<T, TE> Try(Func<T> operation, Func<Exception, TE> errorHandler)` - Execute operation with exception handling
+- `Task<ExtendedResult<T, TE>> TryAsync(Func<Task<T>> operation, Func<Exception, TE> errorHandler)` - Async version of Try
 
 #### Instance Methods
-- `bool TryGetValue(out T value)`
-- `bool TryGetError(out E error)`
-- `T UnwrapOr(T defaultValue)`
-- `T UnwrapOrElse(Func<E, T> defaultFactory)`
-- `ExtendedResult<T, E> Inspect(Action<T> action)`
-- `ExtendedResult<T, E> InspectErr(Action<E> action)`
+- `TR Match<TR>(Func<T, TR> success, Func<TE, TR> failure)` - Pattern match on the result
+- `bool TryGetValue(out T value)` - Try to get the success value
+- `bool TryGetError(out TE error)` - Try to get the error value
+- `T UnwrapOr(T defaultValue)` - Get value or return default
+- `T UnwrapOrElse(Func<TE, T> defaultFactory)` - Get value or compute default from error
+- `ExtendedResult<T, TE> OrElse(Func<TE, ExtendedResult<T, TE>> alternative)` - Provide alternative on failure
+- `ExtendedResult<T, TE> Inspect(Action<T> action)` - Execute action on success value
+- `ExtendedResult<T, TE> InspectErr(Action<TE> action)` - Execute action on error value
 
-> Note: `Unwrap` and `Expect` are extension methods provided by `ExtendedResultExtensions`.
+#### Extension Methods (ExtendedResultExtensions)
+- `T Unwrap()` - Extract value or throw (use with caution)
+- `T Expect(string message)` - Extract value or throw with custom message
+- `ExtendedResult<U, TE> Map<U>(Func<T, U> mapper)` - Transform success value
+- `ExtendedResult<U, TE> Bind<U>(Func<T, ExtendedResult<U, TE>> binder)` - Chain operations (flatMap)
+- `ExtendedResult<T, TE2> MapError<TE2>(Func<TE, TE2> errorMapper)` - Transform error value
+- `ExtendedResult<T, TE> Tap(Action<T> onSuccess, Action<TE> onFailure)` - Side effects for both branches
+- `ExtendedResult<U, TE> Select<U>(Func<T, U> selector)` - LINQ projection support
+- `ExtendedResult<U, TE> SelectMany<U>(Func<T, ExtendedResult<U, TE>> selector)` - LINQ monadic bind
+- `ExtendedResult<IEnumerable<T>, TE> Combine()` (on `IEnumerable<ExtendedResult<T, TE>>`) - Aggregate results
+- `(List<T> successes, List<TE> failures) Partition()` (on `IEnumerable<ExtendedResult<T, TE>>`) - Split successes/failures
+
+#### Equality & Hash Code
+- Supports value-based equality for Success and Failure cases
+- Null-safe hash code computation
+- Implements `Equals`, `GetHashCode`, `==`, `!=`
+- `ToString()` returns `"Ok(value)"` or `"Err(error)"`
 
 ---
 
@@ -855,7 +873,7 @@ var message = result.Match(
 
 ## Testing
 
-The library includes comprehensive test coverage with **339 unit tests** covering:
+The library includes comprehensive test coverage with **417 unit tests** covering:
 - **Result<T, E>** (260 tests)
   - Basic creation and inspection
   - Pattern matching
@@ -866,6 +884,16 @@ The library includes comprehensive test coverage with **339 unit tests** coverin
   - Collection operations (Combine, Partition)
   - Full async support (MapAsync, BindAsync, TapAsync, OrElseAsync, CombineAsync)
   - Cancellation token support (all async methods with cancellation scenarios)
+- **ExtendedResult<T, TE>** (19 tests)
+  - Basic creation and value/error extraction
+  - Pattern matching with records
+  - Instance methods (UnwrapOr, UnwrapOrElse, Inspect, InspectErr, OrElse)
+  - Extension methods (Map, Bind, MapError, Tap, Unwrap, Expect)
+  - LINQ support (Select, SelectMany)
+  - Collection operations (Combine, Partition)
+  - Static helpers (Try, TryAsync)
+  - Edge cases (null values, null errors)
+  - Equality and hash code
 - **Option<T>** (43 tests)
   - Creation and value access
   - Pattern matching with switch expressions

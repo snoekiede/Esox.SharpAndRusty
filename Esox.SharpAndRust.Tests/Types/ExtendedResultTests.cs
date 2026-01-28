@@ -184,4 +184,152 @@ public class ExtendedResultTests
         Assert.Null(seen);
         Assert.True(returned.TryGetError(out _));
     }
+
+    [Fact]
+    public void Map_TransformsValue_OnSuccess()
+    {
+        var result = ExtendedResult<int, string>.Ok(5);
+        var mapped = result.Map(x => x * 2);
+        Assert.True(mapped.TryGetValue(out var value));
+        Assert.Equal(10, value);
+    }
+
+    [Fact]
+    public void Map_PreservesError_OnFailure()
+    {
+        var result = ExtendedResult<int, string>.Err("err");
+        var mapped = result.Map(x => x * 2);
+        Assert.True(mapped.TryGetError(out var error));
+        Assert.Equal("err", error);
+    }
+
+    [Fact]
+    public void Bind_Chains_OnSuccess()
+    {
+        var result = ExtendedResult<int, string>.Ok(3);
+        var bound = result.Bind(x => ExtendedResult<int, string>.Ok(x + 4));
+        Assert.True(bound.TryGetValue(out var value));
+        Assert.Equal(7, value);
+    }
+
+    [Fact]
+    public void Bind_Skips_OnFailure()
+    {
+        var result = ExtendedResult<int, string>.Err("boom");
+        var bound = result.Bind(x => ExtendedResult<int, string>.Ok(x + 4));
+        Assert.True(bound.TryGetError(out var error));
+        Assert.Equal("boom", error);
+    }
+
+    [Fact]
+    public void MapError_TransformsError_OnFailure()
+    {
+        var result = ExtendedResult<int, string>.Err("oops");
+        var mapped = result.MapError(e => e.Length);
+        Assert.True(mapped.TryGetError(out var error));
+        Assert.Equal(4, error);
+    }
+
+    [Fact]
+    public void MapError_PreservesValue_OnSuccess()
+    {
+        var result = ExtendedResult<int, string>.Ok(9);
+        var mapped = result.MapError(e => e.Length);
+        Assert.True(mapped.TryGetValue(out var value));
+        Assert.Equal(9, value);
+    }
+
+    [Fact]
+    public void Tap_InvokesBothBranches_Correctly()
+    {
+        // success path
+        var s = ExtendedResult<int, string>.Ok(2);
+        int seenValue = 0; string? seenError = null;
+        var sReturned = s.Tap(val => seenValue = val, err => seenError = err);
+        Assert.Equal(2, seenValue);
+        Assert.Null(seenError);
+        Assert.True(sReturned.TryGetValue(out var v));
+        Assert.Equal(2, v);
+
+        // failure path
+        var f = ExtendedResult<int, string>.Err("E");
+        seenValue = 0; seenError = null;
+        var fReturned = f.Tap(val => seenValue = val, err => seenError = err);
+        Assert.Equal(0, seenValue);
+        Assert.Equal("E", seenError);
+        Assert.True(fReturned.TryGetError(out var e2));
+        Assert.Equal("E", e2);
+    }
+
+    [Fact]
+    public void Linq_Select_ProjectsValue()
+    {
+        var query = from x in ExtendedResult<int, string>.Ok(10)
+                    select x * 3;
+        Assert.True(query.TryGetValue(out var value));
+        Assert.Equal(30, value);
+    }
+
+    [Fact]
+    public void Linq_SelectMany_ChainsTwo_Ok()
+    {
+        var query = from x in ExtendedResult<int, string>.Ok(10)
+                    from y in ExtendedResult<int, string>.Ok(5)
+                    select x + y;
+        Assert.True(query.TryGetValue(out var value));
+        Assert.Equal(15, value);
+    }
+
+    [Fact]
+    public void Linq_SelectMany_PropagatesError()
+    {
+        var query = from x in ExtendedResult<int, string>.Ok(10)
+                    from y in ExtendedResult<int, string>.Err("bad")
+                    select x + y;
+        Assert.True(query.TryGetError(out var error));
+        Assert.Equal("bad", error);
+    }
+
+    [Fact]
+    public void Combine_AllSuccess_ReturnsList()
+    {
+        var items = new[]
+        {
+            ExtendedResult<int, string>.Ok(1),
+            ExtendedResult<int, string>.Ok(2),
+            ExtendedResult<int, string>.Ok(3),
+        };
+        var combined = items.Combine();
+        Assert.True(combined.TryGetValue(out var values));
+        Assert.Equal(new[] {1,2,3}, values);
+    }
+
+    [Fact]
+    public void Combine_FirstError_ReturnsError()
+    {
+        var items = new[]
+        {
+            ExtendedResult<int, string>.Ok(1),
+            ExtendedResult<int, string>.Err("err2"),
+            ExtendedResult<int, string>.Ok(3),
+        };
+        var combined = items.Combine();
+        Assert.True(combined.TryGetError(out var error));
+        Assert.Equal("err2", error);
+    }
+
+    [Fact]
+    public void Partition_SplitsSuccessesAndFailures()
+    {
+        var items = new[]
+        {
+            ExtendedResult<int, string>.Ok(1),
+            ExtendedResult<int, string>.Err("e1"),
+            ExtendedResult<int, string>.Ok(2),
+            ExtendedResult<int, string>.Err("e2"),
+        };
+        var (successes, failures) = items.Partition();
+        Assert.Equal(new[] {1,2}, successes);
+        Assert.Equal(new[] {"e1","e2"}, failures);
+    }
 }
