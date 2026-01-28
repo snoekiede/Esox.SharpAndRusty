@@ -1,4 +1,4 @@
-﻿# Esox.SharpAndRusty
+﻿﻿# Esox.SharpAndRusty
 
 A production-ready C# library that brings Rust-inspired patterns to .NET, including `Result<T, E>` for type-safe error handling and `Option<T>` for representing optional values without null references.
 
@@ -26,6 +26,7 @@ This library is provided "as is" without warranty of any kind, either express or
 - ✅ **Full Async Support**: Complete async/await integration with `MapAsync`, `BindAsync`, `TapAsync`, and more
 - ✅ **Cancellation Support**: All async methods support `CancellationToken` for graceful operation cancellation
 - ✅ **.NET 10 Compatible**: Built for the latest .NET platform with C# 14
+- ✅ **ExtendedResult<T, TE>**: Record-based discriminated union alternative with pattern matching and LINQ support
 - 🧪 **Experimental: Mutex<T>**: Rust-inspired mutual exclusion primitive with Result-based locking (works in both sync and async contexts)
 - 🧪 **Experimental: RwLock<T>**: Rust-inspired reader-writer lock for shared data access (works in both sync and async contexts)
 

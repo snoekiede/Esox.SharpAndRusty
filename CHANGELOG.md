@@ -7,7 +7,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.3.0] - 2025-01-XX
+## [1.4.0 - 2025-01-28]
+
+### Added
+
+#### ExtendedResult<T, TE> Test Coverage
+- Added **19 comprehensive tests** for `ExtendedResult<T, TE>` type and extensions:
+  - Basic operations: `TryGetValue`, `TryGetError`, `UnwrapOr`, `UnwrapOrElse`
+  - Instance methods: `Inspect`, `InspectErr`, `OrElse`
+  - Extension methods: `Map`, `Bind`, `MapError`, `Tap`, `Unwrap`, `Expect`
+  - LINQ support: `Select`, `SelectMany` with query comprehension syntax
+  - Collection operations: `Combine` (aggregates results), `Partition` (splits successes/failures)
+  - Static helpers: `Try`, `TryAsync` with exception handling
+  - Edge cases: null value handling, null error handling
+  - Equality and hash code validation
+
+### Changed
+
+#### ExtendedResult<T, TE> Improvements
+- **Generic parameter naming standardization**: Renamed `E` → `TE` to comply with C# naming conventions
+  - Updated all `ExtendedResult<T, E>` declarations to `ExtendedResult<T, TE>`
+  - Updated `Match<R>` to `Match<TR>` for consistency
+  - Applied analyzer-compliant naming across the type and extensions
+- **Code quality improvements**:
+  - Fixed CS8509 warning: Made switch expressions exhaustive with explicit default arms
+  - Fixed CS8607 warning: Made `GetHashCode()` null-safe for nullable T/TE values
+  - Removed redundant type qualifiers in pattern matching
+  - Cleaned up unused variables in switch expressions
+- **Documentation updates**:
+  - Updated README.md with `ExtendedResult<T, TE>` naming throughout
+  - Expanded API Reference section with complete method signatures
+  - Documented all extension methods: `Map`, `Bind`, `MapError`, `Tap`, `Select`, `SelectMany`, `Combine`, `Partition`
+  - Added `ExtendedResult<T, TE>` to features list
+  - Updated test coverage: **339** → **417 tests** (396 production + 21 experimental)
+    - Result<T, E>: 260 tests
+    - ExtendedResult<T, TE>: 19 tests (newly documented)
+    - Option<T>: 43 tests
+    - Error type: 64 tests
+    - Mutex<T> & RwLock<T>: 31 tests (experimental)
+
+### Fixed
+- **ExtendedResult<T, TE>**: Switch expression exhaustiveness warnings (CS8509)
+- **ExtendedResult<T, TE>**: Null-safety warnings in `GetHashCode` method (CS8607)
+- **ExtendedResult<T, TE>**: Style warnings for generic parameter naming
+
+---
+
+## [1.3.0] - 2025-01
 
 ### Added
 
