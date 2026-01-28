@@ -30,6 +30,42 @@ public class ExtendedResultTests
     }
 
     [Fact]
+    public void IsSuccess_ReturnsTrueForOk()
+    {
+        var result = ExtendedResult<int, string>.Ok(42);
+
+        Assert.True(result.IsSuccess);
+        Assert.False(result.IsFailure);
+    }
+
+    [Fact]
+    public void IsSuccess_ReturnsFalseForErr()
+    {
+        var result = ExtendedResult<int, string>.Err("error");
+
+        Assert.False(result.IsSuccess);
+        Assert.True(result.IsFailure);
+    }
+
+    [Fact]
+    public void IsFailure_ReturnsTrueForErr()
+    {
+        var result = ExtendedResult<int, string>.Err("failure");
+
+        Assert.True(result.IsFailure);
+        Assert.False(result.IsSuccess);
+    }
+
+    [Fact]
+    public void IsFailure_ReturnsFalseForOk()
+    {
+        var result = ExtendedResult<int, string>.Ok(100);
+
+        Assert.False(result.IsFailure);
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
     public void UnwrapOr_ReturnsDefaultOnFailure()
     {
         var result = ExtendedResult<int, string>.Err("e");

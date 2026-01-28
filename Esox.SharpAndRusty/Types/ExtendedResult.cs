@@ -9,6 +9,16 @@ public abstract record ExtendedResult<T, TE>
     public static ExtendedResult<T, TE> Err(TE error) => new Failure(error);
     
     /// <summary>
+    /// Gets a value indicating whether this result represents a successful operation.
+    /// </summary>
+    public bool IsSuccess => this is Success;
+    
+    /// <summary>
+    /// Gets a value indicating whether this result represents a failed operation.
+    /// </summary>
+    public bool IsFailure => this is Failure;
+    
+    /// <summary>
     /// Attempts to get the success value from the result.
     /// </summary>
     /// <param name="value">When this method returns, contains the success value if the result is successful; otherwise, the default value.</param>
