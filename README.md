@@ -1,4 +1,4 @@
-﻿﻿# Esox.SharpAndRusty
+﻿# Esox.SharpAndRusty
 
 A production-ready C# library that brings Rust-inspired patterns to .NET, including `Result<T, E>` for type-safe error handling and `Option<T>` for representing optional values without null references.
 
@@ -26,7 +26,6 @@ This library is provided "as is" without warranty of any kind, either express or
 - ✅ **Full Async Support**: Complete async/await integration with `MapAsync`, `BindAsync`, `TapAsync`, and more
 - ✅ **Cancellation Support**: All async methods support `CancellationToken` for graceful operation cancellation
 - ✅ **.NET 10 Compatible**: Built for the latest .NET platform with C# 14
-- ✅ **ExtendedResult<T, TE>**: Record-based discriminated union alternative with pattern matching and LINQ support
 - 🧪 **Experimental: Mutex<T>**: Rust-inspired mutual exclusion primitive with Result-based locking (works in both sync and async contexts)
 - 🧪 **Experimental: RwLock<T>**: Rust-inspired reader-writer lock for shared data access (works in both sync and async contexts)
 
@@ -86,15 +85,6 @@ var message = userOption switch
     _ => "Unknown"
 };
 ```
-
-## Navigation
-
-- [Features](#features)
-- [Quick Start](#quick-start)
-- [Usage Examples](#usage-examples)
-- [API Reference](#api-reference)
-- [ExtendedResult quick tips](#extendedresult-quick-tips)
-- See full ExtendedResult docs in the package README: `Esox.SharpAndRusty/README.md` (section: "ExtendedResult<T, TE> — Record Alternative")
 
 ## Usage Examples
 
@@ -647,30 +637,316 @@ var validValues = options
 - `bool operator !=(Result<T, E> left, Result<T, E> right)` - Inequality operator
 - `string ToString()` - Returns `"Ok(value)"` or `"Err(error)"`
 
-### ExtendedResult quick tips
+### Extension Methods (ResultExtensions)
 
-The record-based `ExtendedResult<T, TE>` offers lightweight success/failure checks:
-
-- `IsSuccess` — true when the result holds a value
-- `IsFailure` — true when the result holds an error
-
-Example:
-
+#### `Map<T, E, U>`
+Transforms the success value while propagating errors:
 ```csharp
-using Esox.SharpAndRusty.Types;
+Result<U, E> Map<T, E, U>(this Result<T, E> result, Func<T, U> mapper)
+```
 
-var ok = ExtendedResult<int, string>.Ok(42);
-var err = ExtendedResult<int, string>.Err("boom");
+**Example:**
+```csharp
+var result = Result<int, string>.Ok(5);
+var mapped = result.Map<int, string, string>(x => $"Value: {x}");
+// Result: Ok("Value: 5")
+```
 
-if (ok.IsSuccess)
+#### `Bind<T, E, U>`
+Chains operations that return results (also known as `flatMap` or `andThen`):
+```csharp
+Result<U, E> Bind<T, E, U>(this Result<T, E> result, Func<T, Result<U, E>> binder)
+```
+
+**Example:**
+```csharp
+var result = Result<int, string>.Ok(10)
+    .Bind(x => x > 0 
+        ? Result<int, string>.Ok(x * 2) 
+        : Result<int, string>.Err("Must be positive"));
+// Result: Ok(20)
+```
+
+#### `Select<U>` (LINQ Support)
+Projects the success value (enables `select` in LINQ queries):
+```csharp
+Result<U, E> Select<U>(this Result<T, E> result, Func<T, U> selector)
+```
+
+**Example:**
+```csharp
+var result = from x in Result<int, string>.Ok(10)
+             select x * 2;
+             // Result: Ok(20)
+```
+
+#### `SelectMany<U>` (LINQ Support)
+Chains results (enables `from` in LINQ queries):
+```csharp
+Result<U, E> SelectMany<U>(this Result<T, E> result, Func<T, Result<U, E>> selector)
+```
+
+**Example:**
+```csharp
+var result = from x in ParseInt("10")
+             from y in ParseInt("20")
+             select x + y;
+// Result: Ok(30)
+```
+
+#### `Unwrap<T, E>`
+Extracts the success value or throws an exception (use with caution):
+```csharp
+T Unwrap<T, E>(this Result<T, E> result)
+```
+
+**Example:**
+```csharp
+var result = Result<int, string>.Ok(42);
+var value = result.Unwrap(); // Returns 42
+
+var failed = Result<int, string>.Err("Error");
+var willThrow = failed.Unwrap(); // Throws InvalidOperationException
+```
+
+### `Error` Type
+
+A rich error type inspired by Rust's error handling patterns with **production-grade optimizations**.
+
+#### Static Factory Methods
+- `Error New(string message)` - Creates a new error
+- `Error New(string message, ErrorKind kind)` - Creates an error with a specific kind
+- `Error FromException(Exception exception)` - Converts an exception to an error (maps 11+ exception types)
+
+#### Instance Methods
+- `Error WithContext(string contextMessage)` - Adds context to the error
+- `Error WithMetadata(string key, object value)` - Attaches metadata (validates types)
+- `Error WithMetadata<T>(string key, T value) where T : struct` - Type-safe metadata attachment
+- `Error WithKind(ErrorKind kind)` - Changes the error kind
+- `Error CaptureStackTrace(bool includeFileInfo = false)` - Captures the current stack trace (configurable)
+- `bool TryGetMetadata(string key, out object? value)` - Gets metadata
+- `bool TryGetMetadata<T>(string key, out T? value)` - Type-safe metadata retrieval
+- `string GetFullMessage()` - Gets the full error chain as a string (depth-limited, circular-safe)
+
+#### Properties
+- `string Message` - The error message
+- `ErrorKind Kind` - The error category (14 predefined kinds)
+- `Error? Source` - The source error (if chained)
+- `string? StackTrace` - The captured stack trace
+- `bool HasSource` - Whether this error has a source
+
+#### Production Features
+- **ImmutableDictionary** for metadata - O(log n) operations with structural sharing
+- **Type-safe metadata API** - Generic overloads for compile-time type safety
+- **Metadata type validation** - Validates at addition time (primitives, DateTime, Guid, enums, value types)
+- **Depth limiting** - Error chains truncated at 50 levels to prevent stack overflow
+- **Circular reference detection** - HashSet-based cycle detection prevents infinite loops
+- **Expanded exception mapping** - 11 common exception types automatically categorized
+- **Configurable stack traces** - Optional file info for performance tuning
+- **Equality support** - Proper `Equals`, `GetHashCode`, `==`, `!=` operators
+
+**Performance Characteristics:**
+- Metadata addition: O(log n) with structural sharing
+- Depth limit: Bounded at 50 levels
+- Circular detection: O(1) per node
+- Memory: Immutable with structural sharing
+
+See [ERROR_TYPE_PRODUCTION_IMPROVEMENTS.md](../ERROR_TYPE_PRODUCTION_IMPROVEMENTS.md) for complete optimization details.
+
+## Why Use Result Types?
+
+### Traditional Exception-Based Approach
+```csharp
+public User GetUser(int id)
 {
-    // handle success
+    var user = database.FindUser(id);
+    if (user == null)
+        throw new NotFoundException($"User {id} not found");
+    return user;
 }
 
-if (err.IsFailure)
+// Caller has no indication this method can throw
+User user = GetUser(123); // Might throw at runtime!
+```
+
+### Result-Based Approach
+```csharp
+public Result<User, string> GetUser(int id)
 {
-    // handle failure
+    var user = database.FindUser(id);
+    if (user == null)
+        return Result<User, string>.Err($"User {id} not found");
+    return Result<User, string>.Ok(user);
+}
+
+// Failure is explicit in the type signature
+Result<User, string> result = GetUser(123);
+var message = result.Match(
+    success: user => $"Found: {user.Name}",
+    failure: error => $"Error: {error}"
+);
+```
+
+## Benefits
+
+- ✅ **Explicit Error Handling**: Method signatures clearly communicate potential failures
+- ✅ **Type-Safe Optional Values**: `Option<T>` eliminates null reference exceptions
+- ✅ **Type Safety**: Compile-time guarantees about error handling
+- ✅ **Rich Error Context**: Chain error context as failures propagate up the call stack
+- ✅ **Error Categorization**: 14 predefined error kinds for appropriate handling
+- ✅ **Performance**: Avoid exception overhead for expected failure cases
+- ✅ **Composability**: Easily chain operations with functional combinators
+- ✅ **Testability**: Easier to test both success and failure paths
+- ✅ **No Null References**: Use `Option<T>` and `Result<T, E>` to avoid `NullReferenceException`
+- ✅ **Better Code Flow**: Failures don't break the natural flow of your code
+- ✅ **Pattern Matching**: Leverage C# pattern matching for elegant value handling
+- ✅ **LINQ Integration**: Use familiar C# query syntax for error handling workflows
+- ✅ **Async/Await Support**: Full integration with async patterns including cancellation
+- ✅ **Cancellable Operations**: Graceful cancellation of long-running async operations
+- ✅ **Debugging Support**: Metadata attachment and full error chain display for debugging
+
+## Testing
+
+The library includes comprehensive test coverage with **339 unit tests** covering:
+- **Result<T, E>** (260 tests)
+  - Basic creation and inspection
+  - Pattern matching
+  - Equality and hash code
+  - Map and Bind operations
+  - LINQ query syntax integration (SelectMany, Select, from/select)
+  - Advanced features (MapError, Expect, Tap, Contains)
+  - Collection operations (Combine, Partition)
+  - Full async support (MapAsync, BindAsync, TapAsync, OrElseAsync, CombineAsync)
+  - Cancellation token support (all async methods with cancellation scenarios)
+- **Option<T>** (43 tests)
+  - Creation and value access
+  - Pattern matching with switch expressions
+  - Equality and hash code
+  - Record functionality (with expressions, ToString)
+  - Collection integration (List, HashSet, Dictionary, LINQ)
+  - Edge cases (nested options, tuples, null handling)
+- **Error type** (64 comprehensive tests)
+  - Context chaining and error propagation
+  - Type-safe metadata with generics
+  - Metadata type validation
+  - Exception conversion with 11 exception types
+  - Error kind modification
+  - Stack trace capture (configurable)
+  - Depth limiting (50 levels)
+  - Circular reference detection
+  - Full error chain formatting
+  - Equality and hash code
+- **🧪 Experimental Mutex<T>** (36 tests)
+  - Lock acquisition and release
+  - Try-lock and timeout variants
+  - Async locking with cancellation
+  - Concurrency stress tests
+  - RAII guard management
+- Exception handling (Try/TryAsync)
+- Side effects (Inspect/InspectErr)
+- Value extraction methods
+- Null handling for nullable types
+
+---
+
+**Experimental Features**
+
+### 🧪 Mutex<T> & RwLock<T> - Thread-Safe Synchronization Primitives
+
+**Status:** Experimental - API may change in future versions
+
+Rust-inspired synchronization primitives for protecting shared data, suitable for both synchronous and asynchronous contexts:
+
+#### Mutex<T> - Mutual Exclusion
+
+```csharp
+using Esox.SharpAndRusty.Sync;
+using Esox.SharpAndRusty.Types;
+
+// Create a mutex protecting shared data
+var mutex = new Mutex<int>(0);
+
+// Synchronous locking
+var result = mutex.Lock();
+if (result.TryGetValue(out var guard))
+{
+    using (guard)
+    {
+        guard.Value++;  // Safe mutation
+    } // Lock automatically released
+}
+
+// Non-blocking try
+var tryResult = mutex.TryLock();
+
+// Async locking with cancellation
+var asyncResult = await mutex.LockAsync(cancellationToken);
+```
+
+#### RwLock<T> - Reader-Writer Lock
+
+```csharp
+using Esox.SharpAndRusty.Sync;
+using Esox.SharpAndRusty.Types;
+
+// Create a reader-writer lock
+var rwlock = new RwLock<int>(42);
+
+// Multiple readers can access simultaneously
+var readResult = rwlock.Read();
+if (readResult.TryGetValue(out var readGuard))
+{
+    using (readGuard)
+    {
+        Console.WriteLine(readGuard.Value); // Read-only access
+    }
+}
+
+// Exclusive writer access
+var writeResult = rwlock.Write();
+if (writeResult.TryGetValue(out var writeGuard))
+{
+    using (writeGuard)
+    {
+        writeGuard.Value = 100; // Exclusive write access
+    }
 }
 ```
 
-For more APIs and patterns (Match, Try/TryAsync, Inspect/InspectErr, Map/Bind, LINQ, Combine/Partition), see the package README at `Esox.SharpAndRusty/README.md` under the section "ExtendedResult<T, TE> — Record Alternative" and "ExtendedResult<T, TE> Type (API)".
+**Key Features:**
+- ✅ **Result-Based Locking** - All lock operations return `Result<Guard<T>, Error>`
+- ✅ **RAII Lock Management** - Automatic lock release via `IDisposable`
+- ✅ **Multiple Lock Strategies** - Blocking, try-lock, and timeout variants
+- ✅ **Type-Safe** - Compile-time guarantees for protected data access
+- ✅ **Sync & Async Support** - Works in both synchronous and asynchronous contexts
+- ✅ **Reader-Writer Optimization** - `RwLock<T>` allows concurrent readers
+
+**Mutex<T> Methods:**
+- `Lock()` - Blocking lock acquisition (sync)
+- `TryLock()` - Non-blocking attempt
+- `TryLockTimeout(TimeSpan)` - Lock with timeout
+- `LockAsync(CancellationToken)` - Async lock
+- `LockAsyncTimeout(TimeSpan, CancellationToken)` - Async lock with timeout
+
+**RwLock<T> Methods:**
+- `Read()` - Acquire read lock (allows concurrent readers)
+- `TryRead()` - Non-blocking read attempt
+- `TryReadTimeout(TimeSpan)` - Read with timeout
+- `Write()` - Acquire exclusive write lock
+- `TryWrite()` - Non-blocking write attempt
+- `TryWriteTimeout(TimeSpan)` - Write with timeout
+
+**⚠️ Experimental Notice:**
+
+The `Mutex<T>` and `RwLock<T>` APIs are currently experimental and may undergo changes based on user feedback and real-world usage patterns. While fully tested, we recommend:
+
+- Using them in non-critical paths initially
+- Providing feedback on the API design
+- Testing thoroughly in your specific use cases
+- Being prepared for potential API changes in minor version updates
+
+See [MUTEX_DOCUMENTATION.md](../MUTEX_DOCUMENTATION.md) for complete `Mutex<T>` documentation and usage examples.
+
+## Why Use Result Types?
+
+
