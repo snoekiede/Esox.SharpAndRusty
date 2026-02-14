@@ -72,7 +72,6 @@ public static class ProblemDetailsExtensions
             ErrorKind.ResourceExhausted => StatusCodes.Status429TooManyRequests,
             ErrorKind.AlreadyExists => StatusCodes.Status409Conflict,
             ErrorKind.InvalidState => StatusCodes.Status400BadRequest,
-            ErrorKind.Other => StatusCodes.Status500InternalServerError,
             _ => StatusCodes.Status500InternalServerError
         };
     }
@@ -100,7 +99,6 @@ public static class ProblemDetailsExtensions
             ErrorKind.ResourceExhausted => "Too Many Requests",
             ErrorKind.AlreadyExists => "Conflict",
             ErrorKind.InvalidState => "Invalid State",
-            ErrorKind.Other => "Internal Server Error",
             _ => "Internal Server Error"
         };
     }

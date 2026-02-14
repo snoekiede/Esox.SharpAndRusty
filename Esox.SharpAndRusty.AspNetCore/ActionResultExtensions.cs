@@ -266,7 +266,7 @@ public static class ActionResultExtensions
                 // Add errors to the dictionary
                 foreach (var (error, index) in errors.Select((e, i) => (e, i)))
                 {
-                    problemDetails.Errors.Add($"field{index}", new[] { error.Message });
+                    problemDetails.Errors.Add($"field{index}", [error.Message]);
                 }
 
                 return new BadRequestObjectResult(problemDetails);
