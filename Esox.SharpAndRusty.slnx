@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="Esox.SharpAndRust.Tests/Esox.SharpAndRust.Tests.csproj" Id="8b189ce9-6e25-4a53-a3ef-b57f00422499" />
+  <Project Path="Esox.SharpAndRusty.AspNetCore/Esox.SharpAndRusty.AspNetCore.csproj" />
   <Project Path="Esox.SharpAndRusty/Esox.SharpAndRusty.csproj" />
 </Solution>
