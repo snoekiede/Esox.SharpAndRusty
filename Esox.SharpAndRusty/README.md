@@ -12,6 +12,25 @@ This library is provided "as is" without warranty of any kind, either express or
 
 - ✅ **Type-Safe Error Handling**: Explicitly represent success and failure states in your type signatures
 - ✅ **Option Type**: Rust-inspired `Option<T>` for representing optional values without null references
+  - 30 extension methods including `Filter`, `Zip`, `ZipWith`, `Flatten`, `And`, `Or`, `Xor`, `Inspect`, and more
+  - 9 async methods: `MapAsync`, `BindAsync`, `FilterAsync`, `InspectAsync`, `MatchAsync`, and more
+  - Full Rust parity for core operations
+  - Complete async/await support with cancellation tokens
+  - See [OPTION_QUICK_REFERENCE.md](OPTION_QUICK_REFERENCE.md) for complete guide
+- ✅ **Result Type**: Comprehensive error handling
+  - ~33 synchronous methods for transforming, chaining, and matching results
+  - ~10 async methods: `MapAsync`, `BindAsync`, `MapErrorAsync`, `TapAsync`, and more
+  - Full async/await integration
+- ✅ **Collection Extensions**: Powerful collection processing for Options and Results
+  - 11 synchronous methods: `Sequence`, `Traverse`, `CollectSome/Ok`, `Partition` for functional collection patterns
+  - 11 asynchronous methods: `SequenceAsync`, `TraverseAsync`, `TraverseParallelAsync`, `CollectSomeAsync`, `PartitionResultsAsync`
+  - Fail-fast and best-effort processing modes
+  - Sequential and parallel async execution with cancellation support
+  - See [COLLECTION_QUICK_REFERENCE.md](COLLECTION_QUICK_REFERENCE.md) for complete guide
+- ✅ **Complete Async Support**: Every operation has an async version
+  - Full `CancellationToken` support
+  - `ConfigureAwait(false)` for performance
+  - No blocking calls, fully async/await
 - ✅ **Rust-Inspired API**: Familiar patterns for developers coming from Rust or functional programming
 - ✅ **Rich Error Type**: Rust-inspired `Error` type with context chaining, metadata, and error categorization
 - ✅ **Zero Overhead**: Implemented as a `readonly struct` for optimal performance
