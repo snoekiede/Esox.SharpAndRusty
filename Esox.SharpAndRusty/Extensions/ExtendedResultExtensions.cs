@@ -22,7 +22,7 @@ public static class ExtendedResultExtensions
             {
                 ExtendedResult<T, E>.Success succes => new ExtendedResult<U, E>.Success(mapper(succes.Value)),
                 ExtendedResult<T, E>.Failure failure => new ExtendedResult<U, E>.Failure(failure.Error),
-                _ => default!
+                _ => null!
             };
         }
 
@@ -43,7 +43,7 @@ public static class ExtendedResultExtensions
                 ExtendedResult<T, E>.Success w => binder(w.Value),
                 // Fix: match failure on the same generic type <T, E>, pass through the error
                 ExtendedResult<T, E>.Failure failure => new ExtendedResult<U, E>.Failure(failure.Error),
-                _ => default!
+                _ => null!
             };
         }
 
@@ -57,7 +57,7 @@ public static class ExtendedResultExtensions
             return result switch
             {
                 ExtendedResult<T, E>.Success s => s.Value,
-                ExtendedResult<T, E>.Failure => throw new InvalidOperationException($"Cannot unwrap a failure"),
+                ExtendedResult<T, E>.Failure => throw new InvalidOperationException("Cannot unwrap a failure"),
                 _ => throw new InvalidOperationException("Unknown result state")
             };
         }
@@ -109,7 +109,7 @@ public static class ExtendedResultExtensions
             {
                 ExtendedResult<T, E>.Success s => ExtendedResult<T, E2>.Ok(s.Value),
                 ExtendedResult<T, E>.Failure f => ExtendedResult<T, E2>.Err(errorMapper(f.Error)),
-                _ => default!
+                _ => null!
             };
         }
 

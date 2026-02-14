@@ -438,7 +438,7 @@ namespace Esox.SharpAndRusty.Sync
         {
             if (_disposed)
             {
-                throw new ObjectDisposedException(nameof(RwLock<T>), "Cannot extract value from disposed RwLock");
+                throw new ObjectDisposedException(nameof(RwLock<>), "Cannot extract value from disposed RwLock");
             }
 
             var value = _value;
@@ -519,7 +519,7 @@ namespace Esox.SharpAndRusty.Sync
             {
                 if (_disposed)
                 {
-                    throw new ObjectDisposedException(nameof(ReadGuard<T>), "Cannot access value from disposed guard");
+                    throw new ObjectDisposedException(nameof(ReadGuard<>), "Cannot access value from disposed guard");
                 }
                 return _value;
             }
@@ -547,7 +547,7 @@ namespace Esox.SharpAndRusty.Sync
             if (mapper is null) throw new ArgumentNullException(nameof(mapper));
             if (_disposed)
             {
-                throw new ObjectDisposedException(nameof(ReadGuard<T>), "Cannot map over disposed guard");
+                throw new ObjectDisposedException(nameof(ReadGuard<>), "Cannot map over disposed guard");
             }
 
             return mapper(_value);
@@ -628,7 +628,7 @@ namespace Esox.SharpAndRusty.Sync
             {
                 if (_disposed)
                 {
-                    throw new ObjectDisposedException(nameof(WriteGuard<T>), "Cannot access value from disposed guard");
+                    throw new ObjectDisposedException(nameof(WriteGuard<>), "Cannot access value from disposed guard");
                 }
                 return _value;
             }
@@ -636,7 +636,7 @@ namespace Esox.SharpAndRusty.Sync
             {
                 if (_disposed)
                 {
-                    throw new ObjectDisposedException(nameof(WriteGuard<T>), "Cannot modify value from disposed guard");
+                    throw new ObjectDisposedException(nameof(WriteGuard<>), "Cannot modify value from disposed guard");
                 }
                 _value = value;
             }
@@ -664,7 +664,7 @@ namespace Esox.SharpAndRusty.Sync
             if (mapper is null) throw new ArgumentNullException(nameof(mapper));
             if (_disposed)
             {
-                throw new ObjectDisposedException(nameof(WriteGuard<T>), "Cannot map over disposed guard");
+                throw new ObjectDisposedException(nameof(WriteGuard<>), "Cannot map over disposed guard");
             }
 
             return mapper(_value);
@@ -690,7 +690,7 @@ namespace Esox.SharpAndRusty.Sync
             if (updater is null) throw new ArgumentNullException(nameof(updater));
             if (_disposed)
             {
-                throw new ObjectDisposedException(nameof(WriteGuard<T>), "Cannot update disposed guard");
+                throw new ObjectDisposedException(nameof(WriteGuard<>), "Cannot update disposed guard");
             }
 
             _value = updater(_value);

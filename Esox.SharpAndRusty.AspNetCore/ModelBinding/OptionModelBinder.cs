@@ -1,6 +1,5 @@
 using Esox.SharpAndRusty.Types;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using System.Threading.Tasks;
 
 namespace Esox.SharpAndRusty.AspNetCore.ModelBinding;
 

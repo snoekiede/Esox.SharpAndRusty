@@ -31,8 +31,7 @@ public abstract record ExtendedResult<T, TE>
                 value = success.Value;
                 return true;
             case Failure:
-                value = default!;
-                return false;
+                break;
         }
         value = default!;
         return false;
@@ -68,8 +67,7 @@ public abstract record ExtendedResult<T, TE>
         switch (this)
         {
             case Success:
-                error = default!;
-                return false;
+                break;
             case Failure failure:
                 error = failure.Error;
                 return true;
@@ -88,7 +86,6 @@ public abstract record ExtendedResult<T, TE>
         return this switch 
         {
             Success success => success.Value,
-            Failure => defaultValue,
             _ => defaultValue
         };
     }

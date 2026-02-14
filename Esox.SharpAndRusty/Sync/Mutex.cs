@@ -362,7 +362,7 @@ namespace Esox.SharpAndRusty.Sync
         {
             if (_disposed)
             {
-                throw new ObjectDisposedException(nameof(Mutex<T>), "Cannot extract value from disposed mutex");
+                throw new ObjectDisposedException(nameof(Mutex<>), "Cannot extract value from disposed mutex");
             }
 
             var value = _value;
@@ -447,7 +447,7 @@ namespace Esox.SharpAndRusty.Sync
             {
                 if (_disposed)
                 {
-                    throw new ObjectDisposedException(nameof(MutexGuard<T>), "Cannot access value from disposed guard");
+                    throw new ObjectDisposedException(nameof(MutexGuard<>), "Cannot access value from disposed guard");
                 }
                 return _value;
             }
@@ -455,7 +455,7 @@ namespace Esox.SharpAndRusty.Sync
             {
                 if (_disposed)
                 {
-                    throw new ObjectDisposedException(nameof(MutexGuard<T>), "Cannot modify value from disposed guard");
+                    throw new ObjectDisposedException(nameof(MutexGuard<>), "Cannot modify value from disposed guard");
                 }
                 _value = value;
             }
@@ -483,7 +483,7 @@ namespace Esox.SharpAndRusty.Sync
             if (mapper is null) throw new ArgumentNullException(nameof(mapper));
             if (_disposed)
             {
-                throw new ObjectDisposedException(nameof(MutexGuard<T>), "Cannot map over disposed guard");
+                throw new ObjectDisposedException(nameof(MutexGuard<>), "Cannot map over disposed guard");
             }
 
             return mapper(_value);
@@ -509,7 +509,7 @@ namespace Esox.SharpAndRusty.Sync
             if (updater is null) throw new ArgumentNullException(nameof(updater));
             if (_disposed)
             {
-                throw new ObjectDisposedException(nameof(MutexGuard<T>), "Cannot update disposed guard");
+                throw new ObjectDisposedException(nameof(MutexGuard<>), "Cannot update disposed guard");
             }
 
             _value = updater(_value);
