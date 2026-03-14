@@ -247,5 +247,25 @@ public abstract record ExtendedResult<T, TE>
             return Err(errorHandler(ex));
         }
     }
-    
+
+    /// <summary>
+    /// Implicitly converts a value of type <typeparamref name="T"/> to a successful result.
+    /// </summary>
+    /// <param name="value">The success value.</param>
+    /// <returns>An <see cref="ExtendedResult{T,TE}"/> representing success.</returns>
+    public static implicit operator ExtendedResult<T, TE>(T value)
+    {
+        return Ok(value);
+    }
+
+    /// <summary>
+    /// Implicitly converts a value of type <typeparamref name="TE"/> to a failed result.
+    /// </summary>
+    /// <param name="error">The error value.</param>
+    /// <returns>An <see cref="ExtendedResult{T,TE}"/> representing failure.</returns>
+    public static implicit operator ExtendedResult<T, TE>(TE error)
+    {
+        return Err(error);
+    }
+
 }

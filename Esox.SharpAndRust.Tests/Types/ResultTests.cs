@@ -535,6 +535,107 @@ public class ResultTests
         Assert.Contains("Test error", error);
     }
 
+    #region Implicit Conversion Tests
+
+    [Fact]
+    public void ImplicitConversion_FromValue_CreatesSuccessfulResult()
+    {
+        // Act
+        Result<int, string> result = 42;
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.True(result.TryGetValue(out var value));
+        Assert.Equal(42, value);
+    }
+
+    [Fact]
+    public void ImplicitConversion_FromError_CreatesFailedResult()
+    {
+        // Act
+        Result<int, string> result = "Error occurred";
+
+        // Assert
+        Assert.True(result.IsFailure);
+        Assert.True(result.TryGetError(out var error));
+        Assert.Equal("Error occurred", error);
+    }
+
+    [Fact]
+    public void ImplicitConversion_WithComplexType_WorksCorrectly()
+    {
+        // Arrange
+        var person = new Person { Name = "John", Age = 30 };
+
+        // Act
+        Result<Person, string> result = person;
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.True(result.TryGetValue(out var value));
+        Assert.Equal("John", value.Name);
+        Assert.Equal(30, value.Age);
+    }
+
+    [Fact]
+    public void ImplicitConversion_CanBeUsedInReturnStatements()
+    {
+        // Act
+        var successResult = GetSuccessResult();
+        var errorResult = GetErrorResult();
+
+        // Assert
+        Assert.True(successResult.IsSuccess);
+        Assert.Equal(100, successResult.UnwrapOr(0));
+        Assert.True(errorResult.IsFailure);
+        Assert.True(errorResult.TryGetError(out var error));
+        Assert.Equal("Something went wrong", error);
+
+        // Local functions using implicit conversion
+        static Result<int, string> GetSuccessResult() => 100;
+        static Result<int, string> GetErrorResult() => "Something went wrong";
+    }
+
+    [Fact]
+    public void ImplicitConversion_CanBeUsedWithNullableTypes()
+    {
+        // Act
+        Result<string?, int> resultWithNull = (string?)null;
+        Result<int, string?> errorWithNull = (string?)null;
+
+        // Assert
+        Assert.True(resultWithNull.IsSuccess);
+        Assert.True(resultWithNull.TryGetValue(out var value));
+        Assert.Null(value);
+
+        Assert.True(errorWithNull.IsFailure);
+        Assert.True(errorWithNull.TryGetError(out var error));
+        Assert.Null(error);
+    }
+
+    [Fact]
+    public void ImplicitConversion_WorksInMethodParameters()
+    {
+        // Act
+        var successResult = ProcessResult(42);
+        var errorResult = ProcessResult("Failed");
+
+        // Assert
+        Assert.Equal("Success: 42", successResult);
+        Assert.Equal("Error: Failed", errorResult);
+
+        // Local function accepting Result via implicit conversion
+        static string ProcessResult(Result<int, string> result)
+        {
+            return result.Match(
+                success: v => $"Success: {v}",
+                failure: e => $"Error: {e}"
+            );
+        }
+    }
+
+    #endregion
+
     private class Person
     {
         public string Name { get; init; } = string.Empty;

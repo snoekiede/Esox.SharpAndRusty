@@ -4,6 +4,7 @@ This document covers the advanced features added to `Esox.SharpAndRusty` for pro
 
 ## Table of Contents
 
+- [Implicit Conversions](#implicit-conversions)
 - [Validation Patterns](#validation-patterns-no-where-clause-support)
 - [Error Type Transformation](#error-type-transformation-with-maperror)
 - [Better Error Messages](#better-error-messages-with-expect)
@@ -11,6 +12,58 @@ This document covers the advanced features added to `Esox.SharpAndRusty` for pro
 - [Value Checking](#value-checking-with-contains)
 - [Collection Operations](#collection-operations)
 - [Async/Await Support](#asyncawait-support)
+
+---
+
+## Implicit Conversions
+
+All core types support implicit conversions for ergonomic creation:
+
+### Result<T, E>
+
+```csharp
+// Value of type T implicitly converts to Ok
+Result<int, string> success = 42;           // Ok(42)
+
+// Value of type E implicitly converts to Err
+Result<int, string> failure = "not found";  // Err("not found")
+
+// Useful in method returns
+Result<int, string> Divide(int a, int b)
+{
+    if (b == 0) return "Division by zero";  // Implicit Err
+    return a / b;                            // Implicit Ok
+}
+```
+
+### ExtendedResult<T, TE>
+
+```csharp
+// Same implicit conversions as Result
+ExtendedResult<int, string> success = 42;           // Ok(42)
+ExtendedResult<int, string> failure = "not found";  // Err("not found")
+```
+
+### Option<T>
+
+```csharp
+// Value of type T implicitly converts to Some
+Option<int> option = 42;           // Some(42)
+Option<string> name = "Alice";     // Some("Alice")
+```
+
+### ⚠️ Known Limitation: Same-Type T and E
+
+When `T` and `E` are the same type in `Result<T, E>` or `ExtendedResult<T, TE>`, the compiler raises a CS0457 ambiguous conversion error. Use explicit factory methods in this case:
+
+```csharp
+// ❌ Compiler error CS0457
+// Result<string, string> result = "value";
+
+// ✅ Use explicit Ok() or Err()
+var result = Result<string, string>.Ok("value");
+var error = Result<string, string>.Err("error");
+```
 
 ---
 

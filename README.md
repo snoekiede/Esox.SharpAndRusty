@@ -18,6 +18,7 @@ This library is provided "as is" without warranty of any kind, either express or
 - ✅ **Functional Composition**: Chain operations with `Map`, `Bind`, `MapError`, and `OrElse`
 - ✅ **Pattern Matching**: Use the `Match` method for elegant success/failure handling
 - ✅ **Full Equality Support**: Implements `IEquatable<T>` with proper `==`, `!=`, and `GetHashCode()`
+- ✅ **Implicit Conversions**: Concise result and option creation with `Result<int, string> r = 42;` and `Option<int> o = 42;`
 - ✅ **Safe Value Extraction**: `TryGetValue`, `UnwrapOr`, `UnwrapOrElse`, `Expect`, and `Contains` methods
 - ✅ **Exception Handling Helpers**: Built-in `Try` and `TryAsync` for wrapping operations
 - ✅ **Inspection Methods**: Execute side effects with `Inspect`, `InspectErr`, and `Tap`
@@ -48,11 +49,15 @@ dotnet test
 using Esox.SharpAndRusty.Types;
 using Esox.SharpAndRusty.Extensions;
 
-// Create a successful result
+// Create a successful result (explicit)
 var success = Result<int, string>.Ok(42);
 
-// Create a failed result
+// Create a failed result (explicit)
 var failure = Result<int, string>.Err("Something went wrong");
+
+// Or use implicit conversions for concise syntax
+Result<int, string> quick = 42;                    // Ok(42)
+Result<int, string> quickErr = "Something went wrong"; // Err("Something went wrong")
 
 // Pattern match to handle both cases
 var message = success.Match(
@@ -72,9 +77,9 @@ var richResult = ErrorExtensions.Try(() => int.Parse("42"))
     .WithMetadata("input", "42")
     .WithKind(ErrorKind.ParseError);
 
-// Use Option<T> for optional values
+// Use Option<T> for optional values (with implicit conversion)
 Option<int> FindUser(int id) => id > 0 
-    ? new Option<int>.Some(id) 
+    ? id                        // Implicit conversion to Some
     : new Option<int>.None();
 
 var userOption = FindUser(42);
@@ -100,7 +105,10 @@ using Esox.SharpAndRusty.Types;
 // Create Some with a value
 var someOption = new Option<int>.Some(42);
 
-// Create None (no value)
+// Or use implicit conversion
+Option<int> someOption2 = 42;  // Equivalent to new Option<int>.Some(42)
+
+// Create None (no value) — must be explicit
 var noneOption = new Option<int>.None();
 
 // Real-world example: Safe dictionary lookup
@@ -569,6 +577,7 @@ A type-safe way to represent optional values, eliminating null reference excepti
 #### Creating Options
 - `new Option<T>.Some(T value)` - Creates an option containing a value
 - `new Option<T>.None()` - Creates an empty option
+- `Option<T> opt = value` - Implicit conversion creates `Some(value)`
 
 #### Pattern Matching
 ```csharp
@@ -619,6 +628,11 @@ var validValues = options
 - `Result<T, E> Err(E error)` - Creates a failed result
 - `Result<T, E> Try(Func<T> operation, Func<Exception, E> errorHandler)` - Execute operation with exception handling
 - `Task<Result<T, E>> TryAsync(Func<Task<T>> operation, Func<Exception, E> errorHandler)` - Async version of Try
+
+#### Implicit Conversions
+- `implicit operator Result<T, E>(T value)` - Implicitly creates a successful result from a value
+- `implicit operator Result<T, E>(E error)` - Implicitly creates a failed result from an error
+- **Note**: When `T` and `E` are the same type, the compiler reports an ambiguous conversion. Use explicit `Ok()` / `Err()` in that case.
 
 #### Instance Methods
 - `R Match<R>(Func<T, R> success, Func<E, R> failure)` - Pattern match on the result
@@ -807,7 +821,7 @@ var message = result.Match(
 
 ## Testing
 
-The library includes comprehensive test coverage with **339 unit tests** covering:
+The library includes comprehensive test coverage with **360+ unit tests** covering:
 - **Result<T, E>** (260 tests)
   - Basic creation and inspection
   - Pattern matching
@@ -818,13 +832,14 @@ The library includes comprehensive test coverage with **339 unit tests** coverin
   - Collection operations (Combine, Partition)
   - Full async support (MapAsync, BindAsync, TapAsync, OrElseAsync, CombineAsync)
   - Cancellation token support (all async methods with cancellation scenarios)
-- **Option<T>** (43 tests)
+- **Option<T>** (50 tests)
   - Creation and value access
   - Pattern matching with switch expressions
   - Equality and hash code
   - Record functionality (with expressions, ToString)
   - Collection integration (List, HashSet, Dictionary, LINQ)
   - Edge cases (nested options, tuples, null handling)
+  - Implicit conversion (value → Some, return statements, method parameters, pattern matching)
 - **Error type** (64 comprehensive tests)
   - Context chaining and error propagation
   - Type-safe metadata with generics

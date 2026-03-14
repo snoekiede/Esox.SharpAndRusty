@@ -665,4 +665,112 @@ public class OptionTests
     }
 
     #endregion
+
+    #region Implicit Conversion Tests
+
+    [Fact]
+    public void ImplicitConversion_FromValue_CreatesSome()
+    {
+        // Act
+        Option<int> option = 42;
+
+        // Assert
+        Assert.IsType<Option<int>.Some>(option);
+        var some = (Option<int>.Some)option;
+        Assert.Equal(42, some.Value);
+    }
+
+    [Fact]
+    public void ImplicitConversion_FromString_CreatesSome()
+    {
+        // Act
+        Option<string> option = "hello";
+
+        // Assert
+        Assert.IsType<Option<string>.Some>(option);
+        var some = (Option<string>.Some)option;
+        Assert.Equal("hello", some.Value);
+    }
+
+    [Fact]
+    public void ImplicitConversion_CanBeUsedInReturnStatements()
+    {
+        // Act
+        var option = GetOption();
+
+        // Assert
+        Assert.IsType<Option<int>.Some>(option);
+        var some = (Option<int>.Some)option;
+        Assert.Equal(100, some.Value);
+
+        static Option<int> GetOption() => 100;
+    }
+
+    [Fact]
+    public void ImplicitConversion_CanBeUsedInMethodParameters()
+    {
+        // Act
+        var result = ProcessOption(42);
+
+        // Assert
+        Assert.Equal("Some: 42", result);
+
+        static string ProcessOption(Option<int> option)
+        {
+            return option switch
+            {
+                Option<int>.Some s => $"Some: {s.Value}",
+                Option<int>.None => "None",
+                _ => "Unknown"
+            };
+        }
+    }
+
+    [Fact]
+    public void ImplicitConversion_WorksWithPatternMatching()
+    {
+        // Arrange
+        Option<int> option = 42;
+
+        // Act
+        var output = option switch
+        {
+            Option<int>.Some { Value: > 40 } => "High",
+            Option<int>.Some => "Low",
+            Option<int>.None => "None",
+            _ => "Unknown"
+        };
+
+        // Assert
+        Assert.Equal("High", output);
+    }
+
+    [Fact]
+    public void ImplicitConversion_WithComplexType_CreatesSome()
+    {
+        // Arrange
+        var list = new List<int> { 1, 2, 3 };
+
+        // Act
+        Option<List<int>> option = list;
+
+        // Assert
+        Assert.IsType<Option<List<int>>.Some>(option);
+        var some = (Option<List<int>>.Some)option;
+        Assert.Equal(3, some.Value.Count);
+    }
+
+    [Fact]
+    public void ImplicitConversion_WithDefaultValue_CreatesSome()
+    {
+        // Act
+        Option<int> option = 0;
+
+        // Assert
+        Assert.IsType<Option<int>.Some>(option);
+        var some = (Option<int>.Some)option;
+        Assert.Equal(0, some.Value);
+    }
+
+    #endregion
 }

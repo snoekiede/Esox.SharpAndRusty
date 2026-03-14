@@ -216,6 +216,26 @@
         }
 
         /// <summary>
+        /// Implicitly converts a value of type <typeparamref name="T"/> to a successful result.
+        /// </summary>
+        /// <param name="value">The success value.</param>
+        /// <returns>A <see cref="Result{T,E}"/> representing success.</returns>
+        public static implicit operator Result<T, E>(T value)
+        {
+            return Ok(value);
+        }
+
+        /// <summary>
+        /// Implicitly converts a value of type <typeparamref name="E"/> to a failed result.
+        /// </summary>
+        /// <param name="error">The error value.</param>
+        /// <returns>A <see cref="Result{T,E}"/> representing failure.</returns>
+        public static implicit operator Result<T, E>(E error)
+        {
+            return Err(error);
+        }
+
+        /// <summary>
         /// Executes an asynchronous operation and wraps the result in a Result type.
         /// If the operation throws an exception, it is caught and converted to an error using the error handler.
         /// </summary>
