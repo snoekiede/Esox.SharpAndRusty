@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.5.0] - 2025
+
+### Added
+
+#### Implicit Conversion Operators
+- **`Result<T, E>`**: Added implicit conversion operators for ergonomic result creation
+  - `implicit operator Result<T, E>(T value)` — converts a value to a successful result (`Ok`)
+  - `implicit operator Result<T, E>(E error)` — converts an error to a failed result (`Err`)
+  - Enables concise syntax: `Result<int, string> result = 42;`
+  - **Note**: When `T` and `E` are the same type (e.g., `Result<string, string>`), the compiler will report an ambiguous conversion error. Use explicit `Ok()` / `Err()` in those cases.
+- **`ExtendedResult<T, TE>`**: Added matching implicit conversion operators
+  - `implicit operator ExtendedResult<T, TE>(T value)` — converts a value to `Success`
+  - `implicit operator ExtendedResult<T, TE>(TE error)` — converts an error to `Failure`
+  - Same semantics and ambiguity caveat as `Result<T, E>`
+- **`Option<T>`**: Added implicit conversion from `T` to `Option<T>.Some`
+  - `implicit operator Option<T>(T value)` — converts a value to `Some`
+  - Enables concise syntax: `Option<int> opt = 42;`
+  - `None` still requires explicit `new Option<T>.None()` since it carries no value
+
+#### Implicit Conversion Test Coverage
+- Added **6 tests** for `Result<T, E>` implicit conversions
+- Added **8 tests** for `ExtendedResult<T, TE>` implicit conversions
+- Added **7 tests** for `Option<T>` implicit conversions
+- Tests cover: basic conversions, complex types, return statements, method parameters, nullable types, pattern matching, and collections
+
+### Changed
+
+#### Documentation Updates
+- Updated **README.md** (root and library) with implicit conversion examples
+- Updated **CHANGELOG.md** with new version entry
+- Updated **RESULT_TYPE_IMPROVEMENTS.md** to reflect re-introduction of implicit conversions
+- Updated **ADVANCED_FEATURES.md** with implicit conversion section
+
+---
+
 ## [1.4.0 - 2025-01-28]
 
 ### Added

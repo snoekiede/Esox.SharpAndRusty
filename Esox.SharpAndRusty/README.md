@@ -18,6 +18,7 @@ This library is provided "as is" without warranty of any kind, either express or
 - ✅ **Functional Composition**: Chain operations with `Map`, `Bind`, `MapError`, and `OrElse`
 - ✅ **Pattern Matching**: Use the `Match` method for elegant success/failure handling
 - ✅ **Full Equality Support**: Implements `IEquatable<T>` with proper `==`, `!=`, and `GetHashCode()`
+- ✅ **Implicit Conversions**: Concise result and option creation with `Result<int, string> r = 42;` and `Option<int> o = 42;`
 - ✅ **Safe Value Extraction**: `TryGetValue`, `UnwrapOr`, `UnwrapOrElse`, `Expect`, and `Contains` methods
 - ✅ **Exception Handling Helpers**: Built-in `Try` and `TryAsync` for wrapping operations
 - ✅ **Inspection Methods**: Execute side effects with `Inspect`, `InspectErr`, and `Tap`
@@ -48,11 +49,15 @@ dotnet test
 using Esox.SharpAndRusty.Types;
 using Esox.SharpAndRusty.Extensions;
 
-// Create a successful result
+// Create a successful result (explicit)
 var success = Result<int, string>.Ok(42);
 
-// Create a failed result
+// Create a failed result (explicit)
 var failure = Result<int, string>.Err("Something went wrong");
+
+// Or use implicit conversions for concise syntax
+Result<int, string> quick = 42;                    // Ok(42)
+Result<int, string> quickErr = "Something went wrong"; // Err("Something went wrong")
 
 // Pattern match to handle both cases
 var message = success.Match(
@@ -72,9 +77,9 @@ var richResult = ErrorExtensions.Try(() => int.Parse("42"))
     .WithMetadata("input", "42")
     .WithKind(ErrorKind.ParseError);
 
-// Use Option<T> for optional values
+// Use Option<T> for optional values (with implicit conversion)
 Option<int> FindUser(int id) => id > 0 
-    ? new Option<int>.Some(id) 
+    ? id                        // Implicit conversion to Some
     : new Option<int>.None();
 
 var userOption = FindUser(42);

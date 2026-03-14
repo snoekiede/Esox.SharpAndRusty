@@ -921,4 +921,158 @@ public class ExtendedResultTests
         Assert.Equal(new[] {1,2}, successes);
         Assert.Equal(new[] {"e1","e2"}, failures);
     }
+
+    #region Implicit Conversion Tests
+
+    [Fact]
+    public void ImplicitConversion_FromValue_CreatesSuccessfulResult()
+    {
+        // Act
+        ExtendedResult<int, string> result = 42;
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.True(result.TryGetValue(out var value));
+        Assert.Equal(42, value);
+    }
+
+    [Fact]
+    public void ImplicitConversion_FromError_CreatesFailedResult()
+    {
+        // Act
+        ExtendedResult<int, string> result = "Error occurred";
+
+        // Assert
+        Assert.True(result.IsFailure);
+        Assert.True(result.TryGetError(out var error));
+        Assert.Equal("Error occurred", error);
+    }
+
+    [Fact]
+    public void ImplicitConversion_WithComplexType_WorksCorrectly()
+    {
+        // Arrange
+        var person = new Person("Alice", 25);
+
+        // Act
+        ExtendedResult<Person, string> result = person;
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.True(result.TryGetValue(out var value));
+        Assert.Equal("Alice", value.Name);
+        Assert.Equal(25, value.Age);
+    }
+
+    [Fact]
+    public void ImplicitConversion_CanBeUsedInReturnStatements()
+    {
+        // Act
+        var successResult = GetSuccessResult();
+        var errorResult = GetErrorResult();
+
+        // Assert
+        Assert.True(successResult.IsSuccess);
+        Assert.Equal(100, successResult.UnwrapOr(0));
+        Assert.True(errorResult.IsFailure);
+        Assert.True(errorResult.TryGetError(out var error));
+        Assert.Equal("Something went wrong", error);
+
+        // Local functions using implicit conversion
+        static ExtendedResult<int, string> GetSuccessResult() => 100;
+        static ExtendedResult<int, string> GetErrorResult() => "Something went wrong";
+    }
+
+    [Fact]
+    public void ImplicitConversion_CanBeUsedWithNullableTypes()
+    {
+        // Act
+        ExtendedResult<string?, int> resultWithNull = (string?)null;
+        ExtendedResult<int, string?> errorWithNull = (string?)null;
+
+        // Assert
+        Assert.True(resultWithNull.IsSuccess);
+        Assert.True(resultWithNull.TryGetValue(out var value));
+        Assert.Null(value);
+
+        Assert.True(errorWithNull.IsFailure);
+        Assert.True(errorWithNull.TryGetError(out var error));
+        Assert.Null(error);
+    }
+
+    [Fact]
+    public void ImplicitConversion_WorksInMethodParameters()
+    {
+        // Act
+        var successResult = ProcessResult(42);
+        var errorResult = ProcessResult("Failed");
+
+        // Assert
+        Assert.Equal("Success: 42", successResult);
+        Assert.Equal("Error: Failed", errorResult);
+
+        // Local function accepting ExtendedResult via implicit conversion
+        static string ProcessResult(ExtendedResult<int, string> result)
+        {
+            return result.Match(
+                success: v => $"Success: {v}",
+                failure: e => $"Error: {e}"
+            );
+        }
+    }
+
+    [Fact]
+    public void ImplicitConversion_WorksWithPatternMatching()
+    {
+        // Arrange
+        ExtendedResult<int, string> successResult = 42;
+        ExtendedResult<int, string> errorResult = "error";
+
+        // Act
+        var successOutput = successResult switch
+        {
+            ExtendedResult<int, string>.Success { Value: var v } => $"Got: {v}",
+            ExtendedResult<int, string>.Failure { Error: var e } => $"Error: {e}",
+            _ => "Unknown"
+        };
+
+        var errorOutput = errorResult switch
+        {
+            ExtendedResult<int, string>.Success { Value: var v } => $"Got: {v}",
+            ExtendedResult<int, string>.Failure { Error: var e } => $"Error: {e}",
+            _ => "Unknown"
+        };
+
+        // Assert
+        Assert.Equal("Got: 42", successOutput);
+        Assert.Equal("Error: error", errorOutput);
+    }
+
+    [Fact]
+    public void ImplicitConversion_WorksInCollections()
+    {
+        // Arrange & Act - Mix implicit conversions in array initialization
+        ExtendedResult<int, string>[] results = new[]
+        {
+            ExtendedResult<int, string>.Ok(1), // Explicit
+            2,                                   // Implicit success
+            ExtendedResult<int, string>.Err("error1"), // Explicit
+            "error2"                            // Implicit error
+        };
+
+        // Assert
+        Assert.Equal(4, results.Length);
+        Assert.True(results[0].IsSuccess);
+        Assert.True(results[1].IsSuccess);
+        Assert.True(results[2].IsFailure);
+        Assert.True(results[3].IsFailure);
+
+        Assert.Equal(1, results[0].UnwrapOr(0));
+        Assert.Equal(2, results[1].UnwrapOr(0));
+        Assert.Equal("error1", results[2].Match(_ => "", e => e));
+        Assert.Equal("error2", results[3].Match(_ => "", e => e));
+    }
+
+    #endregion
 }
+

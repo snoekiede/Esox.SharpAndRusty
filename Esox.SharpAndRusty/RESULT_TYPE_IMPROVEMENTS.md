@@ -5,15 +5,26 @@ The `Result<T, E>` type has been enhanced to be production-ready with comprehens
 
 ## Key Improvements Made
 
-### 1. Removed Implicit Conversions
-**Problem**: Implicit conversions from `T` and `E` caused ambiguity when both types were the same (e.g., `Result<string, string>`).
+### 1. Implicit Conversions (Re-introduced in v1.5.0)
+**History**: Implicit conversions were originally removed because they caused ambiguity when `T` and `E` were the same type. They have been **re-introduced** in v1.5.0 for ergonomic usage while documenting the known limitation.
 
-**Solution**: Removed both implicit operators. Users must now explicitly call `Ok()` or `Err()`:
+**Usage**: Values of type `T` implicitly convert to `Ok`, and values of type `E` implicitly convert to `Err`:
 ```csharp
-// Before (ambiguous)
-Result<string, string> result = "value"; // Which one? Ok or Err?
+// Ergonomic creation
+Result<int, string> success = 42;           // Implicitly Ok(42)
+Result<int, string> failure = "not found";  // Implicitly Err("not found")
 
-// After (explicit and clear)
+// Also works for ExtendedResult and Option
+ExtendedResult<int, string> extended = 42;  // Implicitly Ok(42)
+Option<int> option = 42;                     // Implicitly Some(42)
+```
+
+**⚠️ Known Limitation**: When `T` and `E` are the same type, the compiler raises CS0457 (ambiguous user-defined conversion). Use explicit `Ok()` or `Err()` in this case:
+```csharp
+// ❌ Compiler error CS0457 - ambiguous conversion
+// Result<string, string> result = "value";
+
+// ✅ Use explicit factory methods
 var result = Result<string, string>.Ok("value");
 var error = Result<string, string>.Err("error");
 ```
@@ -184,13 +195,13 @@ All functionality is covered by 52 unit tests including:
 
 ## Migration Guide
 
-### If you were using implicit conversions:
+### Implicit conversions (restored in v1.5.0):
 ```csharp
-// Before
-Result<int, string> result = 42;
+// Implicit conversions are now supported again
+Result<int, string> result = 42;  // Ok(42)
 
-// After
-var result = Result<int, string>.Ok(42);
+// For same-type T and E, use explicit factory methods
+var result = Result<string, string>.Ok("value");
 ```
 
 ### If you were using Match for value extraction:
@@ -207,12 +218,12 @@ if (result.TryGetValue(out var value)) { ... }
 ## Production Readiness Score: 9/10
 
 ### Strengths
-- No ambiguous implicit conversions  
+- Ergonomic implicit conversions (with documented T==E limitation)  
 - Full equality implementation  
 - Comprehensive utility methods  
 - Exception handling support  
 - Async support  
-- Extensive test coverage (52 tests)  
+- Extensive test coverage  
 - Clear ToString() for debugging  
 - Proper null handling  
 - Argument validation  
