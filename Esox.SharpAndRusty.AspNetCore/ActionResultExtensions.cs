@@ -1,5 +1,4 @@
 using Esox.SharpAndRusty.Types;
-using Esox.SharpAndRusty.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
