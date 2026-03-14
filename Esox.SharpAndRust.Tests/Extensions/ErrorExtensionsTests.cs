@@ -358,5 +358,260 @@ namespace Esox.SharpAndRust.Tests.Extensions
             Assert.Contains("path=/etc/config.json", fullMessage);
             Assert.Contains("File not found", fullMessage);
         }
+
+        #region Async Edge Cases
+
+        [Fact]
+        public async Task WithMetadataAsync_TypeSafe_OnSuccess_ReturnsUnchanged()
+        {
+            // Arrange
+            var result = Task.FromResult(Result<int, Error>.Ok(42));
+
+            // Act
+            var withMetadata = await result.WithMetadataAsync("key", 123);
+
+            // Assert
+            Assert.True(withMetadata.IsSuccess);
+            Assert.Equal(42, withMetadata.UnwrapOr(0));
+        }
+
+        [Fact]
+        public async Task WithMetadataAsync_TypeSafe_OnFailure_AttachesTypedMetadata()
+        {
+            // Arrange
+            var result = Task.FromResult(Result<int, Error>.Err(Error.New("Error")));
+
+            // Act
+            var withMetadata = await result
+                .WithMetadataAsync("count", 42)
+                .WithMetadataAsync("isRetryable", true)
+                .WithMetadataAsync("timestamp", DateTime.UtcNow);
+
+            // Assert
+            Assert.True(withMetadata.TryGetError(out var error));
+
+            Assert.True(error!.TryGetMetadata("count", out int count));
+            Assert.Equal(42, count);
+
+            Assert.True(error.TryGetMetadata("isRetryable", out bool isRetryable));
+            Assert.True(isRetryable);
+
+            Assert.True(error.TryGetMetadata("timestamp", out DateTime timestamp));
+            Assert.NotEqual(default(DateTime), timestamp);
+        }
+
+        [Fact]
+        public async Task WithMetadataAsync_TypeSafe_WithComplexType_WorksCorrectly()
+        {
+            // Arrange
+            var result = Task.FromResult(Result<int, Error>.Err(Error.New("Error")));
+            var metadata = new Dictionary<string, string> { ["key"] = "value" };
+
+            // Act
+            var withMetadata = await result.WithMetadataAsync("dict", metadata);
+
+            // Assert
+            Assert.True(withMetadata.TryGetError(out var error));
+            Assert.True(error!.TryGetMetadata("dict", out Dictionary<string, string> retrieved));
+            Assert.Equal("value", retrieved["key"]);
+        }
+
+        [Fact]
+        public async Task WithMetadataAsync_WithCancellation_ThrowsWhenCancelled()
+        {
+            // Arrange
+            using var cts = new CancellationTokenSource();
+            var result = Task.FromResult(Result<int, Error>.Err(Error.New("Error")));
+
+            await cts.CancelAsync();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(async () =>
+                await result.WithMetadataAsync("key", "value", cts.Token));
+        }
+
+        [Fact]
+        public async Task WithMetadataAsync_TypeSafe_WithCancellation_ThrowsWhenCancelled()
+        {
+            // Arrange
+            using var cts = new CancellationTokenSource();
+            var result = Task.FromResult(Result<int, Error>.Err(Error.New("Error")));
+
+            await cts.CancelAsync();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(async () =>
+                await result.WithMetadataAsync("count", 42, cts.Token));
+        }
+
+        [Fact]
+        public async Task WithContextAsync_WithCancellation_ThrowsWhenCancelled()
+        {
+            // Arrange
+            using var cts = new CancellationTokenSource();
+            var result = Task.FromResult(Result<int, Error>.Err(Error.New("Error")));
+
+            await cts.CancelAsync();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(async () =>
+                await result.WithContextAsync(err => $"Failed: {err.Message}", cts.Token));
+        }
+
+        [Fact]
+        public async Task ContextAsync_ChainedMultipleTimes_PreservesErrorChain()
+        {
+            // Arrange
+            var result = Task.FromResult(Result<int, Error>.Err(Error.New("Base error")));
+
+            // Act
+            var final = await result
+                .ContextAsync("Step 1 failed")
+                .ContextAsync("Step 2 failed")
+                .ContextAsync("Operation failed");
+
+            // Assert
+            Assert.True(final.TryGetError(out var error));
+            Assert.Equal("Operation failed", error!.Message);
+            Assert.Equal("Step 2 failed", error.Source!.Message);
+            Assert.Equal("Step 1 failed", error.Source.Source!.Message);
+            Assert.Equal("Base error", error.Source.Source.Source!.Message);
+        }
+
+        [Fact]
+        public async Task WithMetadataAsync_ChainedWithContext_PreservesAllData()
+        {
+            // Arrange
+            var result = Task.FromResult(Result<int, Error>.Err(Error.New("Base error")));
+
+            // Act - Chain metadata and context operations
+            // WithMetadataAsync adds metadata to the current error
+            // ContextAsync wraps the current error in a new error with a context message
+            var final = await result
+                .WithMetadataAsync("step", 1)          // Base error gets metadata step=1
+                .ContextAsync("Step 1 failed")          // Wraps in new error with this message
+                .WithMetadataAsync("step", 2)          // That new error gets metadata step=2
+                .ContextAsync("Step 2 failed");        // Wraps again in another new error
+
+            // Assert
+            Assert.True(final.TryGetError(out var error));
+
+            // The outermost error is "Step 2 failed" with no metadata
+            // (ContextAsync creates a new error without metadata)
+            Assert.Equal("Step 2 failed", error!.Message);
+
+            // The metadata is on the source (the error that was wrapped)
+            var source1 = error.Source;
+            Assert.NotNull(source1);
+            Assert.Equal("Step 1 failed", source1!.Message);
+            Assert.True(source1.TryGetMetadata("step", out var step2));
+            Assert.Equal(2, step2); // The metadata added after first ContextAsync
+
+            // Going deeper in the chain
+            var source2 = source1.Source;
+            Assert.NotNull(source2);
+            // This should be the original "Base error" with step=1 metadata
+            Assert.Equal("Base error", source2!.Message);
+            Assert.True(source2.TryGetMetadata("step", out var step1));
+            Assert.Equal(1, step1); // The metadata added initially
+        }
+
+        [Fact]
+        public async Task TryAsync_WithLongRunningOperation_CompletesSuccessfully()
+        {
+            // Arrange & Act
+            var result = await ErrorExtensions.TryAsync(async () =>
+            {
+                await Task.Delay(100);
+                var sum = 0;
+                for (int i = 0; i < 1000; i++)
+                {
+                    sum += i;
+                }
+                return sum;
+            });
+
+            // Assert
+            Assert.True(result.IsSuccess);
+            Assert.True(result.TryGetValue(out var value));
+            Assert.Equal(499500, value); // Sum of 0..999
+        }
+
+        [Fact]
+        public async Task TryAsync_WithExceptionInMiddle_CapturesError()
+        {
+            // Arrange & Act
+            var result = await ErrorExtensions.TryAsync(async () =>
+            {
+                await Task.Delay(50);
+                throw new InvalidOperationException("Failed midway");
+                #pragma warning disable CS0162 // Unreachable code detected
+                return 42;
+                #pragma warning restore CS0162
+            });
+
+            // Assert
+            Assert.True(result.IsFailure);
+            Assert.True(result.TryGetError(out var error));
+            Assert.Equal("Failed midway", error!.Message);
+            Assert.Equal(ErrorKind.InvalidOperation, error.Kind);
+        }
+
+        [Fact]
+        public async Task TryAsync_WithCancellationAfterStart_CapturesInterrupted()
+        {
+            // Arrange
+            using var cts = new CancellationTokenSource();
+
+            // Act
+            var resultTask = ErrorExtensions.TryAsync(async () =>
+            {
+                await Task.Delay(50, cts.Token);
+                await Task.Delay(1000, cts.Token); // This should be cancelled
+                return 42;
+            }, cts.Token);
+
+            // Cancel after initial delay
+            await Task.Delay(100);
+            await cts.CancelAsync();
+
+            var result = await resultTask;
+
+            // Assert
+            Assert.True(result.IsFailure);
+            Assert.True(result.TryGetError(out var error));
+            Assert.Equal(ErrorKind.Interrupted, error!.Kind);
+        }
+
+        [Fact]
+        public async Task AsyncChain_ComplexScenario_WorksEndToEnd()
+        {
+            // Arrange
+            async Task<Result<int, Error>> ReadAsync(string path)
+            {
+                await Task.Delay(10);
+                return Result<int, Error>.Err(Error.New("File not found", ErrorKind.NotFound));
+            }
+
+            // Act
+            var result = await ReadAsync("/config.json")
+                .ContextAsync("Failed to read configuration")
+                .WithMetadataAsync("path", "/config.json")
+                .WithMetadataAsync("timestamp", DateTime.UtcNow)
+                .ContextAsync("Configuration load failed");
+
+            // Assert
+            Assert.True(result.IsFailure);
+            Assert.True(result.TryGetError(out var error));
+            Assert.Equal("Configuration load failed", error!.Message);
+            Assert.Equal("Failed to read configuration", error.Source!.Message);
+            Assert.True(error.Source.TryGetMetadata("path", out var path));
+            Assert.Equal("/config.json", path);
+            Assert.True(error.Source.TryGetMetadata("timestamp", out DateTime timestamp));
+            Assert.NotEqual(default(DateTime), timestamp);
+        }
+
+        #endregion
     }
 }
+

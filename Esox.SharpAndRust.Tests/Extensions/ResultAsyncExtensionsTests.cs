@@ -736,4 +736,365 @@ public class ResultAsyncExtensionsTests
     }
 
     #endregion
+
+    #region Async Edge Cases
+
+    [Fact]
+    public async Task CombineAsync_WithEmptyCollection_ReturnsEmptySuccess()
+    {
+        // Arrange
+        var resultTasks = Array.Empty<Task<Result<int, string>>>();
+
+        // Act
+        var combined = await resultTasks.CombineAsync();
+
+        // Assert
+        Assert.True(combined.IsSuccess);
+        combined.TryGetValue(out var values);
+        Assert.Empty(values!);
+    }
+
+    [Fact]
+    public async Task CombineAsync_WithNullCollection_ThrowsArgumentNullException()
+    {
+        // Arrange
+        IEnumerable<Task<Result<int, string>>>? resultTasks = null;
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ArgumentNullException>(async () =>
+            await resultTasks!.CombineAsync());
+    }
+
+    [Fact]
+    public async Task CombineAsync_WithMixedDelays_PreservesOrder()
+    {
+        // Arrange
+        async Task<Result<int, string>> GetValueAsync(int value, int delayMs)
+        {
+            await Task.Delay(delayMs);
+            return Result<int, string>.Ok(value);
+        }
+
+        var resultTasks = new[]
+        {
+            GetValueAsync(1, 100), // Slowest
+            GetValueAsync(2, 10),  // Fastest
+            GetValueAsync(3, 50)   // Middle
+        };
+
+        // Act
+        var combined = await resultTasks.CombineAsync();
+
+        // Assert
+        Assert.True(combined.IsSuccess);
+        combined.TryGetValue(out var values);
+        Assert.Equal([1, 2, 3], values); // Order preserved despite different completion times
+    }
+
+    [Fact]
+    public async Task CombineAsync_WithErrorInMiddle_ReturnsFirstError()
+    {
+        // Arrange
+        async Task<Result<int, string>> GetValueAsync(int value, bool fail = false)
+        {
+            await Task.Delay(10);
+            return fail ? Result<int, string>.Err($"Error {value}") : Result<int, string>.Ok(value);
+        }
+
+        var resultTasks = new[]
+        {
+            GetValueAsync(1, false),
+            GetValueAsync(2, true),  // First error
+            GetValueAsync(3, true),  // Second error
+            GetValueAsync(4, false)
+        };
+
+        // Act
+        var combined = await resultTasks.CombineAsync();
+
+        // Assert
+        Assert.True(combined.IsFailure);
+        combined.TryGetError(out var error);
+        Assert.Equal("Error 2", error); // First error wins
+    }
+
+    [Fact]
+    public async Task MapAsync_WithExceptionInMapper_PropagatesException()
+    {
+        // Arrange
+        var resultTask = Task.FromResult(Result<int, string>.Ok(42));
+
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await resultTask.MapAsync<int, string, int>(_ =>
+            {
+                throw new InvalidOperationException("Mapper failed");
+            }));
+    }
+
+    [Fact]
+    public async Task MapAsync_AsyncMapper_WithExceptionInMapper_PropagatesException()
+    {
+        // Arrange
+        var result = Result<int, string>.Ok(42);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await result.MapAsync<int, string, int>(async _ =>
+            {
+                await Task.Delay(10);
+                throw new InvalidOperationException("Async mapper failed");
+                #pragma warning disable CS0162 // Unreachable code detected
+                return 0;
+                #pragma warning restore CS0162
+            }));
+    }
+
+    [Fact]
+    public async Task BindAsync_WithExceptionInBinder_PropagatesException()
+    {
+        // Arrange
+        var resultTask = Task.FromResult(Result<int, string>.Ok(42));
+
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await resultTask.BindAsync(async _ =>
+            {
+                await Task.CompletedTask;
+                throw new InvalidOperationException("Binder failed");
+                #pragma warning disable CS0162 // Unreachable code detected
+                return Result<int, string>.Ok(0);
+                #pragma warning restore CS0162
+            }));
+    }
+
+    [Fact]
+    public async Task BindAsync_AsyncBinder_WithExceptionInBinder_PropagatesException()
+    {
+        // Arrange
+        var result = Result<int, string>.Ok(42);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await result.BindAsync<int, string, int>(async _ =>
+            {
+                await Task.Delay(10);
+                throw new InvalidOperationException("Async binder failed");
+                #pragma warning disable CS0162 // Unreachable code detected
+                return Result<int, string>.Ok(0);
+                #pragma warning restore CS0162
+            }));
+    }
+
+    [Fact]
+    public async Task TapAsync_WithExceptionInSuccessAction_PropagatesException()
+    {
+        // Arrange
+        var resultTask = Task.FromResult(Result<int, string>.Ok(42));
+
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await resultTask.TapAsync(
+                onSuccess: async _ =>
+                {
+                    await Task.Delay(10);
+                    throw new InvalidOperationException("Success action failed");
+                },
+                onFailure: async _ => await Task.Delay(10)));
+    }
+
+    [Fact]
+    public async Task TapAsync_WithExceptionInFailureAction_PropagatesException()
+    {
+        // Arrange
+        var resultTask = Task.FromResult(Result<int, string>.Err("error"));
+
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await resultTask.TapAsync(
+                onSuccess: async _ => await Task.Delay(10),
+                onFailure: async _ =>
+                {
+                    await Task.Delay(10);
+                    throw new InvalidOperationException("Failure action failed");
+                }));
+    }
+
+    [Fact]
+    public async Task OrElseAsync_WithExceptionInAlternative_PropagatesException()
+    {
+        // Arrange
+        var resultTask = Task.FromResult(Result<int, string>.Err("error"));
+
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await resultTask.OrElseAsync(async _ =>
+            {
+                await Task.Delay(10);
+                throw new InvalidOperationException("Alternative failed");
+            }));
+    }
+
+    [Fact]
+    public async Task MapErrorAsync_WithExceptionInMapper_PropagatesException()
+    {
+        // Arrange
+        var resultTask = Task.FromResult(Result<int, string>.Err("error"));
+
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await resultTask.MapErrorAsync<int, string, int>(_ =>
+            {
+                throw new InvalidOperationException("Error mapper failed");
+            }));
+    }
+
+    [Fact]
+    public async Task ComplexAsyncChain_WithMultipleTransformations_MaintainsCorrectState()
+    {
+        // Arrange
+        async Task<Result<int, string>> GetValueAsync(int value)
+        {
+            await Task.Delay(10);
+            return Result<int, string>.Ok(value);
+        }
+
+        var state = new List<string>();
+
+        // Act - chain operations step by step
+        var result1 = await GetValueAsync(10);
+        state.Add($"Initial: {result1.UnwrapOr(0)}");
+
+        var result2 = await result1.MapAsync(async x =>
+        {
+            await Task.Delay(5);
+            state.Add($"Mapped: {x}");
+            return x * 2;
+        });
+
+        state.Add($"After map: {result2.UnwrapOr(0)}");
+
+        var result3 = await result2.BindAsync(async x =>
+        {
+            await Task.Delay(5);
+            state.Add($"Bound: {x}");
+            return Result<int, string>.Ok(x + 10);
+        });
+
+        // Assert
+        Assert.True(result3.IsSuccess);
+        Assert.Equal(30, result3.UnwrapOr(0));
+        Assert.Equal(4, state.Count);
+        Assert.Equal("Initial: 10", state[0]);
+        Assert.Equal("Mapped: 10", state[1]);
+        Assert.Equal("After map: 20", state[2]);
+        Assert.Equal("Bound: 20", state[3]);
+    }
+
+    [Fact]
+    public async Task CombineAsync_WithLargeCollection_CompletesSuccessfully()
+    {
+        // Arrange
+        async Task<Result<int, string>> GetValueAsync(int value)
+        {
+            await Task.Delay(1);
+            return Result<int, string>.Ok(value);
+        }
+
+        var resultTasks = Enumerable.Range(0, 100).Select(GetValueAsync);
+
+        // Act
+        var combined = await resultTasks.CombineAsync();
+
+        // Assert
+        Assert.True(combined.IsSuccess);
+        combined.TryGetValue(out var values);
+        Assert.Equal(100, values!.Count());
+        Assert.Equal(Enumerable.Range(0, 100), values);
+    }
+
+    [Fact]
+    public async Task AsyncChain_WithIntermittentDelays_CompletesCorrectly()
+    {
+        // Arrange
+        async Task<Result<int, string>> SlowOperationAsync(int value)
+        {
+            await Task.Delay(50);
+            return Result<int, string>.Ok(value);
+        }
+
+        async Task<Result<int, string>> FastOperationAsync(int value)
+        {
+            await Task.Delay(1);
+            return Result<int, string>.Ok(value);
+        }
+
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
+        // Act
+        var result = await SlowOperationAsync(10)
+            .BindAsync(FastOperationAsync)
+            .BindAsync(SlowOperationAsync)
+            .BindAsync(FastOperationAsync);
+
+        stopwatch.Stop();
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(10, result.UnwrapOr(0));
+        Assert.True(stopwatch.ElapsedMilliseconds >= 100, "Should take at least 100ms (2 slow operations)");
+    }
+
+    [Fact]
+    public async Task OrElseAsync_ChainedMultipleTimes_ReturnsFirstSuccess()
+    {
+        // Arrange
+        async Task<Result<int, string>> FailAsync(string error)
+        {
+            await Task.Delay(10);
+            return Result<int, string>.Err(error);
+        }
+
+        async Task<Result<int, string>> SucceedAsync(int value)
+        {
+            await Task.Delay(10);
+            return Result<int, string>.Ok(value);
+        }
+
+        // Act
+        var result = await FailAsync("Error 1")
+            .OrElseAsync(async _ => await FailAsync("Error 2"))
+            .OrElseAsync(async _ => await SucceedAsync(42))
+            .OrElseAsync(async _ => await SucceedAsync(99)); // Should not be called
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(42, result.UnwrapOr(0));
+    }
+
+    [Fact]
+    public async Task MapAsync_WithLongRunningMapper_CompletesSuccessfully()
+    {
+        // Arrange
+        var result = Result<int, string>.Ok(42);
+
+        // Act
+        var mapped = await result.MapAsync(async x =>
+        {
+            await Task.Delay(100);
+            var sum = 0;
+            for (int i = 0; i < 1000; i++)
+            {
+                sum += x;
+            }
+            return sum;
+        });
+
+        // Assert
+        Assert.True(mapped.IsSuccess);
+        Assert.Equal(42000, mapped.UnwrapOr(0));
+    }
+
+    #endregion
 }
+

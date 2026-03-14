@@ -945,6 +945,12 @@ The `Mutex<T>` and `RwLock<T>` APIs are currently experimental and may undergo c
 - Testing thoroughly in your specific use cases
 - Being prepared for potential API changes in minor version updates
 
+**⚠️ Known Limitation - Mutex<T> Disposal:**
+
+When `Mutex<T>.Dispose()` is called while tasks are waiting on `LockAsync()` or `LockAsyncTimeout()`, those waiting tasks will hang indefinitely. This is a fundamental limitation of `SemaphoreSlim` disposal behavior in .NET.
+
+**Recommendation:** Always ensure all async lock operations complete before disposing the mutex. Avoid disposing mutexes that may have waiting async operations.
+
 See [MUTEX_DOCUMENTATION.md](../MUTEX_DOCUMENTATION.md) for complete `Mutex<T>` documentation and usage examples.
 
 ## Why Use Result Types?

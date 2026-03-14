@@ -839,4 +839,429 @@ public class OptionExtensionsTests
     }
 
     #endregion
+
+    #region Filter Tests
+
+    [Fact]
+    public void Filter_WithSomeAndPredicateTrue_ReturnsSome()
+    {
+        // Arrange
+        var option = new Option<int>.Some(42);
+
+        // Act
+        var result = option.Filter(x => x > 40);
+
+        // Assert
+        Assert.True(result.IsSome());
+        if (result is Option<int>.Some some)
+        {
+            Assert.Equal(42, some.Value);
+        }
+    }
+
+    [Fact]
+    public void Filter_WithSomeAndPredicateFalse_ReturnsNone()
+    {
+        // Arrange
+        var option = new Option<int>.Some(42);
+
+        // Act
+        var result = option.Filter(x => x > 50);
+
+        // Assert
+        Assert.True(result.IsNone());
+        Assert.IsType<Option<int>.None>(result);
+    }
+
+    [Fact]
+    public void Filter_WithNone_ReturnsNone()
+    {
+        // Arrange
+        var option = new Option<int>.None();
+        var predicateCalled = false;
+
+        // Act
+        var result = option.Filter(x =>
+        {
+            predicateCalled = true;
+            return true;
+        });
+
+        // Assert
+        Assert.True(result.IsNone());
+        Assert.False(predicateCalled); // Predicate should not be called for None
+    }
+
+    [Fact]
+    public void Filter_WithComplexPredicate_WorksCorrectly()
+    {
+        // Arrange
+        var option = new Option<string>.Some("hello");
+
+        // Act
+        var result = option.Filter(s => s.Length > 3 && s.StartsWith("h"));
+
+        // Assert
+        Assert.True(result.IsSome());
+        if (result is Option<string>.Some some)
+        {
+            Assert.Equal("hello", some.Value);
+        }
+    }
+
+    [Fact]
+    public void Filter_CanChainMultipleFilters()
+    {
+        // Arrange
+        var option = new Option<int>.Some(50);
+
+        // Act
+        var result = option
+            .Filter(x => x > 0)      // Pass
+            .Filter(x => x < 100)    // Pass
+            .Filter(x => x % 2 == 0); // Pass (50 is even)
+
+        // Assert
+        Assert.True(result.IsSome());
+        if (result is Option<int>.Some some)
+        {
+            Assert.Equal(50, some.Value);
+        }
+    }
+
+    [Fact]
+    public void Filter_StopsAtFirstFailedPredicate()
+    {
+        // Arrange
+        var option = new Option<int>.Some(50);
+        var thirdFilterCalled = false;
+
+        // Act
+        var result = option
+            .Filter(x => x > 0)      // Pass
+            .Filter(x => x < 25)     // Fail
+            .Filter(x =>
+            {
+                thirdFilterCalled = true;
+                return x % 2 == 0;
+            });
+
+        // Assert
+        Assert.True(result.IsNone());
+        Assert.False(thirdFilterCalled); // Third filter should not be called
+    }
+
+    [Fact]
+    public void Filter_WithNullPredicate_ThrowsNullReferenceException()
+    {
+        // Arrange
+        var option = new Option<int>.Some(42);
+        Func<int, bool> predicate = null!;
+
+        // Act & Assert
+        Assert.Throws<NullReferenceException>(() => option.Filter(predicate));
+    }
+
+    [Fact]
+    public void Filter_RealWorldScenario_AgeValidation()
+    {
+        // Arrange
+        Option<int> age = new Option<int>.Some(25);
+
+        // Act - Filter for valid adult age
+        var validAge = age.Filter(a => a >= 18 && a <= 120);
+
+        // Assert
+        Assert.True(validAge.IsSome());
+        if (validAge is Option<int>.Some some)
+        {
+            Assert.Equal(25, some.Value);
+        }
+    }
+
+    [Fact]
+    public void Filter_RealWorldScenario_StringValidation()
+    {
+        // Arrange
+        Option<string> email = new Option<string>.Some("test@example.com");
+
+        // Act - Filter for valid email format
+        var validEmail = email.Filter(e => e.Contains("@") && e.Length > 5);
+
+        // Assert
+        Assert.True(validEmail.IsSome());
+        if (validEmail is Option<string>.Some some)
+        {
+            Assert.Equal("test@example.com", some.Value);
+        }
+    }
+
+    [Fact]
+    public void Filter_CombinedWithMapAndBind_WorksCorrectly()
+    {
+        // Arrange
+        var option = new Option<int>.Some(10);
+
+        // Act
+        var result = option
+            .Map(x => x * 2)           // 20
+            .Filter(x => x > 15)       // Pass (20 > 15)
+            .Bind(x => new Option<string>.Some($"Value: {x}"))
+            .Filter(s => s.Length > 5); // Pass
+
+        // Assert
+        Assert.True(result.IsSome());
+        if (result is Option<string>.Some some)
+        {
+            Assert.Equal("Value: 20", some.Value);
+        }
+    }
+
+    [Fact]
+    public void Filter_WithReferenceTypeAndNullCheck_WorksCorrectly()
+    {
+        // Arrange
+        Option<string?> option = new Option<string?>.Some("test");
+
+        // Act
+        var result = option.Filter(s => s != null && s.Length > 0);
+
+        // Assert
+        Assert.True(result.IsSome());
+    }
+
+    [Fact]
+    public void Filter_AlwaysTruePredicate_ReturnsSomeForSome()
+    {
+        // Arrange
+        var option = new Option<int>.Some(42);
+
+        // Act
+        var result = option.Filter(_ => true);
+
+        // Assert
+        Assert.True(result.IsSome());
+        if (result is Option<int>.Some some)
+        {
+            Assert.Equal(42, some.Value);
+        }
+    }
+
+    [Fact]
+    public void Filter_AlwaysFalsePredicate_ReturnsNone()
+    {
+        // Arrange
+        var option = new Option<int>.Some(42);
+
+        // Act
+        var result = option.Filter(_ => false);
+
+        // Assert
+        Assert.True(result.IsNone());
+    }
+
+    #endregion
+
+    #region Additional Edge Case Tests
+
+    [Fact]
+    public void Map_WithNoneDoesNotExecuteMapper()
+    {
+        // Arrange
+        var option = new Option<int>.None();
+        var mapperExecuted = false;
+
+        // Act
+        var result = option.Map(x =>
+        {
+            mapperExecuted = true;
+            return x * 2;
+        });
+
+        // Assert
+        Assert.True(result.IsNone());
+        Assert.False(mapperExecuted);
+    }
+
+    [Fact]
+    public void Bind_WithNoneDoesNotExecuteBinder()
+    {
+        // Arrange
+        var option = new Option<int>.None();
+        var binderExecuted = false;
+
+        // Act
+        var result = option.Bind(x =>
+        {
+            binderExecuted = true;
+            return new Option<string>.Some($"Value: {x}");
+        });
+
+        // Assert
+        Assert.True(result.IsNone());
+        Assert.False(binderExecuted);
+    }
+
+    [Fact]
+    public void Match_Action_WithNullOnSome_ThrowsIfSome()
+    {
+        // Arrange
+        var option = new Option<int>.Some(42);
+        Action<int> onSome = null!;
+
+        // Act & Assert
+        Assert.Throws<NullReferenceException>(() =>
+            option.Match(onSome, () => { })
+        );
+    }
+
+    [Fact]
+    public void Match_Action_WithNullOnNone_ThrowsIfNone()
+    {
+        // Arrange
+        var option = new Option<int>.None();
+        Action onNone = null!;
+
+        // Act & Assert
+        Assert.Throws<NullReferenceException>(() =>
+            option.Match(value => { }, onNone)
+        );
+    }
+
+    [Fact]
+    public void Match_Func_WithNullOnNone_ThrowsIfNone()
+    {
+        // Arrange
+        var option = new Option<int>.None();
+        Func<string> onNone = null!;
+
+        // Act & Assert
+        Assert.Throws<NullReferenceException>(() =>
+            option.Match(value => $"Value: {value}", onNone)
+        );
+    }
+
+    [Fact]
+    public void GetValueOrElse_WithNullFactory_ThrowsIfNone()
+    {
+        // Arrange
+        var option = new Option<int>.None();
+        Func<int> factory = null!;
+
+        // Act & Assert
+        Assert.Throws<NullReferenceException>(() => option.GetValueOrElse(factory));
+    }
+
+    [Fact]
+    public void OptionExtensions_NullValueInSome_CanBeFiltered()
+    {
+        // Arrange
+        Option<string?> option = new Option<string?>.Some(null);
+
+        // Act
+        var result = option.Filter(s => s != null);
+
+        // Assert
+        Assert.True(result.IsNone());
+    }
+
+    [Fact]
+    public void OptionExtensions_ComplexTypeInSome_WorksCorrectly()
+    {
+        // Arrange
+        var person = new { Name = "Alice", Age = 30 };
+        var option = new Option<object>.Some(person);
+
+        // Act
+        var result = option
+            .Map(p => p)
+            .Filter(p => p != null)
+            .Match(
+                onSome: p => "Found",
+                onNone: () => "Not Found"
+            );
+
+        // Assert
+        Assert.Equal("Found", result);
+    }
+
+    [Fact]
+    public void Filter_PredicateThrowsException_PropagatesException()
+    {
+        // Arrange
+        var option = new Option<int>.Some(42);
+
+        // Act & Assert
+        Assert.Throws<InvalidOperationException>(() =>
+            option.Filter(x => throw new InvalidOperationException("Predicate failed"))
+        );
+    }
+
+    [Fact]
+    public void Map_MapperThrowsException_PropagatesException()
+    {
+        // Arrange
+        Option<int> option = new Option<int>.Some(42);
+
+        // Act & Assert
+        Assert.Throws<InvalidOperationException>(() =>
+            option.Map(x => { throw new InvalidOperationException("Mapper failed"); return x; })
+        );
+    }
+
+    [Fact]
+    public void Bind_BinderThrowsException_PropagatesException()
+    {
+        // Arrange
+        Option<int> option = new Option<int>.Some(42);
+
+        // Act & Assert
+        Assert.Throws<InvalidOperationException>(() =>
+            option.Bind(x => { throw new InvalidOperationException("Binder failed"); return new Option<int>.Some(x); })
+        );
+    }
+
+    [Fact]
+    public void Match_Func_OnSomeThrowsException_PropagatesException()
+    {
+        // Arrange
+        Option<int> option = new Option<int>.Some(42);
+
+        // Act & Assert
+        Assert.Throws<InvalidOperationException>(() =>
+            option.Match(
+                onSome: x => throw new InvalidOperationException("OnSome failed"),
+                onNone: () => "default"
+            )
+        );
+    }
+
+    [Fact]
+    public void Match_Func_OnNoneThrowsException_PropagatesException()
+    {
+        // Arrange
+        var option = new Option<int>.None();
+
+        // Act & Assert
+        Assert.Throws<InvalidOperationException>(() =>
+            option.Match(
+                onSome: x => $"Value: {x}",
+                onNone: () => throw new InvalidOperationException("OnNone failed")
+            )
+        );
+    }
+
+    [Fact]
+    public void GetValueOrElse_FactoryThrowsException_PropagatesException()
+    {
+        // Arrange
+        var option = new Option<int>.None();
+
+        // Act & Assert
+        Assert.Throws<InvalidOperationException>(() =>
+            option.GetValueOrElse(() => throw new InvalidOperationException("Factory failed"))
+        );
+    }
+
+    #endregion
 }

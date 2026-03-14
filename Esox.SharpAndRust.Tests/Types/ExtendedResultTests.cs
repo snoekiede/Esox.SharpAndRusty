@@ -149,6 +149,559 @@ public class ExtendedResultTests
         Assert.Contains("nope", error);
     }
 
+    #region Pattern Matching Tests
+
+    [Fact]
+    public void Match_Success_ExecutesSuccessFunction()
+    {
+        var result = ExtendedResult<int, string>.Ok(42);
+
+        var output = result.Match(
+            success: value => $"Value: {value}",
+            failure: error => $"Error: {error}"
+        );
+
+        Assert.Equal("Value: 42", output);
+    }
+
+    [Fact]
+    public void Match_Failure_ExecutesFailureFunction()
+    {
+        var result = ExtendedResult<int, string>.Err("Something went wrong");
+
+        var output = result.Match(
+            success: value => $"Value: {value}",
+            failure: error => $"Error: {error}"
+        );
+
+        Assert.Equal("Error: Something went wrong", output);
+    }
+
+    [Fact]
+    public void Match_WithComplexTypes_Success()
+    {
+        var result = ExtendedResult<Person, ValidationError>.Ok(new Person("Alice", 30));
+
+        var output = result.Match(
+            success: person => $"{person.Name} is {person.Age}",
+            failure: error => $"Validation failed: {error.Message}"
+        );
+
+        Assert.Equal("Alice is 30", output);
+    }
+
+    [Fact]
+    public void Match_WithComplexTypes_Failure()
+    {
+        var result = ExtendedResult<Person, ValidationError>.Err(new ValidationError("Invalid age"));
+
+        var output = result.Match(
+            success: person => $"{person.Name} is {person.Age}",
+            failure: error => $"Validation failed: {error.Message}"
+        );
+
+        Assert.Equal("Validation failed: Invalid age", output);
+    }
+
+    [Fact]
+    public void Match_ThrowsArgumentNullException_WhenSuccessFunctionIsNull()
+    {
+        var result = ExtendedResult<int, string>.Ok(42);
+
+        var exception = Assert.Throws<ArgumentNullException>(() =>
+            result.Match(success: null!, failure: error => error)
+        );
+
+        Assert.Equal("success", exception.ParamName);
+    }
+
+    [Fact]
+    public void Match_ThrowsArgumentNullException_WhenFailureFunctionIsNull()
+    {
+        var result = ExtendedResult<int, string>.Ok(42);
+
+        var exception = Assert.Throws<ArgumentNullException>(() =>
+            result.Match(success: value => value.ToString(), failure: null!)
+        );
+
+        Assert.Equal("failure", exception.ParamName);
+    }
+
+    [Fact]
+    public void Match_CanReturnDifferentType()
+    {
+        var successResult = ExtendedResult<int, string>.Ok(42);
+        var failureResult = ExtendedResult<int, string>.Err("error");
+
+        var successOutput = successResult.Match(
+            success: value => value * 2,
+            failure: _ => 0
+        );
+
+        var failureOutput = failureResult.Match(
+            success: value => value * 2,
+            failure: _ => 0
+        );
+
+        Assert.Equal(84, successOutput);
+        Assert.Equal(0, failureOutput);
+    }
+
+    #endregion
+
+    #region Equality Tests
+
+    [Fact]
+    public void Equals_TwoSuccessWithSameValue_AreEqual()
+    {
+        var result1 = ExtendedResult<int, string>.Ok(42);
+        var result2 = ExtendedResult<int, string>.Ok(42);
+
+        Assert.True(result1.Equals(result2));
+        Assert.True(result2.Equals(result1));
+        Assert.Equal(result1, result2);
+    }
+
+    [Fact]
+    public void Equals_TwoSuccessWithDifferentValues_AreNotEqual()
+    {
+        var result1 = ExtendedResult<int, string>.Ok(42);
+        var result2 = ExtendedResult<int, string>.Ok(99);
+
+        Assert.False(result1.Equals(result2));
+        Assert.False(result2.Equals(result1));
+        Assert.NotEqual(result1, result2);
+    }
+
+    [Fact]
+    public void Equals_TwoFailuresWithSameError_AreEqual()
+    {
+        var result1 = ExtendedResult<int, string>.Err("error");
+        var result2 = ExtendedResult<int, string>.Err("error");
+
+        Assert.True(result1.Equals(result2));
+        Assert.True(result2.Equals(result1));
+        Assert.Equal(result1, result2);
+    }
+
+    [Fact]
+    public void Equals_TwoFailuresWithDifferentErrors_AreNotEqual()
+    {
+        var result1 = ExtendedResult<int, string>.Err("error1");
+        var result2 = ExtendedResult<int, string>.Err("error2");
+
+        Assert.False(result1.Equals(result2));
+        Assert.False(result2.Equals(result1));
+        Assert.NotEqual(result1, result2);
+    }
+
+    [Fact]
+    public void Equals_SuccessAndFailure_AreNotEqual()
+    {
+        var success = ExtendedResult<int, string>.Ok(42);
+        var failure = ExtendedResult<int, string>.Err("error");
+
+        Assert.False(success.Equals(failure));
+        Assert.False(failure.Equals(success));
+        Assert.NotEqual(success, failure);
+    }
+
+    [Fact]
+    public void Equals_WithNull_ReturnsFalse()
+    {
+        var result = ExtendedResult<int, string>.Ok(42);
+
+        Assert.False(result.Equals(null));
+    }
+
+    [Fact]
+    public void Equals_WithSameReference_ReturnsTrue()
+    {
+        var result = ExtendedResult<int, string>.Ok(42);
+
+        Assert.True(result.Equals(result));
+    }
+
+    [Fact]
+    public void Equals_WithComplexTypes_Success()
+    {
+        var person1 = new Person("Alice", 30);
+        var person2 = new Person("Alice", 30);
+
+        var result1 = ExtendedResult<Person, string>.Ok(person1);
+        var result2 = ExtendedResult<Person, string>.Ok(person2);
+
+        Assert.Equal(result1, result2);
+    }
+
+    [Fact]
+    public void Equals_WithComplexTypes_Failure()
+    {
+        var error1 = new ValidationError("error");
+        var error2 = new ValidationError("error");
+
+        var result1 = ExtendedResult<int, ValidationError>.Err(error1);
+        var result2 = ExtendedResult<int, ValidationError>.Err(error2);
+
+        Assert.Equal(result1, result2);
+    }
+
+    [Fact]
+    public void Equals_WithNullValues_Success()
+    {
+        var result1 = ExtendedResult<string?, int>.Ok(null);
+        var result2 = ExtendedResult<string?, int>.Ok(null);
+
+        Assert.Equal(result1, result2);
+    }
+
+    [Fact]
+    public void Equals_WithNullErrors_Failure()
+    {
+        var result1 = ExtendedResult<int, string?>.Err(null);
+        var result2 = ExtendedResult<int, string?>.Err(null);
+
+        Assert.Equal(result1, result2);
+    }
+
+    #endregion
+
+    #region GetHashCode Tests
+
+    [Fact]
+    public void GetHashCode_TwoSuccessWithSameValue_HaveSameHashCode()
+    {
+        var result1 = ExtendedResult<int, string>.Ok(42);
+        var result2 = ExtendedResult<int, string>.Ok(42);
+
+        Assert.Equal(result1.GetHashCode(), result2.GetHashCode());
+    }
+
+    [Fact]
+    public void GetHashCode_TwoFailuresWithSameError_HaveSameHashCode()
+    {
+        var result1 = ExtendedResult<int, string>.Err("error");
+        var result2 = ExtendedResult<int, string>.Err("error");
+
+        Assert.Equal(result1.GetHashCode(), result2.GetHashCode());
+    }
+
+    [Fact]
+    public void GetHashCode_SuccessAndFailure_HaveDifferentHashCodes()
+    {
+        var success = ExtendedResult<int, string>.Ok(42);
+        var failure = ExtendedResult<int, string>.Err("error");
+
+        // Hash codes should be different (though technically collisions are allowed)
+        Assert.NotEqual(success.GetHashCode(), failure.GetHashCode());
+    }
+
+    [Fact]
+    public void GetHashCode_WithNullValue_DoesNotThrow()
+    {
+        var result = ExtendedResult<string?, int>.Ok(null);
+
+        var hashCode = result.GetHashCode();
+
+        Assert.NotEqual(0, hashCode); // Should still compute a hash
+    }
+
+    [Fact]
+    public void GetHashCode_WithNullError_DoesNotThrow()
+    {
+        var result = ExtendedResult<int, string?>.Err(null);
+
+        var hashCode = result.GetHashCode();
+
+        Assert.NotEqual(0, hashCode); // Should still compute a hash
+    }
+
+    [Fact]
+    public void GetHashCode_UsableInHashSet()
+    {
+        var set = new HashSet<ExtendedResult<int, string>>
+        {
+            ExtendedResult<int, string>.Ok(1),
+            ExtendedResult<int, string>.Ok(2),
+            ExtendedResult<int, string>.Err("error"),
+            ExtendedResult<int, string>.Ok(1) // Duplicate
+        };
+
+        Assert.Equal(3, set.Count); // Only unique items
+    }
+
+    [Fact]
+    public void GetHashCode_UsableInDictionary()
+    {
+        var dict = new Dictionary<ExtendedResult<int, string>, string>
+        {
+            [ExtendedResult<int, string>.Ok(1)] = "one",
+            [ExtendedResult<int, string>.Ok(2)] = "two",
+            [ExtendedResult<int, string>.Err("error")] = "error"
+        };
+
+        Assert.Equal(3, dict.Count);
+        Assert.Equal("one", dict[ExtendedResult<int, string>.Ok(1)]);
+    }
+
+    #endregion
+
+    #region ToString Tests
+
+    [Fact]
+    public void ToString_Success_ReturnsFormattedString()
+    {
+        var result = ExtendedResult<int, string>.Ok(42);
+
+        var str = result.ToString();
+
+        // Records have their own ToString, so check it contains the value
+        Assert.Contains("Success", str);
+        Assert.Contains("42", str);
+    }
+
+    [Fact]
+    public void ToString_Failure_ReturnsFormattedString()
+    {
+        var result = ExtendedResult<int, string>.Err("Something went wrong");
+
+        var str = result.ToString();
+
+        // Records have their own ToString, so check it contains the error
+        Assert.Contains("Failure", str);
+        Assert.Contains("Something went wrong", str);
+    }
+
+    [Fact]
+    public void ToString_WithComplexType_Success()
+    {
+        var person = new Person("Alice", 30);
+        var result = ExtendedResult<Person, string>.Ok(person);
+
+        var str = result.ToString();
+
+        Assert.Contains("Alice", str);
+        Assert.Contains("30", str);
+    }
+
+    [Fact]
+    public void ToString_WithNull_Success()
+    {
+        var result = ExtendedResult<string?, int>.Ok(null);
+
+        var str = result.ToString();
+
+        Assert.Contains("Success", str);
+    }
+
+    [Fact]
+    public void ToString_WithNull_Failure()
+    {
+        var result = ExtendedResult<int, string?>.Err(null);
+
+        var str = result.ToString();
+
+        Assert.Contains("Failure", str);
+    }
+
+    #endregion
+
+    #region OrElse Tests
+
+    [Fact]
+    public void OrElse_Success_ReturnsOriginalResult()
+    {
+        var result = ExtendedResult<int, string>.Ok(42);
+
+        var alternative = result.OrElse(error => ExtendedResult<int, string>.Ok(99));
+
+        Assert.True(alternative.TryGetValue(out var value));
+        Assert.Equal(42, value); // Original value, not alternative
+    }
+
+    [Fact]
+    public void OrElse_Failure_ReturnsAlternativeResult()
+    {
+        var result = ExtendedResult<int, string>.Err("error");
+
+        var alternative = result.OrElse(error => ExtendedResult<int, string>.Ok(99));
+
+        Assert.True(alternative.TryGetValue(out var value));
+        Assert.Equal(99, value);
+    }
+
+    [Fact]
+    public void OrElse_Failure_CanReturnAnotherFailure()
+    {
+        var result = ExtendedResult<int, string>.Err("first error");
+
+        var alternative = result.OrElse(error => ExtendedResult<int, string>.Err($"handled: {error}"));
+
+        Assert.True(alternative.TryGetError(out var newError));
+        Assert.Equal("handled: first error", newError);
+    }
+
+    [Fact]
+    public void OrElse_ThrowsArgumentNullException_WhenAlternativeIsNull()
+    {
+        var result = ExtendedResult<int, string>.Err("error");
+
+        var exception = Assert.Throws<ArgumentNullException>(() =>
+            result.OrElse(null!)
+        );
+
+        Assert.Equal("alternative", exception.ParamName);
+    }
+
+    [Fact]
+    public void OrElse_Chaining_MultipleAlternatives()
+    {
+        var result = ExtendedResult<int, string>.Err("error1")
+            .OrElse(_ => ExtendedResult<int, string>.Err("error2"))
+            .OrElse(_ => ExtendedResult<int, string>.Ok(42));
+
+        Assert.True(result.TryGetValue(out var value));
+        Assert.Equal(42, value);
+    }
+
+    #endregion
+
+    #region Try Tests
+
+    [Fact]
+    public void Try_Success_ReturnsOk()
+    {
+        var result = ExtendedResult<int, string>.Try(() => 42, ex => ex.Message);
+
+        Assert.True(result.TryGetValue(out var value));
+        Assert.Equal(42, value);
+    }
+
+    [Fact]
+    public void Try_Failure_ReturnsErr()
+    {
+        var result = ExtendedResult<int, string>.Try(
+            () => throw new InvalidOperationException("boom"),
+            ex => ex.Message
+        );
+
+        Assert.True(result.TryGetError(out var error));
+        Assert.Contains("boom", error);
+    }
+
+    [Fact]
+    public void Try_ThrowsArgumentNullException_WhenOperationIsNull()
+    {
+        var exception = Assert.Throws<ArgumentNullException>(() =>
+            ExtendedResult<int, string>.Try(null!, ex => ex.Message)
+        );
+
+        Assert.Equal("operation", exception.ParamName);
+    }
+
+    [Fact]
+    public void Try_ThrowsArgumentNullException_WhenErrorHandlerIsNull()
+    {
+        var exception = Assert.Throws<ArgumentNullException>(() =>
+            ExtendedResult<int, string>.Try(() => 42, null!)
+        );
+
+        Assert.Equal("errorHandler", exception.ParamName);
+    }
+
+    [Fact]
+    public void Try_WithComplexException_MapsToError()
+    {
+        var result = ExtendedResult<int, ValidationError>.Try(
+            () => throw new ArgumentException("Invalid argument"),
+            ex => new ValidationError(ex.Message)
+        );
+
+        Assert.True(result.TryGetError(out var error));
+        Assert.Equal("Invalid argument", error.Message);
+    }
+
+    #endregion
+
+    #region Record Pattern Matching Tests
+
+    [Fact]
+    public void RecordPattern_Success_CanDeconstruct()
+    {
+        var result = ExtendedResult<int, string>.Ok(42);
+
+        var output = result switch
+        {
+            ExtendedResult<int, string>.Success { Value: var v } => $"Success: {v}",
+            ExtendedResult<int, string>.Failure { Error: var e } => $"Failure: {e}",
+            _ => "Unknown"
+        };
+
+        Assert.Equal("Success: 42", output);
+    }
+
+    [Fact]
+    public void RecordPattern_Failure_CanDeconstruct()
+    {
+        var result = ExtendedResult<int, string>.Err("error");
+
+        var output = result switch
+        {
+            ExtendedResult<int, string>.Success { Value: var v } => $"Success: {v}",
+            ExtendedResult<int, string>.Failure { Error: var e } => $"Failure: {e}",
+            _ => "Unknown"
+        };
+
+        Assert.Equal("Failure: error", output);
+    }
+
+    [Fact]
+    public void RecordPattern_WithGuard_Success()
+    {
+        var result = ExtendedResult<int, string>.Ok(42);
+
+        var output = result switch
+        {
+            ExtendedResult<int, string>.Success { Value: > 40 } => "High",
+            ExtendedResult<int, string>.Success { Value: > 20 } => "Medium",
+            ExtendedResult<int, string>.Success => "Low",
+            _ => "Error"
+        };
+
+        Assert.Equal("High", output);
+    }
+
+    [Fact]
+    public void RecordPattern_ComplexPatternMatching()
+    {
+        var results = new[]
+        {
+            ExtendedResult<int, string>.Ok(10),
+            ExtendedResult<int, string>.Ok(50),
+            ExtendedResult<int, string>.Err("error1"),
+            ExtendedResult<int, string>.Ok(30),
+            ExtendedResult<int, string>.Err("error2")
+        };
+
+        var summary = results.Select(r => r switch
+        {
+            ExtendedResult<int, string>.Success { Value: > 40 } => "High Success",
+            ExtendedResult<int, string>.Success => "Low Success",
+            ExtendedResult<int, string>.Failure => "Failure",
+            _ => "Unknown"
+        }).ToList();
+
+        Assert.Contains("High Success", summary);
+        Assert.Contains("Low Success", summary);
+        Assert.Contains("Failure", summary);
+    }
+
+    #endregion
+
+    // Helper types for testing
+    private record Person(string Name, int Age);
+    private record ValidationError(string Message);
+
     [Fact]
     public void Try_Success()
     {
