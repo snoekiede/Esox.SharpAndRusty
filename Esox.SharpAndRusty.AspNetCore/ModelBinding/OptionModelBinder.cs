@@ -43,12 +43,10 @@ public class OptionModelBinder : IModelBinder
         {
             // Value was successfully bound - wrap in Some
             var value = innerContext.Result.Model;
-            var optionType = bindingContext.ModelType;
-            var valueType = optionType.GetGenericArguments()[0];
-
-            // Create Some instance using reflection
-            var someType = typeof(Option<>).MakeGenericType(valueType)
-                .GetNestedType("Some")!;
+            var valueType = bindingContext.ModelMetadata.ModelType.GetGenericArguments()[0];
+            
+            // Create Some instance - use reflection but get the right constructor
+            var someType = typeof(Option<>.Some).MakeGenericType(valueType);
             var someInstance = Activator.CreateInstance(someType, value);
 
             bindingContext.Result = ModelBindingResult.Success(someInstance);
@@ -56,11 +54,10 @@ public class OptionModelBinder : IModelBinder
         else
         {
             // Value was not bound (missing, null, or validation error) - create None
-            var optionType = bindingContext.ModelType;
-            var valueType = optionType.GetGenericArguments()[0];
-
-            var noneType = typeof(Option<>).MakeGenericType(valueType)
-                .GetNestedType("None")!;
+            var valueType = bindingContext.ModelMetadata.ModelType.GetGenericArguments()[0];
+            
+            // Create None instance
+            var noneType = typeof(Option<>.None).MakeGenericType(valueType);
             var noneInstance = Activator.CreateInstance(noneType);
 
             bindingContext.Result = ModelBindingResult.Success(noneInstance);
