@@ -349,7 +349,7 @@ app.UseResultMiddleware(new ResultMiddlewareOptions
 
 ### Option<T> Binding
 
-The library provides automatic model binding for `Option<T>`, treating missing/null values as `None` instead of validation errors:
+The library provides automatic model binding for `Option<T>`, treating missing/null values as `None` instead of validation errors. The model binder leverages the `Option<T>` implicit conversion operator which automatically handles null values:
 
 ```csharp
 [HttpGet]
@@ -360,7 +360,7 @@ public IActionResult Search(
 {
     var size = pageSize.UnwrapOr(10);     // Default to 10
     var sort = sortBy.UnwrapOr("name");    // Default to "name"
-    
+
     var results = _searchService.Search(query, size, sort);
     return Ok(results);
 }
@@ -369,6 +369,35 @@ public IActionResult Search(
 // GET /api/search?query=test                     -> pageSize: None, sortBy: None
 // GET /api/search?query=test&pageSize=20         -> pageSize: Some(20), sortBy: None
 // GET /api/search?query=test&sortBy=date         -> pageSize: None, sortBy: Some("date")
+```
+
+### Null Handling
+
+The model binder works seamlessly with the `Option<T>` implicit conversion operator's null handling:
+
+- **Missing values** → `None`
+- **Null values** → `None` (prevents `Some(null)` anti-pattern)
+- **Valid values** → `Some(value)`
+
+```csharp
+// The model binder ensures that:
+// ?name=          -> Some("")  (empty string is a value)
+// ?name=Alice     -> Some("Alice")
+// (no name param) -> None
+// ?name=null      -> None (explicitly null)
+
+// For nullable types:
+[HttpGet]
+public IActionResult GetUser([FromQuery] Option<int?> age)
+{
+    return age switch
+    {
+        Option<int?>.Some { Value: int value } => Ok($"Age: {value}"),
+        Option<int?>.Some { Value: null } => Ok("Age explicitly set to null"),
+        Option<int?>.None => Ok("Age not provided"),
+        _ => Ok("Unknown")
+    };
+}
 ```
 
 ### Complex Types
@@ -416,9 +445,11 @@ The `OptionModelBinder` supports all types that ASP.NET Core can bind:
 2. **Detection**: Provider detects `Option<T>` parameters/properties
 3. **Delegation**: Creates `OptionModelBinder` with inner binder for type `T`
 4. **Binding**: Attempts to bind the inner value
-   - **Success**: Wraps value in `Some(value)`
+   - **Success with value**: Wraps value in `Some(value)`
+   - **Success with null**: Handled by implicit conversion, becomes `None`
    - **Failure/Missing**: Returns `None`
 5. **No Validation Errors**: Unlike nullable types, missing `Option<T>` values don't cause validation errors
+6. **Null Prevention**: The implicit conversion operator prevents `Some(null)` anti-pattern by automatically converting null to `None`
 
 ### Example with All Supported Types
 

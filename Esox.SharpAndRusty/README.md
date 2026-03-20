@@ -12,6 +12,7 @@ This library is provided "as is" without warranty of any kind, either express or
 
 - ✅ **Type-Safe Error Handling**: Explicitly represent success and failure states in your type signatures
 - ✅ **Option Type**: Rust-inspired `Option<T>` for representing optional values without null references
+- ✅ **Automatic Null Handling**: Implicit conversion operator converts null values to `None`, preventing `Some(null)` anti-pattern
 - ✅ **Rust-Inspired API**: Familiar patterns for developers coming from Rust or functional programming
 - ✅ **Rich Error Type**: Rust-inspired `Error` type with context chaining, metadata, and error categorization
 - ✅ **Zero Overhead**: Implemented as a `readonly struct` for optimal performance
@@ -108,12 +109,35 @@ var someOption = new Option<int>.Some(42);
 // Create None (no value)
 var noneOption = new Option<int>.None();
 
+// Use implicit conversion for concise syntax
+Option<int> value = 42;              // Implicitly converts to Some(42)
+Option<string> name = "Alice";       // Implicitly converts to Some("Alice")
+
+// Null handling: null values automatically convert to None
+string? nullString = null;
+Option<string> empty = nullString!;  // Converts to None (not Some(null))
+
+// This prevents the anti-pattern of Some(null)
+int? nullableInt = null;
+Option<int?> option = nullableInt;   // Converts to None
+
+// Non-null nullable values convert to Some
+int? hasValue = 42;
+Option<int?> someValue = hasValue;   // Converts to Some(42)
+
 // Real-world example: Safe dictionary lookup
 Option<string> GetConfigValue(Dictionary<string, string> config, string key)
 {
     return config.TryGetValue(key, out var value)
-        ? new Option<string>.Some(value)
+        ? value                         // Implicit conversion to Some
         : new Option<string>.None();
+}
+
+// Real-world example: Database query that might return null
+Option<User> FindUser(int userId)
+{
+    var user = _db.Users.Find(userId);  // Might return null
+    return user;  // Null automatically converts to None, non-null to Some
 }
 ```
 
@@ -193,6 +217,13 @@ var length = nameOption switch
     _ => 0
 };
 // No risk of NullReferenceException!
+
+// Automatic null conversion makes this even easier
+Option<string> WrapNullable(string? possiblyNull) => possiblyNull; // Automatically handles null!
+
+// Works seamlessly with nullable reference types
+string? DatabaseQuery(int id) => /* might return null */;
+Option<string> SafeQuery(int id) => DatabaseQuery(id); // Null becomes None
 ```
 
 ### Result<T, E> - Basic Operations
