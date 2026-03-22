@@ -1,4 +1,6 @@
-﻿namespace Esox.SharpAndRusty.Types;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Esox.SharpAndRusty.Types;
 
 public abstract record Option<T>
 {
@@ -9,9 +11,9 @@ public abstract record Option<T>
     /// Implicitly converts a value of type <typeparamref name="T"/> to an <see cref="Option{T}.Some"/>.
     /// For reference types, null values are converted to <see cref="Option{T}.None"/>.
     /// </summary>
-    /// <param name="value">The value to wrap.</param>
+    /// <param name="value">The value to wrap. Null values are allowed and will be converted to <see cref="Option{T}.None"/>.</param>
     /// <returns>An <see cref="Option{T}"/> containing the value, or <see cref="Option{T}.None"/> if the value is null.</returns>
-    public static implicit operator Option<T>(T value)
+    public static implicit operator Option<T>([AllowNull] T value)
     {
         return value is null ? new None() : new Some(value);
     }
