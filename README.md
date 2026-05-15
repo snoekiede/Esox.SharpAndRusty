@@ -27,6 +27,7 @@ This library is provided "as is" without warranty of any kind, either express or
 - ✅ **Full Async Support**: Complete async/await integration with `MapAsync`, `BindAsync`, `TapAsync`, and more
 - ✅ **Cancellation Support**: All async methods support `CancellationToken` for graceful operation cancellation
 - ✅ **.NET 10 Compatible**: Built for the latest .NET platform with C# 14
+- ✨ **Roslyn Analyzer**: Enforces proper Result/Option handling at compile-time (like Rust's `#[must_use]`)
 - 🧪 **Experimental: Mutex<T>**: Rust-inspired mutual exclusion primitive with Result-based locking (works in both sync and async contexts)
 - 🧪 **Experimental: RwLock<T>**: Rust-inspired reader-writer lock for shared data access (works in both sync and async contexts)
 
@@ -90,6 +91,70 @@ var message = userOption switch
     _ => "Unknown"
 };
 ```
+
+## 🔍 Roslyn Analyzer - Compile-Time Safety
+
+The library includes a **Roslyn analyzer** that enforces proper handling of `Result<T, E>` and `Option<T>` types at compile-time, similar to Rust's `#[must_use]` attribute. This prevents accidentally ignoring potential errors or missing values.
+
+### Automatic Enforcement
+
+When you install `Esox.SharpAndRusty`, the analyzer is automatically included and will warn you when Result or Option values are not properly handled:
+
+```csharp
+// ❌ This triggers warning ESOX1001
+public void ProcessData()
+{
+    GetResult(); // warning: Result<int, string> returned by 'GetResult' must be used
+}
+
+// ✅ This is properly handled - no warning
+public void ProcessData()
+{
+    var result = GetResult();
+    result.Match(
+        ok => Console.WriteLine($"Success: {ok}"),
+        err => Console.WriteLine($"Error: {err}"));
+}
+```
+
+### Analyzer Warnings
+
+**ESOX1001**: Result value must be used
+- Triggered when: A method returning `Result<T, E>` is called but its value is ignored
+- Severity: Warning (configurable)
+- Help: https://github.com/snoekiede/Esox.SharpAndRusty/wiki/ESOX1001
+
+**ESOX1002**: Option value must be used
+- Triggered when: A method returning `Option<T>` is called but its value is ignored
+- Severity: Warning (configurable)
+- Help: https://github.com/snoekiede/Esox.SharpAndRusty/wiki/ESOX1002
+
+### Configuration
+
+Configure the analyzer in your `.editorconfig`:
+
+```ini
+# Promote to errors (recommended for new projects)
+dotnet_diagnostic.ESOX1001.severity = error
+dotnet_diagnostic.ESOX1002.severity = error
+
+# Or disable (not recommended)
+dotnet_diagnostic.ESOX1001.severity = none
+```
+
+### Explicit Intent
+
+If you genuinely need to ignore a Result or Option, make it explicit:
+
+```csharp
+// Shows explicit intent - no warning
+_ = GetResult();
+```
+
+**Learn More:**
+- [Analyzer Quick Start Guide](ANALYZER_QUICK_START.md)
+- [Complete Implementation Details](ROSLYN_ANALYZER_SUMMARY.md)
+- [Analyzer README](Esox.SharpAndRusty.Analyzers/README.md)
 
 ## Usage Examples
 
@@ -969,5 +1034,4 @@ When `Mutex<T>.Dispose()` is called while tasks are waiting on `LockAsync()` or 
 See [MUTEX_DOCUMENTATION.md](../MUTEX_DOCUMENTATION.md) for complete `Mutex<T>` documentation and usage examples.
 
 ## Why Use Result Types?
-
 
