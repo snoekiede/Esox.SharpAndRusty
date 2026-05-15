@@ -2,13 +2,17 @@
 
 ## For Library Users
 
-When you install the `Esox.SharpAndRusty` NuGet package, the analyzer is **automatically included**. No additional configuration required!
+The analyzer is available as an **optional separate package**. First install the core library, then optionally add the analyzer:
 
 ```bash
+# Install the core library (required)
 dotnet add package Esox.SharpAndRusty
+
+# Optionally install the analyzer for compile-time warnings
+dotnet add package Esox.SharpAndRusty.Analyzers
 ```
 
-You'll immediately start seeing warnings when Result or Option types are not handled.
+Once installed, you'll immediately start seeing warnings when Result or Option types are not handled.
 
 ## For Library Developers
 
@@ -119,21 +123,29 @@ The analyzer works in:
 
 If you don't see warnings:
 
-1. **Clean and rebuild:**
+1. **Verify analyzer package is installed:**
+   ```bash
+   # The analyzer is a separate optional package
+   dotnet add package Esox.SharpAndRusty.Analyzers
+   ```
+
+2. **Clean and rebuild:**
    ```bash
    dotnet clean
    dotnet build
    ```
 
-2. **Check analyzer is included:**
+3. **Check analyzer is included:**
    ```bash
    dotnet build /p:ReportAnalyzer=true
    ```
 
-3. **Restart IDE** (especially VS Code)
+4. **Restart IDE** (especially VS Code)
 
-4. **Verify package version:**
-   Ensure you have the latest version of Esox.SharpAndRusty
+5. **Verify package versions:**
+   Ensure you have both packages:
+   - `Esox.SharpAndRusty` (core library)
+   - `Esox.SharpAndRusty.Analyzers` (analyzer - optional)
 
 ### Too Many Warnings
 

@@ -64,13 +64,17 @@ public void Process()
 
 ## Installation
 
-The analyzer is automatically included when you install the `Esox.SharpAndRusty` NuGet package.
+The analyzer is available as a separate optional package:
 
 ```bash
+# First, install the core library (required)
 dotnet add package Esox.SharpAndRusty
+
+# Then, optionally install the analyzer for compile-time warnings
+dotnet add package Esox.SharpAndRusty.Analyzers
 ```
 
-The analyzer will start warning about unhandled Result and Option types immediately in your IDE and during builds.
+Once installed, the analyzer will start warning about unhandled Result and Option types immediately in your IDE and during builds.
 
 ## Rationale
 

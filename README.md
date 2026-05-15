@@ -92,13 +92,23 @@ var message = userOption switch
 };
 ```
 
-## 🔍 Roslyn Analyzer - Compile-Time Safety
+## 🔍 Roslyn Analyzer - Compile-Time Safety (Optional)
 
-The library includes a **Roslyn analyzer** that enforces proper handling of `Result<T, E>` and `Option<T>` types at compile-time, similar to Rust's `#[must_use]` attribute. This prevents accidentally ignoring potential errors or missing values.
+An **optional Roslyn analyzer** is available as a separate package that enforces proper handling of `Result<T, E>` and `Option<T>` types at compile-time, similar to Rust's `#[must_use]` attribute. This prevents accidentally ignoring potential errors or missing values.
 
-### Automatic Enforcement
+### Installation
 
-When you install `Esox.SharpAndRusty`, the analyzer is automatically included and will warn you when Result or Option values are not properly handled:
+```bash
+# Install the core library (required)
+dotnet add package Esox.SharpAndRusty
+
+# Optionally install the analyzer for compile-time warnings
+dotnet add package Esox.SharpAndRusty.Analyzers
+```
+
+### Compile-Time Warnings
+
+Once the analyzer is installed, it will warn you when Result or Option values are not properly handled:
 
 ```csharp
 // ❌ This triggers warning ESOX1001
@@ -1034,4 +1044,6 @@ When `Mutex<T>.Dispose()` is called while tasks are waiting on `LockAsync()` or 
 See [MUTEX_DOCUMENTATION.md](../MUTEX_DOCUMENTATION.md) for complete `Mutex<T>` documentation and usage examples.
 
 ## Why Use Result Types?
+
+
 
