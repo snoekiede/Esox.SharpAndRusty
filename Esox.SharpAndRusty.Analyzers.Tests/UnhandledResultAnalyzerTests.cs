@@ -254,17 +254,6 @@ public class TestClass
             // Add reference to Esox.SharpAndRusty
             test.TestState.AdditionalReferences.Add(typeof(Esox.SharpAndRusty.Types.Result<,>).Assembly);
 
-            // Manually add the analyzer assembly
-            var analyzerPath = Path.Combine(
-                Path.GetDirectoryName(typeof(UnhandledResultAnalyzerTests).Assembly.Location)!,
-                "..", "..", "..", "..", "Esox.SharpAndRusty.Analyzers", "bin", "Debug", "netstandard2.0",
-                "Esox.SharpAndRusty.Analyzers.dll");
-            
-            if (File.Exists(analyzerPath))
-            {
-                test.TestState.AnalyzerConfigFiles.Add(("/.editorconfig", ""));
-            }
-
             test.ExpectedDiagnostics.AddRange(expected);
 
             await test.RunAsync();
