@@ -772,5 +772,194 @@ public class OptionTests
         Assert.Equal(0, some.Value);
     }
 
+    [Fact]
+    public void ImplicitConversion_FromNullableString_CreatesNone()
+    {
+        // Arrange
+        string? nullString = null;
+
+        // Act
+        Option<string> option = nullString!;
+
+        // Assert
+        Assert.IsType<Option<string>.None>(option);
+    }
+
+    [Fact]
+    public void ImplicitConversion_FromNullableInt_WithNull_CreatesNone()
+    {
+        // Arrange
+        int? nullInt = null;
+
+        // Act
+        Option<int?> option = nullInt;
+
+        // Assert
+        Assert.IsType<Option<int?>.None>(option);
+    }
+
+    [Fact]
+    public void ImplicitConversion_FromNullableInt_WithValue_CreatesSome()
+    {
+        // Arrange
+        int? nullableInt = 42;
+
+        // Act
+        Option<int?> option = nullableInt;
+
+        // Assert
+        Assert.IsType<Option<int?>.Some>(option);
+        var some = (Option<int?>.Some)option;
+        Assert.Equal(42, some.Value);
+    }
+
+    [Fact]
+    public void ImplicitConversion_FromNullReferenceType_CreatesNone()
+    {
+        // Arrange
+        List<int>? nullList = null;
+
+        // Act
+        Option<List<int>?> option = nullList;
+
+        // Assert
+        Assert.IsType<Option<List<int>?>.None>(option);
+    }
+
+    [Fact]
+    public void ImplicitConversion_FromNonNullReferenceType_CreatesSome()
+    {
+        // Arrange
+        var list = new List<int> { 1, 2, 3 };
+
+        // Act
+        Option<List<int>> option = list;
+
+        // Assert
+        Assert.IsType<Option<List<int>>.Some>(option);
+        var some = (Option<List<int>>.Some)option;
+        Assert.Same(list, some.Value);
+    }
+
+    [Fact]
+    public void ImplicitConversion_NullHandling_InReturnStatements()
+    {
+        // Act
+        var someOption = GetValueOption();
+
+        // Assert
+        Assert.IsType<Option<string>.Some>(someOption);
+        var some = (Option<string>.Some)someOption;
+        Assert.Equal("test", some.Value);
+
+        static Option<string> GetValueOption() => "test";
+    }
+
+    [Fact]
+    public void ImplicitConversion_FromNullableValue_InReturnStatements()
+    {
+        // Act
+        var noneOption = GetNullOption();
+        var someOption = GetNonNullOption();
+
+        // Assert
+        Assert.IsType<Option<string>.None>(noneOption);
+        Assert.IsType<Option<string>.Some>(someOption);
+        var some = (Option<string>.Some)someOption;
+        Assert.Equal("test", some.Value);
+
+        static Option<string> GetNullOption()
+        {
+            string? nullValue = null;
+            return nullValue!;
+        }
+
+        static Option<string> GetNonNullOption()
+        {
+            string? value = "test";
+            return value!;
+        }
+    }
+
+    [Fact]
+    public void ImplicitConversion_NullHandling_InMethodParameters()
+    {
+        // Arrange
+        string? nullValue = null;
+        string? nonNullValue = "hello";
+
+        // Act
+        var noneResult = ProcessOption(nullValue!);
+        var someResult = ProcessOption(nonNullValue!);
+
+        // Assert
+        Assert.Equal("None", noneResult);
+        Assert.Equal("Some: hello", someResult);
+
+        static string ProcessOption(Option<string> option)
+        {
+            return option switch
+            {
+                Option<string>.Some s => $"Some: {s.Value}",
+                Option<string>.None => "None",
+                _ => "Unknown"
+            };
+        }
+    }
+
+    [Fact]
+    public void ImplicitConversion_NullHandling_WithPatternMatching()
+    {
+        // Arrange
+        string? nullValue = null;
+        string? nonNullValue = "test";
+
+        Option<string> nullOption = nullValue!;
+        Option<string> valueOption = nonNullValue!;
+
+        // Act
+        var nullOutput = nullOption switch
+        {
+            Option<string>.Some => "Has value",
+            Option<string>.None => "No value",
+            _ => "Unknown"
+        };
+
+        var valueOutput = valueOption switch
+        {
+            Option<string>.Some s => $"Has value: {s.Value}",
+            Option<string>.None => "No value",
+            _ => "Unknown"
+        };
+
+        // Assert
+        Assert.Equal("No value", nullOutput);
+        Assert.Equal("Has value: test", valueOutput);
+    }
+
+    [Fact]
+    public void ImplicitConversion_NullCheck_PreventsSomeWithNull()
+    {
+        // This test verifies that the implicit conversion prevents creating Some(null)
+        // which would be an anti-pattern
+
+        // Arrange
+        string? nullValue = null;
+        string? nonNullValue = "value";
+
+        // Act
+        Option<string?> optionFromNull = nullValue;
+        Option<string?> optionFromValue = nonNullValue;
+
+        // Assert
+        // Null should create None, not Some(null)
+        Assert.IsType<Option<string?>.None>(optionFromNull);
+
+        // Non-null should create Some
+        Assert.IsType<Option<string?>.Some>(optionFromValue);
+        var some = (Option<string?>.Some)optionFromValue;
+        Assert.Equal("value", some.Value);
+    }
+
     #endregion
 }
