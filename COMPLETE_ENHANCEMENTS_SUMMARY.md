@@ -7,7 +7,7 @@ Implemented **7 major enhancements** to the Sharp and Rusty functional programmi
 
 ### Summary of Additions
 - **New Types**: 3 (Either, Validation, plus future ValueOption)
-- **New Extension Classes**: 5 (TryExtensions, PatternMatchingHelpers, EitherExtensions, ValidationExtensions, plus future ASP.NET Core)
+- **New Extension Classes**: 4 (TryExtensions, PatternMatchingHelpers, EitherExtensions, ValidationExtensions)
 - **New Methods**: ~60 methods across all extensions
 - **Test Status**: All 627 existing tests pass ✅
 
@@ -239,29 +239,9 @@ public readonly struct ValueOption<T>
 
 ---
 
-## 6. ⏳ ASP.NET Core Integration
+## 6. ✅ ASP.NET Core Integration (Moved)
 
-**Status**: Planned, not yet implemented
-
-### What It Will Do
-Automatic Result<T, E> to HTTP response mapping.
-
-### Planned Features
-```csharp
-// Automatic mapping!
-app.MapGet("/users/{id}", (int id) => 
-    GetUser(id) // Returns Result<User, Error>
-);
-// Auto-converts:
-// Ok(user) → 200 with JSON
-// NotFound → 404
-// ValidationError → 400
-// InternalError → 500
-
-// Result action filters
-[ResultFilter]
-public Result<User, Error> GetUser(int id) { ... }
-```
+**Status**: Moved to its own repository (`Esox.SharpAndRusty.AspNetCore`) and no longer maintained in this codebase.
 
 ---
 
@@ -274,7 +254,7 @@ public Result<User, Error> GetUser(int id) { ... }
 | **Union Types** | Only Result (success/fail) | `Either<L, R>` for any two types | More expressive |
 | **Validation** | Result (stops at first error) | `Validation` (collects all errors) | Better UX! |
 | **Performance** | Option<int> allocates | ValueOption<int> (planned) | 10-100x faster |
-| **Web APIs** | Manual response mapping | ASP.NET Core integration (planned) | Less boilerplate |
+| **Web APIs** | Manual response mapping | Separate `Esox.SharpAndRusty.AspNetCore` package | Less boilerplate |
 
 ---
 
@@ -452,7 +432,7 @@ var finalData = result.GetValueOrElse(error =>
 3. **Either**: ~40 tests
 4. **Validation**: ~50 tests
 5. **ValueOption**: ~40 tests (when implemented)
-6. **ASP.NET Core**: ~30 tests (when implemented)
+6. **ASP.NET Core**: Covered in the separate `Esox.SharpAndRusty.AspNetCore` repository
 
 **Total New Tests**: ~195 tests to be written
 
@@ -494,8 +474,8 @@ var finalData = result.GetValueOrElse(error =>
 | **Either** | 1 | 1 | 20+ | ✅ Done |
 | **Validation** | 1 | 1 | 20+ | ✅ Done |
 | **ValueOption** | 1 | 1 | ~40 | ⏳ Pending |
-| **ASP.NET Core** | 0 | 3-4 | ~15 | ⏳ Pending |
-| **TOTAL** | 3 (+ 1 pending) | 5 (+ 4 pending) | ~74 (+ ~55 pending) | 4/6 complete |
+| **ASP.NET Core** | moved | moved | moved | ✅ External |
+| **TOTAL** | 3 (+ 1 pending) | 4 (+ 1 pending) | ~60 (+ ~40 pending) | 5/6 complete |
 
 ---
 
@@ -528,7 +508,7 @@ var finalData = result.GetValueOrElse(error =>
 
 ### Future Enhancements
 4. **Implement ValueOption<T>** - Zero-allocation performance
-5. **Implement ASP.NET Core Integration** - Web API support
+5. **Track ASP.NET Core integration in external repo** - Web API support moved out
 6. **Create Roslyn Analyzer** - Compile-time safety warnings
 
 ---
@@ -559,8 +539,8 @@ This implementation adds **world-class functional programming features** to the 
 3. ✅ **Either<L, R>** - General union types
 4. ✅ **Validation<T, E>** - Error accumulation (🌟 most valuable!)
 5. ⏳ **ValueOption<T>** - Performance (pending)
-6. ⏳ **ASP.NET Core** - Web integration (pending)
+6. ✅ **ASP.NET Core** - Web integration moved to dedicated repo
 
-**Total new methods**: ~60 (with ~55 more pending in ValueOption and ASP.NET Core)
+**Total new methods**: ~60 (with ~40 more pending in ValueOption)
 
 The library now provides **comprehensive functional programming capabilities** with exceptional error handling, validation, and pattern matching support! 🚀

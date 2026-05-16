@@ -25,11 +25,6 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\Esox.SharpAndRusty\Esox.SharpAndRusty.csproj" />
-		<ProjectReference Include="..\Esox.SharpAndRusty.AspNetCore\Esox.SharpAndRusty.AspNetCore.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<FrameworkReference Include="Microsoft.AspNetCore.App" />
 	</ItemGroup>
 
 </Project>
