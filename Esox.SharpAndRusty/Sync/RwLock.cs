@@ -20,16 +20,17 @@ namespace Esox.SharpAndRusty.Sync
     {
         private readonly ReaderWriterLockSlim _lock;
         private T _value;
-        private bool _disposed;
+        private volatile bool _disposed;
 
         /// <summary>
         /// Creates a new RwLock in an unlocked state ready for use.
         /// </summary>
         /// <param name="value">The initial value to protect.</param>
-        public RwLock(T value)
+        /// <param name="recursionPolicy">The lock recursion policy. Defaults to NoRecursion for better performance and deadlock prevention.</param>
+        public RwLock(T value, LockRecursionPolicy recursionPolicy = LockRecursionPolicy.NoRecursion)
         {
             _value = value;
-            _lock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
+            _lock = new ReaderWriterLockSlim(recursionPolicy);
             _disposed = false;
         }
 
@@ -57,16 +58,18 @@ namespace Esox.SharpAndRusty.Sync
         /// </example>
         public Result<ReadGuard<T>, Error> Read()
         {
-            if (_disposed)
-            {
-                return Result<ReadGuard<T>, Error>.Err(
-                    Error.New("Cannot read from disposed RwLock", ErrorKind.InvalidOperation)
-                );
-            }
-
             try
             {
                 _lock.EnterReadLock();
+
+                if (_disposed)
+                {
+                    _lock.ExitReadLock();
+                    return Result<ReadGuard<T>, Error>.Err(
+                        Error.New("Cannot read from disposed RwLock", ErrorKind.InvalidOperation)
+                    );
+                }
+
                 return Result<ReadGuard<T>, Error>.Ok(
                     new ReadGuard<T>(this, _lock)
                 );
@@ -112,17 +115,18 @@ namespace Esox.SharpAndRusty.Sync
         /// </example>
         public Result<ReadGuard<T>, Error> TryRead()
         {
-            if (_disposed)
-            {
-                return Result<ReadGuard<T>, Error>.Err(
-                    Error.New("Cannot read from disposed RwLock", ErrorKind.InvalidOperation)
-                );
-            }
-
             try
             {
                 if (_lock.TryEnterReadLock(0))
                 {
+                    if (_disposed)
+                    {
+                        _lock.ExitReadLock();
+                        return Result<ReadGuard<T>, Error>.Err(
+                            Error.New("Cannot read from disposed RwLock", ErrorKind.InvalidOperation)
+                        );
+                    }
+
                     return Result<ReadGuard<T>, Error>.Ok(
                         new ReadGuard<T>(this, _lock)
                     );
@@ -180,17 +184,18 @@ namespace Esox.SharpAndRusty.Sync
         /// </example>
         public Result<ReadGuard<T>, Error> TryReadTimeout(TimeSpan timeout)
         {
-            if (_disposed)
-            {
-                return Result<ReadGuard<T>, Error>.Err(
-                    Error.New("Cannot read from disposed RwLock", ErrorKind.InvalidOperation)
-                );
-            }
-
             try
             {
                 if (_lock.TryEnterReadLock(timeout))
                 {
+                    if (_disposed)
+                    {
+                        _lock.ExitReadLock();
+                        return Result<ReadGuard<T>, Error>.Err(
+                            Error.New("Cannot read from disposed RwLock", ErrorKind.InvalidOperation)
+                        );
+                    }
+
                     return Result<ReadGuard<T>, Error>.Ok(
                         new ReadGuard<T>(this, _lock)
                     );
@@ -250,16 +255,18 @@ namespace Esox.SharpAndRusty.Sync
         /// </example>
         public Result<WriteGuard<T>, Error> Write()
         {
-            if (_disposed)
-            {
-                return Result<WriteGuard<T>, Error>.Err(
-                    Error.New("Cannot write to disposed RwLock", ErrorKind.InvalidOperation)
-                );
-            }
-
             try
             {
                 _lock.EnterWriteLock();
+
+                if (_disposed)
+                {
+                    _lock.ExitWriteLock();
+                    return Result<WriteGuard<T>, Error>.Err(
+                        Error.New("Cannot write to disposed RwLock", ErrorKind.InvalidOperation)
+                    );
+                }
+
                 return Result<WriteGuard<T>, Error>.Ok(
                     new WriteGuard<T>(this, _lock)
                 );
@@ -305,17 +312,18 @@ namespace Esox.SharpAndRusty.Sync
         /// </example>
         public Result<WriteGuard<T>, Error> TryWrite()
         {
-            if (_disposed)
-            {
-                return Result<WriteGuard<T>, Error>.Err(
-                    Error.New("Cannot write to disposed RwLock", ErrorKind.InvalidOperation)
-                );
-            }
-
             try
             {
                 if (_lock.TryEnterWriteLock(0))
                 {
+                    if (_disposed)
+                    {
+                        _lock.ExitWriteLock();
+                        return Result<WriteGuard<T>, Error>.Err(
+                            Error.New("Cannot write to disposed RwLock", ErrorKind.InvalidOperation)
+                        );
+                    }
+
                     return Result<WriteGuard<T>, Error>.Ok(
                         new WriteGuard<T>(this, _lock)
                     );
@@ -373,17 +381,18 @@ namespace Esox.SharpAndRusty.Sync
         /// </example>
         public Result<WriteGuard<T>, Error> TryWriteTimeout(TimeSpan timeout)
         {
-            if (_disposed)
-            {
-                return Result<WriteGuard<T>, Error>.Err(
-                    Error.New("Cannot write to disposed RwLock", ErrorKind.InvalidOperation)
-                );
-            }
-
             try
             {
                 if (_lock.TryEnterWriteLock(timeout))
                 {
+                    if (_disposed)
+                    {
+                        _lock.ExitWriteLock();
+                        return Result<WriteGuard<T>, Error>.Err(
+                            Error.New("Cannot write to disposed RwLock", ErrorKind.InvalidOperation)
+                        );
+                    }
+
                     return Result<WriteGuard<T>, Error>.Ok(
                         new WriteGuard<T>(this, _lock)
                     );
@@ -423,33 +432,70 @@ namespace Esox.SharpAndRusty.Sync
         /// Consumes the RwLock, returning the underlying data.
         /// This is safe because we take ownership of the lock, ensuring no other references exist.
         /// </summary>
-        /// <returns>The underlying value that was protected by the RwLock.</returns>
+        /// <returns>
+        /// A Result containing the underlying value on success, or an Error if the lock is disposed or has active guards.
+        /// </returns>
         /// <remarks>
         /// Similar to Rust's into_inner(), this method takes ownership and returns the inner value.
         /// After calling this method, the RwLock is disposed and cannot be used again.
+        /// This method will fail if any guards are currently held, as that would violate ownership semantics.
         /// </remarks>
         /// <example>
         /// <code>
         /// var rwlock = new RwLock&lt;int&gt;(42);
-        /// int value = rwlock.IntoInner(); // rwlock is now disposed
+        /// var result = rwlock.IntoInner();
+        /// if (result.TryGetValue(out var value))
+        /// {
+        ///     Console.WriteLine(value); // rwlock is now disposed
+        /// }
         /// </code>
         /// </example>
-        public T IntoInner()
+        public Result<T, Error> IntoInner()
         {
             if (_disposed)
             {
-                throw new ObjectDisposedException(nameof(RwLock<>), "Cannot extract value from disposed RwLock");
+                return Result<T, Error>.Err(
+                    Error.New("Cannot extract value from disposed RwLock", ErrorKind.InvalidOperation)
+                );
+            }
+
+            if (_lock.IsReadLockHeld || _lock.IsWriteLockHeld || _lock.CurrentReadCount > 0)
+            {
+                return Result<T, Error>.Err(
+                    Error.New("Cannot extract value while locks are held", ErrorKind.InvalidOperation)
+                        .WithMetadata("currentReadCount", _lock.CurrentReadCount)
+                        .WithMetadata("isReadLockHeld", _lock.IsReadLockHeld)
+                        .WithMetadata("isWriteLockHeld", _lock.IsWriteLockHeld)
+                );
             }
 
             var value = _value;
             Dispose();
-            return value;
+            return Result<T, Error>.Ok(value);
         }
 
         /// <summary>
         /// Gets whether this RwLock has been disposed.
         /// </summary>
         public bool IsDisposed => _disposed;
+
+        /// <summary>
+        /// Gets whether the read lock is held by the current thread.
+        /// Useful for diagnostics and debugging deadlock situations.
+        /// </summary>
+        public bool IsReadLockHeld => !_disposed && _lock.IsReadLockHeld;
+
+        /// <summary>
+        /// Gets whether the write lock is held by the current thread.
+        /// Useful for diagnostics and debugging deadlock situations.
+        /// </summary>
+        public bool IsWriteLockHeld => !_disposed && _lock.IsWriteLockHeld;
+
+        /// <summary>
+        /// Gets the total number of unique threads that have entered read mode.
+        /// Useful for monitoring concurrent access patterns.
+        /// </summary>
+        public int CurrentReadCount => !_disposed ? _lock.CurrentReadCount : 0;
 
         /// <summary>
         /// Releases all resources used by the RwLock.
@@ -488,14 +534,12 @@ namespace Esox.SharpAndRusty.Sync
     /// </remarks>
     public sealed class ReadGuard<T> : IDisposable
     {
-        private readonly RwLock<T> _rwlock;
         private readonly ReaderWriterLockSlim _lock;
         private bool _disposed;
         private readonly T _value;
 
         internal ReadGuard(RwLock<T> rwlock, ReaderWriterLockSlim lockSlim)
         {
-            _rwlock = rwlock;
             _value = rwlock.GetValue();
             _lock = lockSlim;
             _disposed = false;

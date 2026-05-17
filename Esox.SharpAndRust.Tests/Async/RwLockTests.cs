@@ -58,8 +58,8 @@ namespace Esox.SharpAndRust.Tests.Async
         [Fact]
         public void Read_MultipleReadLocksOnSameThread_AllowsRecursion()
         {
-            // Arrange
-            var rwlock = new RwLock<int>(42);
+            // Arrange - explicitly enable recursion for this test
+            var rwlock = new RwLock<int>(42, LockRecursionPolicy.SupportsRecursion);
 
             // Act - Acquire multiple read locks on same thread
             var result1 = rwlock.Read();
@@ -98,8 +98,8 @@ namespace Esox.SharpAndRust.Tests.Async
         [Fact]
         public void Read_MultipleConcurrentReaders_AllSucceed()
         {
-            // Arrange
-            var rwlock = new RwLock<int>(42);
+            // Arrange - explicitly enable recursion for this test
+            var rwlock = new RwLock<int>(42, LockRecursionPolicy.SupportsRecursion);
 
             // Act - Acquire locks on same thread (recursive read locks should work)
             var result1 = rwlock.Read();
@@ -693,8 +693,13 @@ namespace Esox.SharpAndRust.Tests.Async
             var rwlock = new RwLock<int>(42);
             rwlock.Dispose();
 
-            // Act & Assert
-            Assert.Throws<ObjectDisposedException>(() => rwlock.IntoInner());
+            // Act
+            var result = rwlock.IntoInner();
+
+            // Assert - should return error, not throw exception
+            Assert.True(result.IsFailure);
+            Assert.True(result.TryGetError(out var error));
+            Assert.Contains("disposed", error.Message, StringComparison.OrdinalIgnoreCase);
         }
 
         #endregion
