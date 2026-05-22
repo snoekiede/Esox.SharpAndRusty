@@ -576,6 +576,7 @@ namespace Esox.SharpAndRust.Tests.Async
         #region Concurrency Tests
 
         [Fact]
+        [Trait("Category", "Slow")]
         public async Task Mutex_MultipleTasks_SerialAccess()
         {
             // Arrange
@@ -615,6 +616,7 @@ namespace Esox.SharpAndRust.Tests.Async
         }
 
         [Fact]
+        [Trait("Category", "Slow")]
         public async Task Mutex_ConcurrentTryLock_OnlyOneSucceeds()
         {
             // Arrange
@@ -643,6 +645,7 @@ namespace Esox.SharpAndRust.Tests.Async
         }
 
         [Fact]
+        [Trait("Category", "Stress")]
         public async Task Mutex_StressTest_MaintainsConsistency()
         {
             // Arrange
@@ -810,20 +813,6 @@ namespace Esox.SharpAndRust.Tests.Async
                      "This is a SemaphoreSlim disposal behavior limitation. Same issue as LockAsyncTimeout_DisposedDuringWait_ReturnsError.")]
         public async Task LockAsync_DisposedDuringWait_ReturnsError()
         {
-            // NOTE: This test is skipped because it exposes the same issue as LockAsyncTimeout_DisposedDuringWait_ReturnsError:
-            // When Mutex.Dispose() is called while a task is waiting in LockAsync(),
-            // the waiting task hangs indefinitely instead of returning an error.
-            // 
-            // This happens because:
-            // 1. LockAsync uses SemaphoreSlim.WaitAsync
-            // 2. When the semaphore is disposed while a task is waiting, that task is not signaled
-            // 3. The task continues waiting indefinitely
-            //
-            // Potential fixes would require changes to the Mutex<T> implementation:
-            // - Use a CancellationTokenSource that gets cancelled on disposal
-            // - Check IsDisposed before and after waiting
-            // - Use a different synchronization primitive
-
             // Arrange
             var mutex = new Mutex<int>(42);
             var guard1 = await mutex.LockAsync();
@@ -833,7 +822,6 @@ namespace Esox.SharpAndRust.Tests.Async
             await Task.Delay(50); // Let it start waiting
             mutex.Dispose();
 
-            // This hangs indefinitely in practice:
             var result = await lockTask;
 
             // Assert
@@ -841,6 +829,7 @@ namespace Esox.SharpAndRust.Tests.Async
             if (result.TryGetError(out var error))
             {
                 Assert.Equal(ErrorKind.InvalidOperation, error.Kind);
+                Assert.Contains("disposed", error.Message, StringComparison.OrdinalIgnoreCase);
             }
 
             // Cleanup
@@ -848,6 +837,7 @@ namespace Esox.SharpAndRust.Tests.Async
         }
 
         [Fact]
+        [Trait("Category", "Slow")]
         public async Task LockAsync_MultipleTasksWithDisposal_HandlesGracefully()
         {
             // Arrange
@@ -890,7 +880,7 @@ namespace Esox.SharpAndRust.Tests.Async
             {
                 if (task.IsCompleted && !task.IsCanceled && !task.IsFaulted)
                 {
-                    var result = task.Result;
+                    var result = await task;
                     Assert.True(result.IsFailure);
                 }
             }
@@ -900,40 +890,24 @@ namespace Esox.SharpAndRust.Tests.Async
                      "This is a SemaphoreSlim disposal behavior limitation.")]
         public async Task LockAsyncTimeout_DisposedDuringWait_ReturnsError()
         {
-            // NOTE: This test is skipped because it exposes a genuine issue:
-            // When Mutex.Dispose() is called while a task is waiting in LockAsyncTimeout(),
-            // the waiting task hangs indefinitely instead of returning an error.
-            // 
-            // This happens because:
-            // 1. LockAsyncTimeout uses SemaphoreSlim.WaitAsync with a timeout
-            // 2. When the semaphore is disposed while a task is waiting, that task is not signaled
-            // 3. The task continues waiting for the full timeout duration
-            // 4. But the timeout mechanism itself may not work properly after disposal
-            //
-            // Potential fixes would require changes to the Mutex<T> implementation:
-            // - Use a CancellationTokenSource that gets cancelled on disposal
-            // - Check IsDisposed before and after waiting
-            // - Use a different synchronization primitive
-
             // Arrange
             var mutex = new Mutex<int>(42);
             var guard1 = await mutex.LockAsync();
-            var timeout = TimeSpan.FromMilliseconds(100);
+            var timeout = TimeSpan.FromSeconds(5);
 
-            // Act - start timeout lock, then dispose
+            // Act - start timeout lock, then dispose while waiting
             var lockTask = Task.Run(async () => await mutex.LockAsyncTimeout(timeout));
             await Task.Delay(30);
             mutex.Dispose();
 
-            // This hangs indefinitely in practice:
             var result = await lockTask;
 
             // Assert
             Assert.True(result.IsFailure);
             if (result.TryGetError(out var error))
             {
-                Assert.Contains(new[] { ErrorKind.InvalidOperation, ErrorKind.Timeout }, 
-                    k => k == error.Kind);
+                Assert.Equal(ErrorKind.InvalidOperation, error.Kind);
+                Assert.Contains("disposed", error.Message, StringComparison.OrdinalIgnoreCase);
             }
 
             if (guard1.TryGetValue(out var g1)) g1.Dispose();
@@ -982,7 +956,7 @@ namespace Esox.SharpAndRust.Tests.Async
             });
 
             await Task.WhenAll(lockTask, disposeTask);
-            var result = lockTask.Result;
+            var result = await lockTask;
 
             // Assert - should either succeed or return disposal error
             if (result.IsFailure && result.TryGetError(out var error))
@@ -1133,6 +1107,7 @@ namespace Esox.SharpAndRust.Tests.Async
         }
 
         [Fact]
+        [Trait("Category", "Slow")]
         public async Task LockAsyncTimeout_MultipleTasksRacing_OnlyOneAcquiresFirst()
         {
             // Arrange

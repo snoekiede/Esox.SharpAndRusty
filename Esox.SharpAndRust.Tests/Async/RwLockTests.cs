@@ -58,8 +58,8 @@ namespace Esox.SharpAndRust.Tests.Async
         [Fact]
         public void Read_MultipleReadLocksOnSameThread_AllowsRecursion()
         {
-            // Arrange
-            var rwlock = new RwLock<int>(42);
+            // Arrange - explicitly enable recursion for this test
+            var rwlock = new RwLock<int>(42, LockRecursionPolicy.SupportsRecursion);
 
             // Act - Acquire multiple read locks on same thread
             var result1 = rwlock.Read();
@@ -98,8 +98,8 @@ namespace Esox.SharpAndRust.Tests.Async
         [Fact]
         public void Read_MultipleConcurrentReaders_AllSucceed()
         {
-            // Arrange
-            var rwlock = new RwLock<int>(42);
+            // Arrange - explicitly enable recursion for this test
+            var rwlock = new RwLock<int>(42, LockRecursionPolicy.SupportsRecursion);
 
             // Act - Acquire locks on same thread (recursive read locks should work)
             var result1 = rwlock.Read();
@@ -174,7 +174,7 @@ namespace Esox.SharpAndRust.Tests.Async
         }
 
         [Fact]
-        public void Write_WithActiveReader_Blocks()
+        public async Task Write_WithActiveReader_Blocks()
         {
             // Arrange
             var rwlock = new RwLock<int>(42);
@@ -182,10 +182,10 @@ namespace Esox.SharpAndRust.Tests.Async
 
             // Act
             var writeTask = Task.Run(() => rwlock.TryWrite());
-            Thread.Sleep(50); // Give write attempt time to try
+            await Task.Delay(50); // Give write attempt time to try
 
             // Assert - write should fail because reader is active
-            var writeResult = writeTask.Result;
+            var writeResult = await writeTask;
             Assert.True(writeResult.IsFailure);
 
             // Cleanup
@@ -215,11 +215,11 @@ namespace Esox.SharpAndRust.Tests.Async
         }
 
         [Fact]
-        public void TryRead_WithActiveWriter_ReturnsError()
+        public async Task TryRead_WithActiveWriter_ReturnsError()
         {
             // Arrange
             var rwlock = new RwLock<int>(42);
-            
+
             // Act - Acquire write lock on this thread
             var writeResult = rwlock.Write();
             Assert.True(writeResult.IsSuccess); // Ensure we got the write lock
@@ -231,10 +231,10 @@ namespace Esox.SharpAndRust.Tests.Async
             }
 
             Result<ReadGuard<int>, Error> readResult;
-            
+
             // Use a TaskCompletionSource to ensure we wait for the separate thread
             var tcs = new TaskCompletionSource<Result<ReadGuard<int>, Error>>();
-            
+
             try
             {
                 // Try to read from a dedicated thread to avoid recursion policy
@@ -250,9 +250,9 @@ namespace Esox.SharpAndRust.Tests.Async
                         tcs.SetException(ex);
                     }
                 });
-                
+
                 thread.Start();
-                readResult = tcs.Task.Result;
+                readResult = await tcs.Task;
             }
             finally
             {
@@ -391,14 +391,14 @@ namespace Esox.SharpAndRust.Tests.Async
         }
 
         [Fact]
-        public void TryWrite_WithActiveReader_ReturnsError()
+        public async Task TryWrite_WithActiveReader_ReturnsError()
         {
             // Arrange
             var rwlock = new RwLock<int>(42);
             var readGuard = rwlock.Read();
 
             // Act - Try from different thread to avoid recursion
-            var result = Task.Run(() => rwlock.TryWrite()).Result;
+            var result = await Task.Run(() => rwlock.TryWrite());
 
             // Assert
             Assert.True(result.IsFailure);
@@ -449,7 +449,7 @@ namespace Esox.SharpAndRust.Tests.Async
         }
 
         [Fact]
-        public void TryWriteTimeout_WithActiveReaderAndTimeoutExpires_ReturnsError()
+        public async Task TryWriteTimeout_WithActiveReaderAndTimeoutExpires_ReturnsError()
         {
             // Arrange
             var rwlock = new RwLock<int>(42);
@@ -457,7 +457,7 @@ namespace Esox.SharpAndRust.Tests.Async
             var timeout = TimeSpan.FromMilliseconds(100);
 
             // Act - Try from different thread to avoid recursion
-            var result = Task.Run(() => rwlock.TryWriteTimeout(timeout)).Result;
+            var result = await Task.Run(() => rwlock.TryWriteTimeout(timeout));
 
             // Assert
             Assert.True(result.IsFailure);
@@ -693,8 +693,13 @@ namespace Esox.SharpAndRust.Tests.Async
             var rwlock = new RwLock<int>(42);
             rwlock.Dispose();
 
-            // Act & Assert
-            Assert.Throws<ObjectDisposedException>(() => rwlock.IntoInner());
+            // Act
+            var result = rwlock.IntoInner();
+
+            // Assert - should return error, not throw exception
+            Assert.True(result.IsFailure);
+            Assert.True(result.TryGetError(out var error));
+            Assert.Contains("disposed", error.Message, StringComparison.OrdinalIgnoreCase);
         }
 
         #endregion
@@ -702,6 +707,7 @@ namespace Esox.SharpAndRust.Tests.Async
         #region Concurrency Tests
 
         [Fact]
+        [Trait("Category", "Slow")]
         public async Task RwLock_MultipleConcurrentReaders_AllSucceed()
         {
             // Arrange
@@ -733,6 +739,7 @@ namespace Esox.SharpAndRust.Tests.Async
         }
 
         [Fact]
+        [Trait("Category", "Slow")]
         public async Task RwLock_ReaderWriterAlternation_MaintainsConsistency()
         {
             // Arrange
@@ -777,6 +784,7 @@ namespace Esox.SharpAndRust.Tests.Async
         }
 
         [Fact]
+        [Trait("Category", "Stress")]
         public async Task RwLock_StressTest_MaintainsDataIntegrity()
         {
             // Arrange
@@ -903,7 +911,7 @@ namespace Esox.SharpAndRust.Tests.Async
         }
 
         [Fact]
-        public void RwLock_WriterBlocksReaders_UntilReleased()
+        public async Task RwLock_WriterBlocksReaders_UntilReleased()
         {
             // Arrange
             var rwlock = new RwLock<int>(42);
@@ -911,15 +919,15 @@ namespace Esox.SharpAndRust.Tests.Async
             bool readerAcquired = false;
 
             // Act
-            var readTask = Task.Run(() =>
+            var readTask = Task.Run(async () =>
             {
-                Thread.Sleep(50); // Ensure writer has lock first
+                await Task.Delay(50); // Ensure writer has lock first
                 var result = rwlock.TryRead();
                 readerAcquired = result.IsSuccess;
             });
 
-            Thread.Sleep(100); // Let reader try
-            
+            await Task.Delay(100); // Let reader try
+
             // Assert - reader should fail while writer holds lock
             Assert.False(readerAcquired);
 
@@ -929,7 +937,7 @@ namespace Esox.SharpAndRust.Tests.Async
                 writeGuard.Dispose();
             }
 
-            readTask.Wait();
+            await readTask;
         }
 
         [Fact]

@@ -896,6 +896,20 @@ var message = result.Match(
 
 ## Testing
 
+### Fast Local vs Full CI Test Runs
+
+For fast local feedback, tests run as `net8.0` by default and skip tests tagged with `Category=Slow` or `Category=Stress`.
+
+Use these commands:
+
+```powershell
+# Fast local default (single TFM + excludes Slow/Stress)
+dotnet test
+
+# Full CI-equivalent matrix (net8.0 + net9.0 + net10.0, includes Slow/Stress)
+dotnet test -p:ContinuousIntegrationBuild=true
+```
+
 The library includes comprehensive test coverage with **360+ unit tests** covering:
 - **Result<T, E>** (260 tests)
   - Basic creation and inspection
