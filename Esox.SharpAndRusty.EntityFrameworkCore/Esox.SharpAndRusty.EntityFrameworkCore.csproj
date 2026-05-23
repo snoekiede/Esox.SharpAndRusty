@@ -2,10 +2,15 @@
 
   <PropertyGroup>
     <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+    <Version>1.0.1</Version>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <LangVersion>14.0</LangVersion>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Description>Some EF net core extensions so we can use the Result&lt;&gt; and Option&lt;&gt; types</Description>
+    <Copyright>(c) 2026 Codenomad</Copyright>
+    <PackageProjectUrl>https://github.com/snoekiede/Esox.SharpAndRusty</PackageProjectUrl>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,6 +24,10 @@
 
   <ItemGroup>
     <None Include="LICENSE.txt">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="README.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
