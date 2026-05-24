@@ -13,8 +13,9 @@
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
 		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-		<Version>1.6.0</Version>
+		<Version>1.6.1.0</Version>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<AssemblyVersion>1.6.1.0</AssemblyVersion>
 	</PropertyGroup>
 	<PropertyGroup>
 		<AnalysisLevel>latest</AnalysisLevel>
