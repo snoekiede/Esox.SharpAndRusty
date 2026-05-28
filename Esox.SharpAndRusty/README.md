@@ -20,7 +20,8 @@ This library is provided "as is" without warranty of any kind, either express or
 - ✅ **Pattern Matching**: Use the `Match` method for elegant success/failure handling
 - ✅ **Full Equality Support**: Implements `IEquatable<T>` with proper `==`, `!=`, and `GetHashCode()`
 - ✅ **Implicit Conversions**: Concise result and option creation with `Result<int, string> r = 42;` and `Option<int> o = 42;`
-- ✅ **Safe Value Extraction**: `TryGetValue`, `UnwrapOr`, `UnwrapOrElse`, `Expect`, and `Contains` methods
+- ✅ **Safe Value Extraction**: `ValueOption`, `ErrorOption`, `TryGetValue`, `UnwrapOr`, `UnwrapOrElse`, `Expect`, and `Contains` methods
+- ✅ **Out-Free Parsing**: `"123".TryParse<int>()` and delegate-based `TryParse` helpers that return `Result<T, Error>`
 - ✅ **Exception Handling Helpers**: Built-in `Try` and `TryAsync` for wrapping operations
 - ✅ **Inspection Methods**: Execute side effects with `Inspect`, `InspectErr`, and `Tap`
 - ✅ **LINQ Query Syntax**: Full support for C# LINQ query comprehension with `from`, `select`, and more
@@ -90,6 +91,11 @@ var message = userOption switch
     Option<int>.None => "User not found",
     _ => "Unknown"
 };
+
+// Out-free parsing and extraction
+Result<int, Error> parsedAge = "42".TryParse<int>();
+Option<int> ageOption = parsedAge.ValueOption();
+Option<Error> parseErrorOption = parsedAge.ErrorOption();
 ```
 
 ## Usage Examples
@@ -281,6 +287,10 @@ if (result.TryGetError(out var error))
     Console.WriteLine($"Error occurred: {error}");
 }
 
+// Option 4b: Out-free access with Option
+var maybeAge = result.ValueOption();
+var maybeError = result.ErrorOption();
+
 // Option 5: Expect a value or throw
 var age = result.Expect("Age not available");
 // Throws InvalidOperationException with message "Age not available" if error
@@ -290,6 +300,13 @@ if (result.Contains(42))
 {
     Console.WriteLine("User is 42 years old");
 }
+```
+
+### Out-Free Parsing with Result
+
+```csharp
+Result<int, Error> count = "10".TryParse<int>();
+Result<int, Error> count2 = "10".TryParse<int>(int.TryParse, nameof(int.TryParse));
 ```
 
 ### Pattern Matching
@@ -658,6 +675,8 @@ var validValues = options
 
 #### Instance Methods
 - `R Match<R>(Func<T, R> success, Func<E, R> failure)` - Pattern match on the result
+- `Option<T> ValueOption()` - Get success value as `Option<T>` (out-free)
+- `Option<E> ErrorOption()` - Get error value as `Option<E>` (out-free)
 - `bool TryGetValue(out T value)` - Try to get the success value
 - `bool TryGetError(out E error)` - Try to get the error value
 - `T UnwrapOr(T defaultValue)` - Get value or return default
@@ -672,6 +691,15 @@ var validValues = options
 - `bool operator ==(Result<T, E> left, Result<T, E> right)` - Equality operator
 - `bool operator !=(Result<T, E> left, Result<T, E> right)` - Inequality operator
 - `string ToString()` - Returns `"Ok(value)"` or `"Err(error)"`
+
+### Extension Methods (ParseExtensions)
+
+```csharp
+Result<T, Error> TryParse<T>(this string? input, IFormatProvider? provider = null)
+    where T : IParsable<T>
+
+Result<T, Error> TryParse<T>(this string? input, ParseExtensions.TryParseDelegate<T> tryParse, string? parserName = null)
+```
 
 ### Extension Methods (ResultExtensions)
 
