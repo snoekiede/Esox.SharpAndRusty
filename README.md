@@ -19,7 +19,8 @@ This library is provided "as is" without warranty of any kind, either express or
 - ✅ **Pattern Matching**: Use the `Match` method for elegant success/failure handling
 - ✅ **Full Equality Support**: Implements `IEquatable<T>` with proper `==`, `!=`, and `GetHashCode()`
 - ✅ **Implicit Conversions**: Concise result and option creation with `Result<int, string> r = 42;` and `Option<int> o = 42;`
-- ✅ **Safe Value Extraction**: `TryGetValue`, `UnwrapOr`, `UnwrapOrElse`, `Expect`, and `Contains` methods
+- ✅ **Safe Value Extraction**: `ValueOption`, `ErrorOption`, `TryGetValue`, `UnwrapOr`, `UnwrapOrElse`, `Expect`, and `Contains` methods
+- ✅ **Out-Free Parsing**: `"123".TryParse<int>()` and delegate-based `TryParse` helpers that return `Result<T, Error>`
 - ✅ **Exception Handling Helpers**: Built-in `Try` and `TryAsync` for wrapping operations
 - ✅ **Inspection Methods**: Execute side effects with `Inspect`, `InspectErr`, and `Tap`
 - ✅ **LINQ Query Syntax**: Full support for C# LINQ query comprehension with `from`, `select`, and more
@@ -90,6 +91,13 @@ var message = userOption switch
     Option<int>.None => "User not found",
     _ => "Unknown"
 };
+
+// Out-free parsing with rich errors
+Result<int, Error> parsedAge = "42".TryParse<int>();
+
+// Value and error extraction without out parameters
+Option<int> ageOption = parsedAge.ValueOption();
+Option<Error> parseErrorOption = parsedAge.ErrorOption();
 ```
 
 ## 🔍 Roslyn Analyzer - Compile-Time Safety (Optional)
@@ -328,6 +336,15 @@ if (result.TryGetError(out var error))
     Console.WriteLine($"Error occurred: {error}");
 }
 
+// Option 4b: Out-free access with Option
+var maybeAge = result.ValueOption();
+var maybeError = result.ErrorOption();
+
+maybeAge.Match(
+    onSome: age => Console.WriteLine($"User is {age} years old"),
+    onNone: () => Console.WriteLine("No age available")
+);
+
 // Option 5: Expect a value or throw
 var age = result.Expect("Age not available");
 // Throws InvalidOperationException with message "Age not available" if error
@@ -337,6 +354,31 @@ if (result.Contains(42))
 {
     Console.WriteLine("User is 42 years old");
 }
+
+// Keep TryGetValue/TryGetError for .NET interop and tight loops,
+// prefer ValueOption/ErrorOption for fluent pipelines.
+```
+
+### Out-Free Parsing with Result
+
+Use parsing helpers that return `Result<T, Error>` instead of `bool + out`:
+
+```csharp
+using Esox.SharpAndRusty.Extensions;
+using Esox.SharpAndRusty.Types;
+
+Result<int, Error> id = "123".TryParse<int>();
+
+Result<Guid, Error> correlationId =
+    "6f9619ff-8b86-d011-b42d-00cf4fc964ff".TryParse<Guid>();
+
+// Delegate overload for TryParse-style APIs
+Result<int, Error> count = "10".TryParse<int>(int.TryParse, nameof(int.TryParse));
+
+var message = id.Match(
+    success: value => $"Parsed: {value}",
+    failure: error => $"Parse failed: {error.Message}"
+);
 ```
 
 ### Pattern Matching
@@ -711,6 +753,8 @@ var validValues = options
 
 #### Instance Methods
 - `R Match<R>(Func<T, R> success, Func<E, R> failure)` - Pattern match on the result
+- `Option<T> ValueOption()` - Get success value as `Option<T>` (out-free)
+- `Option<E> ErrorOption()` - Get error value as `Option<E>` (out-free)
 - `bool TryGetValue(out T value)` - Try to get the success value
 - `bool TryGetError(out E error)` - Try to get the error value
 - `T UnwrapOr(T defaultValue)` - Get value or return default
@@ -725,6 +769,26 @@ var validValues = options
 - `bool operator ==(Result<T, E> left, Result<T, E> right)` - Equality operator
 - `bool operator !=(Result<T, E> left, Result<T, E> right)` - Inequality operator
 - `string ToString()` - Returns `"Ok(value)"` or `"Err(error)"`
+
+### Extension Methods (ResultExtensions)
+
+### Extension Methods (ParseExtensions)
+
+Out-free wrappers for TryParse-style APIs:
+
+```csharp
+Result<T, Error> TryParse<T>(this string? input, IFormatProvider? provider = null)
+    where T : IParsable<T>
+
+Result<T, Error> TryParse<T>(this string? input, ParseExtensions.TryParseDelegate<T> tryParse, string? parserName = null)
+```
+
+**Example:**
+
+```csharp
+Result<int, Error> amount = "42".TryParse<int>();
+Result<int, Error> amount2 = "42".TryParse<int>(int.TryParse, nameof(int.TryParse));
+```
 
 ### Extension Methods (ResultExtensions)
 

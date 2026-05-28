@@ -97,6 +97,28 @@
         }
 
         /// <summary>
+        /// Converts the success value to an <see cref="Option{T}"/>.
+        /// Returns <c>Some</c> when successful; otherwise <c>None</c>.
+        /// </summary>
+        public Option<T> ValueOption()
+        {
+            return IsSuccess
+                ? new Option<T>.Some(_value)
+                : new Option<T>.None();
+        }
+
+        /// <summary>
+        /// Converts the error value to an <see cref="Option{T}"/>.
+        /// Returns <c>Some</c> when failed; otherwise <c>None</c>.
+        /// </summary>
+        public Option<E> ErrorOption()
+        {
+            return IsFailure
+                ? new Option<E>.Some(_error)
+                : new Option<E>.None();
+        }
+
+        /// <summary>
         /// Returns the success value if the result is successful; otherwise, returns the specified default value.
         /// </summary>
         /// <param name="defaultValue">The default value to return if the result is a failure.</param>
