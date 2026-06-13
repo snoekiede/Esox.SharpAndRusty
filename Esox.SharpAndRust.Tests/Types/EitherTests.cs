@@ -5,7 +5,6 @@ namespace Esox.SharpAndRust.Tests.Types;
 
 public class EitherTests
 {
-    #region Construction Tests
 
     [Fact]
     public void Left_Construction_CreatesLeftEither()
@@ -33,9 +32,7 @@ public class EitherTests
         Assert.Equal("Hello", value);
     }
 
-    #endregion
 
-    #region TryGet Tests
 
     [Fact]
     public void TryGetLeft_WithLeft_ReturnsTrue()
@@ -93,9 +90,7 @@ public class EitherTests
         Assert.Equal(default, value);
     }
 
-    #endregion
 
-    #region Match Tests
 
     [Fact]
     public void Match_WithLeft_ExecutesLeftFunction()
@@ -185,9 +180,7 @@ public class EitherTests
         Assert.True(rightCalled);
     }
 
-    #endregion
 
-    #region Map Tests
 
     [Fact]
     public void MapLeft_WithLeft_TransformsLeftValue()
@@ -283,9 +276,7 @@ public class EitherTests
         Assert.Equal("5", value);
     }
 
-    #endregion
 
-    #region Swap Tests
 
     [Fact]
     public void Swap_WithLeft_BecomesRight()
@@ -332,9 +323,7 @@ public class EitherTests
         Assert.Equal(42, value);
     }
 
-    #endregion
 
-    #region Option Conversion Tests
 
     [Fact]
     public void LeftOption_WithLeft_ReturnsSome()
@@ -396,9 +385,7 @@ public class EitherTests
         Assert.True(option.IsNone());
     }
 
-    #endregion
 
-    #region ToString Tests
 
     [Fact]
     public void ToString_WithLeft_ShowsLeftValue()
@@ -426,9 +413,7 @@ public class EitherTests
         Assert.Equal("Right(Hello)", str);
     }
 
-    #endregion
 
-    #region Extension Method Tests
 
     [Fact]
     public void BindRight_WithRight_ChainsTransformation()
@@ -574,9 +559,7 @@ public class EitherTests
         Assert.Equal("Default", value);
     }
 
-    #endregion
 
-    #region Collection Extension Tests
 
     [Fact]
     public void Partition_SplitsEithersCorrectly()
@@ -643,9 +626,7 @@ public class EitherTests
         Assert.Equal(new[] { "A", "B" }, rights);
     }
 
-    #endregion
 
-    #region Integration Tests
 
     [Fact]
     public void Integration_ConfigLoading()
@@ -723,14 +704,11 @@ public class EitherTests
         Assert.Equal(7.5, value);
     }
 
-    #endregion
 
-    #region Helper Types
 
     private record FileConfig(string Path);
     private record EnvConfig(string VarName);
     private record CachedData(int Id, DateTime CachedAt);
     private record DatabaseData(int Id, bool Fresh);
 
-    #endregion
 }

@@ -5,7 +5,6 @@ namespace Esox.SharpAndRust.Tests.Extensions;
 
 public class OptionExtensionsAdvancedTests
 {
-    #region Filter Tests
 
     [Fact]
     public void Filter_WithSome_PredicateTrue_ReturnsSome()
@@ -85,9 +84,7 @@ public class OptionExtensionsAdvancedTests
         Assert.True(result.IsNone());
     }
 
-    #endregion
 
-    #region Zip Tests
 
     [Fact]
     public void Zip_BothSome_ReturnsSomeTuple()
@@ -148,9 +145,7 @@ public class OptionExtensionsAdvancedTests
         Assert.True(result.IsNone());
     }
 
-    #endregion
 
-    #region ZipWith Tests
 
     [Fact]
     public void ZipWith_BothSome_ReturnsZippedValue()
@@ -210,9 +205,7 @@ public class OptionExtensionsAdvancedTests
         Assert.True(result.IsNone());
     }
 
-    #endregion
 
-    #region Flatten Tests
 
     [Fact]
     public void Flatten_SomeContainingSome_ReturnsInnerSome()
@@ -273,9 +266,7 @@ public class OptionExtensionsAdvancedTests
         }
     }
 
-    #endregion
 
-    #region And Tests
 
     [Fact]
     public void And_FirstSome_ReturnsSecond()
@@ -335,9 +326,7 @@ public class OptionExtensionsAdvancedTests
         Assert.True(result.IsSome());
     }
 
-    #endregion
 
-    #region Or Tests
 
     [Fact]
     public void Or_FirstSome_ReturnsFirst()
@@ -399,9 +388,7 @@ public class OptionExtensionsAdvancedTests
         Assert.Equal(42, ((Option<int>.Some)result).Value);
     }
 
-    #endregion
 
-    #region Xor Tests
 
     [Fact]
     public void Xor_OnlyFirstSome_ReturnsFirst()
@@ -461,9 +448,7 @@ public class OptionExtensionsAdvancedTests
         Assert.True(result.IsNone());
     }
 
-    #endregion
 
-    #region Inspect Tests
 
     [Fact]
     public void Inspect_WithSome_CallsAction()
@@ -518,9 +503,7 @@ public class OptionExtensionsAdvancedTests
         Assert.Contains("After filter: 20", log);
     }
 
-    #endregion
 
-    #region InspectNone Tests
 
     [Fact]
     public void InspectNone_WithNone_CallsAction()
@@ -571,9 +554,7 @@ public class OptionExtensionsAdvancedTests
         Assert.True(result.IsSome());
     }
 
-    #endregion
 
-    #region OkOr Tests
 
     [Fact]
     public void OkOr_WithSome_ReturnsOk()
@@ -621,9 +602,7 @@ public class OptionExtensionsAdvancedTests
         Assert.Equal("Value not found", actualError.Message);
     }
 
-    #endregion
 
-    #region OkOrElse Tests
 
     [Fact]
     public void OkOrElse_WithSome_ReturnsOk()
@@ -685,9 +664,7 @@ public class OptionExtensionsAdvancedTests
         Assert.Equal(ErrorKind.NotFound, error.Kind);
     }
 
-    #endregion
 
-    #region ToNullable Tests
 
     [Fact]
     public void ToNullable_WithSome_ReturnsValue()
@@ -733,9 +710,7 @@ public class OptionExtensionsAdvancedTests
         Assert.False(dateResult.HasValue);
     }
 
-    #endregion
 
-    #region Integration Tests
 
     [Fact]
     public void AdvancedExtensions_ComplexChaining_WorksCorrectly()
@@ -839,5 +814,4 @@ public class OptionExtensionsAdvancedTests
         Assert.DoesNotContain("No value", debugLog);
     }
 
-    #endregion
 }

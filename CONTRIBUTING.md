@@ -377,19 +377,15 @@ Organize tests into logical categories:
 ```csharp
 public class ErrorTests
 {
-    #region Basic Creation Tests
     
     [Fact]
     public void New_CreatesErrorWithMessage() { }
     
-    #endregion
     
-    #region WithMetadata Tests
     
     [Fact]
     public void WithMetadata_AttachesMetadataToError() { }
     
-    #endregion
 }
 ```
 

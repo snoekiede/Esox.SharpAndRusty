@@ -5,7 +5,6 @@ namespace Esox.SharpAndRust.Tests.Extensions;
 
 public class PatternMatchingHelpersTests
 {
-    #region Option.IfSome Tests
 
     [Fact]
     public void IfSome_WithSome_ExecutesAction()
@@ -54,9 +53,7 @@ public class PatternMatchingHelpersTests
             option.IfSome(null!));
     }
 
-    #endregion
 
-    #region Option.IfNone Tests
 
     [Fact]
     public void IfNone_WithNone_ExecutesAction()
@@ -99,9 +96,7 @@ public class PatternMatchingHelpersTests
             option.IfNone(null!));
     }
 
-    #endregion
 
-    #region Option.GetOrDefault Tests
 
     [Fact]
     public void GetOrDefault_WithSome_ReturnsValue()
@@ -145,9 +140,7 @@ public class PatternMatchingHelpersTests
         Assert.Equal("Default", noneResult);
     }
 
-    #endregion
 
-    #region Option.GetOrElse Tests
 
     [Fact]
     public void GetOrElse_WithSome_ReturnsValue()
@@ -198,9 +191,7 @@ public class PatternMatchingHelpersTests
             option.GetOrElse(null!));
     }
 
-    #endregion
 
-    #region Option.GetOrThrow Tests
 
     [Fact]
     public void GetOrThrow_WithSome_ReturnsValue()
@@ -239,9 +230,7 @@ public class PatternMatchingHelpersTests
             option.GetOrThrow(null!));
     }
 
-    #endregion
 
-    #region Result.OnSuccess Tests
 
     [Fact]
     public void OnSuccess_WithSuccess_ExecutesAction()
@@ -290,9 +279,7 @@ public class PatternMatchingHelpersTests
             result.OnSuccess(null!));
     }
 
-    #endregion
 
-    #region Result.OnFailure Tests
 
     [Fact]
     public void OnFailure_WithFailure_ExecutesAction()
@@ -341,9 +328,7 @@ public class PatternMatchingHelpersTests
             result.OnFailure(null!));
     }
 
-    #endregion
 
-    #region Result.Do Tests
 
     [Fact]
     public void Do_WithSuccess_ExecutesSuccessAction()
@@ -405,9 +390,7 @@ public class PatternMatchingHelpersTests
             result.Do(_ => { }, null!));
     }
 
-    #endregion
 
-    #region Result.GetValueOrDefault Tests
 
     [Fact]
     public void GetValueOrDefault_WithSuccess_ReturnsValue()
@@ -435,9 +418,7 @@ public class PatternMatchingHelpersTests
         Assert.Equal(99, value);
     }
 
-    #endregion
 
-    #region Result.GetValueOrElse Tests
 
     [Fact]
     public void GetValueOrElse_WithSuccess_ReturnsValue()
@@ -488,9 +469,7 @@ public class PatternMatchingHelpersTests
             result.GetValueOrElse(null!));
     }
 
-    #endregion
 
-    #region Result.GetValueOrThrow Tests
 
     [Fact]
     public void GetValueOrThrow_WithSuccess_ReturnsValue()
@@ -531,9 +510,7 @@ public class PatternMatchingHelpersTests
             result.GetValueOrThrow(null!));
     }
 
-    #endregion
 
-    #region Result.ToOption Tests
 
     [Fact]
     public void ToOption_WithSuccess_ReturnsSome()
@@ -565,9 +542,7 @@ public class PatternMatchingHelpersTests
         Assert.True(option.IsNone());
     }
 
-    #endregion
 
-    #region Integration Tests
 
     [Fact]
     public void Integration_OptionChaining()
@@ -662,5 +637,4 @@ public class PatternMatchingHelpersTests
         Assert.Equal(99, value);
     }
 
-    #endregion
 }

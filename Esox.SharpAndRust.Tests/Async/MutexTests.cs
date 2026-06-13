@@ -6,7 +6,6 @@ namespace Esox.SharpAndRust.Tests.Async
 {
     public class MutexTests
     {
-        #region Basic Operations
 
         [Fact]
         public void Mutex_Creation_InitializesWithValue()
@@ -82,9 +81,7 @@ namespace Esox.SharpAndRust.Tests.Async
             }
         }
 
-        #endregion
 
-        #region TryLock Tests
 
         [Fact]
         public void TryLock_WhenUnlocked_AcquiresLock()
@@ -144,9 +141,7 @@ namespace Esox.SharpAndRust.Tests.Async
             }
         }
 
-        #endregion
 
-        #region TryLockTimeout Tests
 
         [Fact]
         public void TryLockTimeout_WhenUnlocked_AcquiresImmediately()
@@ -218,9 +213,7 @@ namespace Esox.SharpAndRust.Tests.Async
             }
         }
 
-        #endregion
 
-        #region Async Lock Tests
 
         [Fact]
         public async Task LockAsync_AcquiresLockSuccessfully()
@@ -304,9 +297,7 @@ namespace Esox.SharpAndRust.Tests.Async
             }
         }
 
-        #endregion
 
-        #region LockAsyncTimeout Tests
 
         [Fact]
         public async Task LockAsyncTimeout_WhenUnlocked_AcquiresImmediately()
@@ -369,9 +360,7 @@ namespace Esox.SharpAndRust.Tests.Async
             }
         }
 
-        #endregion
 
-        #region MutexGuard Tests
 
         [Fact]
         public void MutexGuard_Value_CanBeRead()
@@ -528,9 +517,7 @@ namespace Esox.SharpAndRust.Tests.Async
             }
         }
 
-        #endregion
 
-        #region IntoInner Tests
 
         [Fact]
         public void IntoInner_ExtractsValueAndDisposesMutex()
@@ -571,9 +558,7 @@ namespace Esox.SharpAndRust.Tests.Async
             Assert.True(result.IsFailure);
         }
 
-        #endregion
 
-        #region Concurrency Tests
 
         [Fact]
         [Trait("Category", "Slow")]
@@ -686,9 +671,7 @@ namespace Esox.SharpAndRust.Tests.Async
             }
         }
 
-        #endregion
 
-        #region Dispose Tests
 
         [Fact]
         public void Dispose_DisposesSuccessfully()
@@ -731,9 +714,7 @@ namespace Esox.SharpAndRust.Tests.Async
             Assert.True(mutex.IsDisposed);
         }
 
-        #endregion
 
-        #region Complex Scenarios
 
         [Fact]
         public void Mutex_WithComplexType_WorksCorrectly()
@@ -805,9 +786,7 @@ namespace Esox.SharpAndRust.Tests.Async
             }
         }
 
-        #endregion
 
-        #region Async Edge Cases
 
         [Fact(Skip = "Known issue: LockAsync hangs indefinitely when mutex is disposed while waiting. " +
                      "This is a SemaphoreSlim disposal behavior limitation. Same issue as LockAsyncTimeout_DisposedDuringWait_ReturnsError.")]
@@ -1134,6 +1113,5 @@ namespace Esox.SharpAndRust.Tests.Async
             Assert.Equal(10, successCount);
         }
 
-        #endregion
     }
 }

@@ -535,7 +535,6 @@ public class ResultTests
         Assert.Contains("Test error", error);
     }
 
-    #region Implicit Conversion Tests
 
     [Fact]
     public void ImplicitConversion_FromValue_CreatesSuccessfulResult()
@@ -634,7 +633,6 @@ public class ResultTests
         }
     }
 
-    #endregion
 
     private class Person
     {

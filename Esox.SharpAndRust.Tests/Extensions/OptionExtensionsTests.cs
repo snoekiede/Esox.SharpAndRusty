@@ -5,7 +5,6 @@ namespace Esox.SharpAndRust.Tests.Extensions;
 
 public class OptionExtensionsTests
 {
-    #region IsSome Tests
 
     [Fact]
     public void IsSome_WithSome_ReturnsTrue()
@@ -45,9 +44,7 @@ public class OptionExtensionsTests
         Assert.False(noneOption.IsSome());
     }
 
-    #endregion
 
-    #region IsNone Tests
 
     [Fact]
     public void IsNone_WithNone_ReturnsTrue()
@@ -99,9 +96,7 @@ public class OptionExtensionsTests
         Assert.True(noneOption.IsSome() != noneOption.IsNone());
     }
 
-    #endregion
 
-    #region GetValueOrDefault Tests
 
     [Fact]
     public void GetValueOrDefault_WithSome_ReturnsValue()
@@ -176,9 +171,7 @@ public class OptionExtensionsTests
         Assert.Same(defaultUser, noneResult);
     }
 
-    #endregion
 
-    #region GetValueOrElse Tests
 
     [Fact]
     public void GetValueOrElse_WithSome_ReturnsValue()
@@ -271,9 +264,7 @@ public class OptionExtensionsTests
         Assert.Equal(20, result);
     }
 
-    #endregion
 
-    #region Map Tests
 
     [Fact]
     public void Map_WithSome_TransformsValue()
@@ -382,9 +373,7 @@ public class OptionExtensionsTests
         }
     }
 
-    #endregion
 
-    #region Bind Tests
 
     [Fact]
     public void Bind_WithSome_CallsBinder()
@@ -520,9 +509,7 @@ public class OptionExtensionsTests
         Assert.Equal(42, ((Option<int>.Some)bindResult).Value);
     }
 
-    #endregion
 
-    #region Match (Action) Tests
 
     [Fact]
     public void Match_Action_WithSome_CallsOnSome()
@@ -608,9 +595,7 @@ public class OptionExtensionsTests
         Assert.Contains("Using default", log);
     }
 
-    #endregion
 
-    #region Match (Func) Tests
 
     [Fact]
     public void Match_Func_WithSome_ReturnsOnSomeResult()
@@ -730,9 +715,7 @@ public class OptionExtensionsTests
         Assert.Equal("Value: 42", result);
     }
 
-    #endregion
 
-    #region Integration Tests
 
     [Fact]
     public void OptionExtensions_RealWorldScenario_UserLookup()
@@ -838,9 +821,7 @@ public class OptionExtensionsTests
         Assert.Equal("Large: 84", message);
     }
 
-    #endregion
 
-    #region Filter Tests
 
     [Fact]
     public void Filter_WithSomeAndPredicateTrue_ReturnsSome()
@@ -1060,9 +1041,7 @@ public class OptionExtensionsTests
         Assert.True(result.IsNone());
     }
 
-    #endregion
 
-    #region Additional Edge Case Tests
 
     [Fact]
     public void Map_WithNoneDoesNotExecuteMapper()
@@ -1263,5 +1242,4 @@ public class OptionExtensionsTests
         );
     }
 
-    #endregion
 }

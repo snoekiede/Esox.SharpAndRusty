@@ -4,7 +4,6 @@ namespace Esox.SharpAndRust.Tests.Types;
 
 public class OptionTests
 {
-    #region Creation Tests
 
     [Fact]
     public void Some_CreatesOptionWithValue()
@@ -52,9 +51,7 @@ public class OptionTests
         Assert.Equal(user, option.Value);
     }
 
-    #endregion
 
-    #region Value Access Tests
 
     [Fact]
     public void Some_Value_ReturnsStoredValue()
@@ -85,9 +82,7 @@ public class OptionTests
         Assert.Equal(value1, value2);
     }
 
-    #endregion
 
-    #region Pattern Matching Tests
 
     [Fact]
     public void PatternMatch_Some_MatchesSomeCase()
@@ -173,9 +168,7 @@ public class OptionTests
         Assert.Equal(user.ToString(), result);
     }
 
-    #endregion
 
-    #region Equality Tests
 
     [Fact]
     public void Some_Equality_SameValue_ReturnsTrue()
@@ -259,9 +252,7 @@ public class OptionTests
         Assert.NotEqual(option1, option3);
     }
 
-    #endregion
 
-    #region GetHashCode Tests
 
     [Fact]
     public void Some_GetHashCode_SameValue_ReturnsSameHash()
@@ -340,9 +331,7 @@ public class OptionTests
         Assert.Equal(3, dict[new Option<string>.None()]);
     }
 
-    #endregion
 
-    #region ToString Tests
 
     [Fact]
     public void Some_ToString_ShowsValue()
@@ -385,9 +374,7 @@ public class OptionTests
         Assert.Contains("test", result);
     }
 
-    #endregion
 
-    #region Type Tests
 
     [Fact]
     public void Option_IsAbstractRecord()
@@ -428,9 +415,7 @@ public class OptionTests
         Assert.IsType<Option<int?>.None>(option3);
     }
 
-    #endregion
 
-    #region Collection Tests
 
     [Fact]
     public void Option_CanBeStoredInList()
@@ -495,9 +480,7 @@ public class OptionTests
         Assert.Equal(new[] { 1, 2, 3 }, values);
     }
 
-    #endregion
 
-    #region Record Functionality Tests
 
     [Fact]
     public void Some_WithClause_CreatesNewInstance()
@@ -571,9 +554,7 @@ public class OptionTests
         Assert.Contains("None", result);
     }
 
-    #endregion
 
-    #region Edge Cases
 
     [Fact]
     public void Some_WithDefaultValue_StoresDefault()
@@ -636,9 +617,7 @@ public class OptionTests
         Assert.Equal(none1, none3);
     }
 
-    #endregion
 
-    #region Null Handling Tests
 
     [Fact]
     public void Some_DoesNotEqualNull()
@@ -664,9 +643,7 @@ public class OptionTests
         Assert.True(option != null);
     }
 
-    #endregion
 
-    #region Implicit Conversion Tests
 
     [Fact]
     public void ImplicitConversion_FromValue_CreatesSome()
@@ -961,5 +938,4 @@ public class OptionTests
         Assert.Equal("value", some.Value);
     }
 
-    #endregion
 }

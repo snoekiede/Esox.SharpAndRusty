@@ -1,4 +1,4 @@
-﻿using Esox.SharpAndRusty.Types;
+using Esox.SharpAndRusty.Types;
 using Esox.SharpAndRusty.Extensions;
 
 namespace Esox.SharpAndRust.Tests.Types;
@@ -149,7 +149,6 @@ public class ExtendedResultTests
         Assert.Contains("nope", error);
     }
 
-    #region Pattern Matching Tests
 
     [Fact]
     public void Match_Success_ExecutesSuccessFunction()
@@ -247,9 +246,7 @@ public class ExtendedResultTests
         Assert.Equal(0, failureOutput);
     }
 
-    #endregion
 
-    #region Equality Tests
 
     [Fact]
     public void Equals_TwoSuccessWithSameValue_AreEqual()
@@ -364,9 +361,7 @@ public class ExtendedResultTests
         Assert.Equal(result1, result2);
     }
 
-    #endregion
 
-    #region GetHashCode Tests
 
     [Fact]
     public void GetHashCode_TwoSuccessWithSameValue_HaveSameHashCode()
@@ -444,9 +439,7 @@ public class ExtendedResultTests
         Assert.Equal("one", dict[ExtendedResult<int, string>.Ok(1)]);
     }
 
-    #endregion
 
-    #region ToString Tests
 
     [Fact]
     public void ToString_Success_ReturnsFormattedString()
@@ -504,9 +497,7 @@ public class ExtendedResultTests
         Assert.Contains("Failure", str);
     }
 
-    #endregion
 
-    #region OrElse Tests
 
     [Fact]
     public void OrElse_Success_ReturnsOriginalResult()
@@ -564,9 +555,7 @@ public class ExtendedResultTests
         Assert.Equal(42, value);
     }
 
-    #endregion
 
-    #region Try Tests
 
     [Fact]
     public void Try_Success_ReturnsOk()
@@ -621,9 +610,7 @@ public class ExtendedResultTests
         Assert.Equal("Invalid argument", error.Message);
     }
 
-    #endregion
 
-    #region Record Pattern Matching Tests
 
     [Fact]
     public void RecordPattern_Success_CanDeconstruct()
@@ -696,7 +683,6 @@ public class ExtendedResultTests
         Assert.Contains("Failure", summary);
     }
 
-    #endregion
 
     // Helper types for testing
     private record Person(string Name, int Age);
@@ -922,7 +908,6 @@ public class ExtendedResultTests
         Assert.Equal(new[] {"e1","e2"}, failures);
     }
 
-    #region Implicit Conversion Tests
 
     [Fact]
     public void ImplicitConversion_FromValue_CreatesSuccessfulResult()
@@ -1073,6 +1058,5 @@ public class ExtendedResultTests
         Assert.Equal("error2", results[3].Match(_ => "", e => e));
     }
 
-    #endregion
 }
 

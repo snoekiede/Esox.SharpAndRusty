@@ -5,7 +5,6 @@ namespace Esox.SharpAndRust.Tests.Extensions;
 
 public class ResultExtensionsAdvancedTests
 {
-    #region MapError Tests
 
     [Fact]
     public void MapError_TransformsErrorType()
@@ -47,9 +46,7 @@ public class ResultExtensionsAdvancedTests
             result.MapError((Func<string, int>)null!));
     }
 
-    #endregion
 
-    #region Expect Tests
 
     [Fact]
     public void Expect_ReturnsValueOnSuccess()
@@ -89,9 +86,7 @@ public class ResultExtensionsAdvancedTests
             result.Expect(null!));
     }
 
-    #endregion
 
-    #region Tap Tests
 
     [Fact]
     public void Tap_ExecutesBothActionsOnSuccess()
@@ -148,9 +143,7 @@ public class ResultExtensionsAdvancedTests
             result.Tap(_ => { }, null!));
     }
 
-    #endregion
 
-    #region Contains Tests
 
     [Fact]
     public void Contains_ReturnsTrueForMatchingValue()
@@ -217,9 +210,7 @@ public class ResultExtensionsAdvancedTests
         Assert.True(contains);
     }
 
-    #endregion
 
-    #region Combine Tests
 
     [Fact]
     public void Combine_ReturnsAllSuccessValues()
@@ -284,9 +275,7 @@ public class ResultExtensionsAdvancedTests
             ResultExtensions.Combine<int, string>(null!));
     }
 
-    #endregion
 
-    #region Partition Tests
 
     [Fact]
     public void Partition_SeparatesSuccessesAndFailures()
@@ -355,9 +344,7 @@ public class ResultExtensionsAdvancedTests
             ResultExtensions.Partition<int, string>(null!));
     }
 
-    #endregion
 
-    #region Argument Validation Tests
 
     [Fact]
     public void Map_ThrowsOnNullMapper()
@@ -425,9 +412,7 @@ public class ResultExtensionsAdvancedTests
             result.SelectMany(Result<int, string>.Ok, (Func<int, int, int>)null!));
     }
 
-    #endregion
 
-    #region Integration Tests
 
     [Fact]
     public void MapError_CanBeChainedWithOtherOperations()
@@ -482,5 +467,4 @@ public class ResultExtensionsAdvancedTests
         Assert.Equal(94, value);
     }
 
-    #endregion
 }

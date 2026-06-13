@@ -5,7 +5,6 @@ namespace Esox.SharpAndRust.Tests.Extensions;
 
 public class ResultAsyncExtensionsTests
 {
-    #region MapAsync Tests
 
     [Fact]
     public async Task MapAsync_TaskResult_TransformsSuccessValue()
@@ -71,9 +70,7 @@ public class ResultAsyncExtensionsTests
         Assert.True(mapped.IsFailure);
     }
 
-    #endregion
 
-    #region BindAsync Tests
 
     [Fact]
     public async Task BindAsync_TaskResult_ChainsSuccessfully()
@@ -161,9 +158,7 @@ public class ResultAsyncExtensionsTests
         Assert.Equal(20, bound.UnwrapOr(0));
     }
 
-    #endregion
 
-    #region MapErrorAsync Tests
 
     [Fact]
     public async Task MapErrorAsync_TransformsErrorType()
@@ -194,9 +189,7 @@ public class ResultAsyncExtensionsTests
         Assert.Equal(42, mapped.UnwrapOr(0));
     }
 
-    #endregion
 
-    #region TapAsync Tests
 
     [Fact]
     public async Task TapAsync_ExecutesSuccessAction()
@@ -254,9 +247,7 @@ public class ResultAsyncExtensionsTests
         Assert.True(result.IsFailure);
     }
 
-    #endregion
 
-    #region OrElseAsync Tests
 
     [Fact]
     public async Task OrElseAsync_ReturnsOriginalOnSuccess()
@@ -294,9 +285,7 @@ public class ResultAsyncExtensionsTests
         Assert.Equal(99, result.UnwrapOr(0));
     }
 
-    #endregion
 
-    #region CombineAsync Tests
 
     [Fact]
     public async Task CombineAsync_CombinesAllSuccesses()
@@ -364,9 +353,7 @@ public class ResultAsyncExtensionsTests
         Assert.Equal([1, 2, 3], values);
     }
 
-    #endregion
 
-    #region Complex Async Chains
 
     [Fact]
     public async Task ComplexAsyncChain_WorksCorrectly()
@@ -435,9 +422,7 @@ public class ResultAsyncExtensionsTests
         Assert.Equal("Failed", error);
     }
 
-    #endregion
 
-    #region Argument Validation
 
     [Fact]
     public async Task MapAsync_ThrowsOnNullTask()
@@ -472,9 +457,7 @@ public class ResultAsyncExtensionsTests
             await resultTask!.BindAsync(Result<int, string>.Ok));
     }
 
-    #endregion
 
-    #region CancellationToken Tests
 
     [Fact]
     public async Task MapAsync_TaskResult_RespectsCancellation()
@@ -735,9 +718,7 @@ public class ResultAsyncExtensionsTests
         Assert.Equal(84, mapped.UnwrapOr(0));
     }
 
-    #endregion
 
-    #region Async Edge Cases
 
     [Fact]
     public async Task CombineAsync_WithEmptyCollection_ReturnsEmptySuccess()
@@ -1095,6 +1076,5 @@ public class ResultAsyncExtensionsTests
         Assert.Equal(42000, mapped.UnwrapOr(0));
     }
 
-    #endregion
 }
 

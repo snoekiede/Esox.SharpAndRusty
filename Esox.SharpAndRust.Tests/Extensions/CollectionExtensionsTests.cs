@@ -5,7 +5,6 @@ namespace Esox.SharpAndRust.Tests.Extensions;
 
 public class CollectionExtensionsTests
 {
-    #region Option Sequence Tests
 
     [Fact]
     public void Sequence_Option_AllSome_ReturnsSomeWithAllValues()
@@ -86,9 +85,7 @@ public class CollectionExtensionsTests
         }
     }
 
-    #endregion
 
-    #region Option Traverse Tests
 
     [Fact]
     public void Traverse_Option_AllSucceed_ReturnsSomeWithAllValues()
@@ -159,9 +156,7 @@ public class CollectionExtensionsTests
         Assert.True(result.IsNone());
     }
 
-    #endregion
 
-    #region Option CollectSome Tests
 
     [Fact]
     public void CollectSome_MixedOptions_ReturnsOnlySomeValues()
@@ -238,9 +233,7 @@ public class CollectionExtensionsTests
         Assert.Equal(new[] { "c", "a", "b" }, result);
     }
 
-    #endregion
 
-    #region Option PartitionOptions Tests
 
     [Fact]
     public void PartitionOptions_MixedOptions_PartitionsCorrectly()
@@ -301,9 +294,7 @@ public class CollectionExtensionsTests
         Assert.Equal(3, noneCount);
     }
 
-    #endregion
 
-    #region Result Sequence Tests
 
     [Fact]
     public void Sequence_Result_AllOk_ReturnsOkWithAllValues()
@@ -380,9 +371,7 @@ public class CollectionExtensionsTests
         Assert.Equal(new[] { "first", "second", "third" }, values);
     }
 
-    #endregion
 
-    #region Result Traverse Tests
 
     [Fact]
     public void Traverse_Result_AllSucceed_ReturnsOkWithAllValues()
@@ -454,9 +443,7 @@ public class CollectionExtensionsTests
         Assert.Equal("Invalid age: 150", error);
     }
 
-    #endregion
 
-    #region Result CollectOk Tests
 
     [Fact]
     public void CollectOk_MixedResults_ReturnsOnlyOkValues()
@@ -514,9 +501,7 @@ public class CollectionExtensionsTests
         Assert.Equal(new[] { 1, 2, 3 }, values);
     }
 
-    #endregion
 
-    #region Result CollectErr Tests
 
     [Fact]
     public void CollectErr_MixedResults_ReturnsOnlyErrors()
@@ -574,9 +559,7 @@ public class CollectionExtensionsTests
         Assert.Equal(new[] { "error1", "error2", "error3" }, errors);
     }
 
-    #endregion
 
-    #region Result PartitionResults Tests
 
     [Fact]
     public void PartitionResults_MixedResults_PartitionsCorrectly()
@@ -637,9 +620,7 @@ public class CollectionExtensionsTests
         Assert.Equal(new[] { "error1", "error2", "error3" }, failures);
     }
 
-    #endregion
 
-    #region Integration Tests
 
     [Fact]
     public void Integration_Option_ValidateAllUsers_WorksCorrectly()
@@ -759,5 +740,4 @@ public class CollectionExtensionsTests
         Assert.Equal(new[] { "Age: 25", "Age: 30", "Age: 35" }, descriptions);
     }
 
-    #endregion
 }

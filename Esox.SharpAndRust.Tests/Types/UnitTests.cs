@@ -5,7 +5,6 @@ namespace Esox.SharpAndRust.Tests.Types;
 
 public class UnitTests
 {
-    #region Singleton and Creation Tests
 
     [Fact]
     public void Value_ReturnsSingletonInstance()
@@ -28,9 +27,7 @@ public class UnitTests
         Assert.Equal(Unit.Value, unit);
     }
 
-    #endregion
 
-    #region Equality Tests
 
     [Fact]
     public void Equals_Unit_AlwaysReturnsTrue()
@@ -77,9 +74,7 @@ public class UnitTests
         Assert.False(unit.Equals(obj));
     }
 
-    #endregion
 
-    #region Operator Tests
 
     [Fact]
     public void EqualityOperator_AlwaysReturnsTrue()
@@ -153,9 +148,7 @@ public class UnitTests
         Assert.True(unit2 >= unit1);
     }
 
-    #endregion
 
-    #region Hash Code Tests
 
     [Fact]
     public void GetHashCode_ReturnsSameValueForAllUnits()
@@ -187,9 +180,7 @@ public class UnitTests
         }
     }
 
-    #endregion
 
-    #region CompareTo Tests
 
     [Fact]
     public void CompareTo_AlwaysReturnsZero()
@@ -207,9 +198,7 @@ public class UnitTests
         Assert.Equal(0, result2);
     }
 
-    #endregion
 
-    #region ToString Tests
 
     [Fact]
     public void ToString_ReturnsEmptyParentheses()
@@ -224,9 +213,7 @@ public class UnitTests
         Assert.Equal("()", result);
     }
 
-    #endregion
 
-    #region Result Integration Tests
 
     [Fact]
     public void Unit_WorksAsResultSuccessType()
@@ -324,9 +311,7 @@ public class UnitTests
         Assert.Equal("Error", error);
     }
 
-    #endregion
 
-    #region Use Case Tests
 
     [Fact]
     public void Unit_ValidateInputUseCase()
@@ -389,9 +374,7 @@ public class UnitTests
         Assert.Equal("Step 2 failed", error);
     }
 
-    #endregion
 
-    #region Collection Tests
 
     [Fact]
     public void Unit_WorksInCollections()
@@ -433,5 +416,4 @@ public class UnitTests
         Assert.Contains(Unit.Value, set);
     }
 
-    #endregion
 }

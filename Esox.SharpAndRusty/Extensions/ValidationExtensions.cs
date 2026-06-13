@@ -8,31 +8,34 @@ namespace Esox.SharpAndRusty.Extensions;
 /// </summary>
 public static class ValidationExtensions
 {
-    /// <summary>
-    /// Applies a validation containing a function to a validation containing a value, accumulating errors.
-    /// This is the core applicative operation that enables error accumulation.
-    /// </summary>
-    public static Validation<TResult, E> Apply<T, E, TResult>(
-        this Validation<Func<T, TResult>, E> validationFunc,
-        Validation<T, E> validation)
+    extension<T, TResult, E>(Validation<Func<T, TResult>, E> validationFunc)
     {
-        return (validationFunc, validation) switch
+        /// <summary>
+        /// Applies a validation containing a function to a validation containing a value, accumulating errors.
+        /// This is the core applicative operation that enables error accumulation.
+        /// </summary>
+        public Validation<TResult, E> Apply(
+            Validation<T, E> validation)
         {
-            (Validation<Func<T, TResult>, E>.Success successFunc, Validation<T, E>.Success success) =>
-                Validation<TResult, E>.Valid(successFunc.Value(success.Value)),
+            return (validationFunc, validation) switch
+            {
+                (Validation<Func<T, TResult>, E>.Success successFunc, Validation<T, E>.Success success) =>
+                    Validation<TResult, E>.Valid(successFunc.Value(success.Value)),
 
-            (Validation<Func<T, TResult>, E>.Failure failureFunc, Validation<T, E>.Failure failure) =>
-                Validation<TResult, E>.Invalid(failureFunc.Errors.AddRange(failure.Errors)),
+                (Validation<Func<T, TResult>, E>.Failure failureFunc, Validation<T, E>.Failure failure) =>
+                    Validation<TResult, E>.Invalid(failureFunc.Errors.AddRange(failure.Errors)),
 
-            (Validation<Func<T, TResult>, E>.Failure failureFunc, _) =>
-                Validation<TResult, E>.Invalid(failureFunc.Errors),
+                (Validation<Func<T, TResult>, E>.Failure failureFunc, _) =>
+                    Validation<TResult, E>.Invalid(failureFunc.Errors),
 
-            (_, Validation<T, E>.Failure failure) =>
-                Validation<TResult, E>.Invalid(failure.Errors),
+                (_, Validation<T, E>.Failure failure) =>
+                    Validation<TResult, E>.Invalid(failure.Errors),
 
-            _ => throw new InvalidOperationException("Validation is in an invalid state.")
-        };
+                _ => throw new InvalidOperationException("Validation is in an invalid state.")
+            };
+        }    
     }
+    
 
     /// <summary>
     /// Combines two validations, accumulating all errors if either fails.
@@ -174,93 +177,105 @@ public static class ValidationExtensions
         return Validation<TResult, E>.Invalid(errors);
     }
 
-    /// <summary>
-    /// Chains validations sequentially. Unlike Apply, this stops at the first error (like Result.Bind).
-    /// </summary>
-    public static Validation<TResult, E> Bind<T, E, TResult>(
-        this Validation<T, E> validation,
-        Func<T, Validation<TResult, E>> binder)
+    extension<T, E>(Validation<T, E> validation)
     {
-        if (binder is null) throw new ArgumentNullException(nameof(binder));
-
-        return validation switch
+        /// <summary>
+        /// Chains validations sequentially. Unlike Apply, this stops at the first error (like Result.Bind).
+        /// </summary>
+        public Validation<TResult, E> Bind<TResult>(
+            Func<T, Validation<TResult, E>> binder)
         {
-            Validation<T, E>.Success success => binder(success.Value),
-            Validation<T, E>.Failure failure => new Validation<TResult, E>.Failure(failure.Errors),
-            _ => throw new InvalidOperationException("Validation is in an invalid state.")
-        };
-    }
+            if (binder is null) throw new ArgumentNullException(nameof(binder));
 
-    /// <summary>
-    /// Converts a Result to a Validation.
-    /// </summary>
-    public static Validation<T, E> ToValidation<T, E>(this Result<T, E> result)
-    {
-        return result.TryGetValue(out var value)
-            ? Validation<T, E>.Valid(value)
-            : result.TryGetError(out var error)
-                ? Validation<T, E>.Invalid(error)
-                : throw new InvalidOperationException("Result is in an invalid state.");
-    }
-
-    /// <summary>
-    /// Sequences a collection of validations, accumulating all errors.
-    /// </summary>
-    public static Validation<IEnumerable<T>, E> Sequence<T, E>(
-        this IEnumerable<Validation<T, E>> validations)
-    {
-        var values = new List<T>();
-        var errors = ImmutableList<E>.Empty;
-
-        foreach (var validation in validations)
-        {
-            switch (validation)
+            return validation switch
             {
-                case Validation<T, E>.Success success:
-                    values.Add(success.Value);
-                    break;
-                case Validation<T, E>.Failure failure:
-                    errors = errors.AddRange(failure.Errors);
-                    break;
+                Validation<T, E>.Success success => binder(success.Value),
+                Validation<T, E>.Failure failure => new Validation<TResult, E>.Failure(failure.Errors),
+                _ => throw new InvalidOperationException("Validation is in an invalid state.")
+            };
+        }
+        
+        /// <summary>
+        /// Executes an action if the validation succeeded.
+        /// </summary>
+        public Validation<T, E> OnSuccess(
+            Action<T> action)
+        {
+            if (action is null) throw new ArgumentNullException(nameof(action));
+
+            if (validation is Validation<T, E>.Success success)
+            {
+                action(success.Value);
             }
+
+            return validation;
         }
-
-        return errors.IsEmpty
-            ? Validation<IEnumerable<T>, E>.Valid(values)
-            : Validation<IEnumerable<T>, E>.Invalid(errors);
-    }
-
-    /// <summary>
-    /// Executes an action if the validation succeeded.
-    /// </summary>
-    public static Validation<T, E> OnSuccess<T, E>(
-        this Validation<T, E> validation,
-        Action<T> action)
-    {
-        if (action is null) throw new ArgumentNullException(nameof(action));
-
-        if (validation is Validation<T, E>.Success success)
+        
+        /// <summary>
+        /// Executes an action if the validation failed, receiving all errors.
+        /// </summary>
+        public Validation<T, E> OnFailure(
+            Action<ImmutableList<E>> action)
         {
-            action(success.Value);
-        }
+            if (action is null) throw new ArgumentNullException(nameof(action));
 
-        return validation;
+            if (validation is Validation<T, E>.Failure failure)
+            {
+                action(failure.Errors);
+            }
+
+            return validation;
+        }
     }
 
-    /// <summary>
-    /// Executes an action if the validation failed, receiving all errors.
-    /// </summary>
-    public static Validation<T, E> OnFailure<T, E>(
-        this Validation<T, E> validation,
-        Action<ImmutableList<E>> action)
+
+    extension<T, E>(Result<T, E> result)
     {
-        if (action is null) throw new ArgumentNullException(nameof(action));
-
-        if (validation is Validation<T, E>.Failure failure)
+        /// <summary>
+        /// Converts a Result to a Validation.
+        /// </summary>
+        public Validation<T, E> ToValidation()
         {
-            action(failure.Errors);
+            return result.TryGetValue(out var value)
+                ? Validation<T, E>.Valid(value)
+                : result.TryGetError(out var error)
+                    ? Validation<T, E>.Invalid(error)
+                    : throw new InvalidOperationException("Result is in an invalid state.");
         }
-
-        return validation;
+        
     }
+
+    extension<T, E>(IEnumerable<Validation<T, E>> validations)
+    {
+        /// <summary>
+        /// Sequences a collection of validations, accumulating all errors.
+        /// </summary>
+        public Validation<IEnumerable<T>, E> Sequence()
+        {
+            var values = new List<T>();
+            var errors = ImmutableList<E>.Empty;
+
+            foreach (var validation in validations)
+            {
+                switch (validation)
+                {
+                    case Validation<T, E>.Success success:
+                        values.Add(success.Value);
+                        break;
+                    case Validation<T, E>.Failure failure:
+                        errors = errors.AddRange(failure.Errors);
+                        break;
+                }
+            }
+
+            return errors.IsEmpty
+                ? Validation<IEnumerable<T>, E>.Valid(values)
+                : Validation<IEnumerable<T>, E>.Invalid(errors);
+        }        
+    }
+
+
+
+
+
 }

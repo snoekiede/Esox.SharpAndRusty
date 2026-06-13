@@ -5,7 +5,6 @@ namespace Esox.SharpAndRust.Tests.Extensions;
 
 public class LinqExtensionsTests
 {
-    #region Option LINQ Tests
 
     [Fact]
     public void Option_Select_WithSome_TransformsValue()
@@ -185,9 +184,7 @@ public class LinqExtensionsTests
         }
     }
 
-    #endregion
 
-    #region Option LINQ Exception Tests
 
     [Fact]
     public void Option_Select_WithNullSelector_ThrowsArgumentNullException()
@@ -235,9 +232,7 @@ public class LinqExtensionsTests
             option.Where(null!));
     }
 
-    #endregion
 
-    #region Integration Tests
 
     [Fact]
     public void Integration_Option_UserLookupWithLinq_WorksCorrectly()
@@ -387,9 +382,7 @@ public class LinqExtensionsTests
             () => Assert.Fail("Expected Some but got None"));
     }
 
-    #endregion
 
-    #region Comparison with Method Syntax
 
     [Fact]
     public void Comparison_QuerySyntax_EquivalentToMethodSyntax()
@@ -449,5 +442,4 @@ public class LinqExtensionsTests
         }
     }
 
-    #endregion
 }
