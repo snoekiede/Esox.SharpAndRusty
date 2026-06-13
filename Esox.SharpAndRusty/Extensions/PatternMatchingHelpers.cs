@@ -7,7 +7,6 @@ namespace Esox.SharpAndRusty.Extensions;
 /// </summary>
 public static class PatternMatchingHelpers
 {
-    #region Option Helpers
 
     /// <summary>
     /// Executes an action if the option contains a value.
@@ -88,9 +87,7 @@ public static class PatternMatchingHelpers
         return option is Option<T>.Some some ? some.Value : throw exceptionFactory();
     }
 
-    #endregion
 
-    #region Result Helpers
 
     /// <summary>
     /// Executes an action if the result is successful.
@@ -235,5 +232,4 @@ public static class PatternMatchingHelpers
             : new Option<T>.None();
     }
 
-    #endregion
 }

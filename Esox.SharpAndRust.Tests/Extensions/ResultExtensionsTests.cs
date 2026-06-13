@@ -274,7 +274,6 @@ public class ResultExtensionsTests
         Assert.True(final.IsSuccess);
     }
 
-    #region SelectMany Tests (LINQ Integration)
 
     [Fact]
     public void SelectMany_SingleParameter_ChainsSuccessfulOperations()
@@ -566,5 +565,4 @@ public class ResultExtensionsTests
         Assert.Equal("John is 30 years old", output);
     }
 
-    #endregion
 }

@@ -7,7 +7,6 @@ namespace Esox.SharpAndRusty.Extensions;
 /// </summary>
 public static class AsyncCollectionExtensions
 {
-    #region Option Async Collection Extensions
 
     /// <summary>
     /// Asynchronously transforms a collection of option tasks into an option of a collection.
@@ -216,9 +215,7 @@ public static class AsyncCollectionExtensions
         return results;
     }
 
-    #endregion
 
-    #region Result Async Collection Extensions
 
     /// <summary>
     /// Asynchronously transforms a collection of result tasks into a result of a collection.
@@ -531,5 +528,4 @@ public static class AsyncCollectionExtensions
         return (successes, failures);
     }
 
-    #endregion
 }

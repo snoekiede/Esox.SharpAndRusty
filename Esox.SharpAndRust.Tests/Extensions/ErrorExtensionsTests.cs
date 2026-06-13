@@ -359,7 +359,6 @@ namespace Esox.SharpAndRust.Tests.Extensions
             Assert.Contains("File not found", fullMessage);
         }
 
-        #region Async Edge Cases
 
         [Fact]
         public async Task WithMetadataAsync_TypeSafe_OnSuccess_ReturnsUnchanged()
@@ -611,7 +610,6 @@ namespace Esox.SharpAndRust.Tests.Extensions
             Assert.NotEqual(default(DateTime), timestamp);
         }
 
-        #endregion
     }
 }
 

@@ -6,7 +6,6 @@ namespace Esox.SharpAndRust.Tests.Extensions;
 
 public class TryExtensionsTests
 {
-    #region Try<T> Tests
 
     [Fact]
     public void Try_WithSuccessfulFunction_ReturnsOk()
@@ -75,9 +74,7 @@ public class TryExtensionsTests
         Assert.IsType<JsonException>(error);
     }
 
-    #endregion
 
-    #region Try<T, E> with Error Mapper Tests
 
     [Fact]
     public void Try_WithErrorMapper_Success_ReturnsOk()
@@ -141,9 +138,7 @@ public class TryExtensionsTests
         Assert.Equal(ErrorKind.InvalidInput, error.Kind);
     }
 
-    #endregion
 
-    #region TryAsync<T> Tests
 
     [Fact]
     public async Task TryAsync_WithSuccessfulFunction_ReturnsOk()
@@ -230,9 +225,7 @@ public class TryExtensionsTests
         }
     }
 
-    #endregion
 
-    #region TryAsync<T, E> with Error Mapper Tests
 
     [Fact]
     public async Task TryAsync_WithErrorMapper_Success_ReturnsOk()
@@ -288,9 +281,7 @@ public class TryExtensionsTests
                 (Func<Exception, string>)null!));
     }
 
-    #endregion
 
-    #region TryOption<T> Tests
 
     [Fact]
     public void TryOption_WithSuccessfulFunction_ReturnsSome()
@@ -367,9 +358,7 @@ public class TryExtensionsTests
         Assert.True(result.IsNone());
     }
 
-    #endregion
 
-    #region TryOptionAsync<T> Tests
 
     [Fact]
     public async Task TryOptionAsync_WithSuccessfulFunction_ReturnsSome()
@@ -443,9 +432,7 @@ public class TryExtensionsTests
         Assert.True(result.IsNone());
     }
 
-    #endregion
 
-    #region Integration Tests
 
     [Fact]
     public void Integration_JsonParsingPipeline()
@@ -523,11 +510,8 @@ public class TryExtensionsTests
         }
     }
 
-    #endregion
 
-    #region Helper Types
 
     private record TestUser(string Name, int Age);
 
-    #endregion
 }

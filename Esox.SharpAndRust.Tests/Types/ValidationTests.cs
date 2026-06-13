@@ -6,7 +6,6 @@ namespace Esox.SharpAndRust.Tests.Types;
 
 public class ValidationTests
 {
-    #region Construction Tests
 
     [Fact]
     public void Valid_CreatesSuccessfulValidation()
@@ -48,9 +47,7 @@ public class ValidationTests
         Assert.Equal(new[] { "error1", "error2", "error3" }, errors);
     }
 
-    #endregion
 
-    #region TryGet Tests
 
     [Fact]
     public void TryGetValue_WithSuccess_ReturnsTrue()
@@ -108,9 +105,7 @@ public class ValidationTests
         Assert.Empty(errors);
     }
 
-    #endregion
 
-    #region Match Tests
 
     [Fact]
     public void Match_WithSuccess_ExecutesSuccessFunction()
@@ -142,9 +137,7 @@ public class ValidationTests
         Assert.Equal("Errors: error1, error2", result);
     }
 
-    #endregion
 
-    #region Map Tests
 
     [Fact]
     public void Map_WithSuccess_TransformsValue()
@@ -206,9 +199,7 @@ public class ValidationTests
         Assert.Equal(42, value);
     }
 
-    #endregion
 
-    #region Result Conversion Tests
 
     [Fact]
     public void ToResult_WithErrorCombiner_Success()
@@ -270,9 +261,7 @@ public class ValidationTests
         Assert.Equal("error1", error);
     }
 
-    #endregion
 
-    #region Apply Tests (Applicative Functor)
 
     [Fact]
     public void Apply_TwoValidations_BothSuccess_CombinesValues()
@@ -435,9 +424,7 @@ public class ValidationTests
         Assert.Contains("Country error", errors);
     }
 
-    #endregion
 
-    #region Bind Tests
 
     [Fact]
     public void Bind_WithSuccess_ChainsValidation()
@@ -490,9 +477,7 @@ public class ValidationTests
         Assert.Equal("Validation failed", errors[0]);
     }
 
-    #endregion
 
-    #region Sequence Tests
 
     [Fact]
     public void Sequence_AllSuccess_ReturnsAllValues()
@@ -537,9 +522,7 @@ public class ValidationTests
         Assert.Contains("error2", errors);
     }
 
-    #endregion
 
-    #region Action Tests
 
     [Fact]
     public void OnSuccess_WithSuccess_ExecutesAction()
@@ -583,9 +566,7 @@ public class ValidationTests
         Assert.True(result.IsFailure);
     }
 
-    #endregion
 
-    #region Integration Tests - Form Validation
 
     [Fact]
     public void Integration_FormValidation_AllFieldsValid()
@@ -675,9 +656,7 @@ public class ValidationTests
             : Validation<string, string>.Invalid("Password must be at least 8 characters");
     }
 
-    #endregion
 
-    #region Integration Tests - Config Validation
 
     [Fact]
     public void Integration_ConfigValidation_AllValid()
@@ -743,9 +722,7 @@ public class ValidationTests
             : Validation<int, string>.Invalid("Timeout must be between 1 and 300 seconds");
     }
 
-    #endregion
 
-    #region Comparison with Result
 
     [Fact]
     public void Comparison_Result_StopsAtFirstError()
@@ -793,13 +770,10 @@ public class ValidationTests
             : Result<string, string>.Err("Password must be at least 8 characters");
     }
 
-    #endregion
 
-    #region Helper Types
 
     private record TestUser(string Name, string Email, int Age);
     private record RegistrationForm(string Name, string Email, int Age, string Password);
     private record AppConfig(string DatabaseUrl, string CacheUrl, bool EnableLogging, int TimeoutSeconds);
 
-    #endregion
 }

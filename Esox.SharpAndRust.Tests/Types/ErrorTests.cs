@@ -5,7 +5,6 @@ namespace Esox.SharpAndRust.Tests.Types
 {
     public class ErrorTests
     {
-        #region Basic Creation Tests
 
         [Fact]
         public void New_CreatesErrorWithMessage()
@@ -33,9 +32,7 @@ namespace Esox.SharpAndRust.Tests.Types
             Assert.Throws<ArgumentNullException>(() => Error.New(null!));
         }
 
-        #endregion
 
-        #region FromException Tests
 
         [Fact]
         public void FromException_ConvertsExceptionToError()
@@ -131,9 +128,7 @@ namespace Esox.SharpAndRust.Tests.Types
             Assert.Equal(ErrorKind.ResourceExhausted, error.Kind);
         }
 
-        #endregion
 
-        #region WithContext Tests
 
         [Fact]
         public void WithContext_AddsContextToError()
@@ -168,9 +163,7 @@ namespace Esox.SharpAndRust.Tests.Types
             Assert.Throws<ArgumentNullException>(() => error.WithContext(null!));
         }
 
-        #endregion
 
-        #region WithMetadata Tests
 
         [Fact]
         public void WithMetadata_AttachesMetadataToError()
@@ -252,9 +245,7 @@ namespace Esox.SharpAndRust.Tests.Types
             Assert.Equal(ErrorKind.NotFound, value);
         }
 
-        #endregion
 
-        #region Type-Safe Metadata Tests
 
         [Fact]
         public void WithMetadata_TypeSafeOverload_WorksWithValueTypes()
@@ -321,9 +312,7 @@ namespace Esox.SharpAndRust.Tests.Types
             Assert.Equal(guid, requestId);
         }
 
-        #endregion
 
-        #region WithKind Tests
 
         [Fact]
         public void WithKind_ChangesErrorKind()
@@ -347,9 +336,7 @@ namespace Esox.SharpAndRust.Tests.Types
             Assert.Equal("value", value);
         }
 
-        #endregion
 
-        #region CaptureStackTrace Tests
 
         [Fact]
         public void CaptureStackTrace_AttachesStackTrace()
@@ -378,9 +365,7 @@ namespace Esox.SharpAndRust.Tests.Types
             Assert.Contains("ErrorTests", error.StackTrace);
         }
 
-        #endregion
 
-        #region TryGetMetadata Tests
 
         [Fact]
         public void TryGetMetadata_WithExistingKey_ReturnsTrue()
@@ -407,9 +392,7 @@ namespace Esox.SharpAndRust.Tests.Types
             Assert.Throws<ArgumentNullException>(() => error.TryGetMetadata(null!, out var value));
         }
 
-        #endregion
 
-        #region GetFullMessage Tests
 
         [Fact]
         public void GetFullMessage_WithoutSource_ReturnsSimpleMessage()
@@ -482,9 +465,7 @@ namespace Esox.SharpAndRust.Tests.Types
             Assert.Contains("Level 9", fullMessage);
         }
 
-        #endregion
 
-        #region ToString Tests
 
         [Fact]
         public void ToString_WithoutSource_ReturnsSimpleFormat()
@@ -508,9 +489,7 @@ namespace Esox.SharpAndRust.Tests.Types
             Assert.Contains("Base error", str);
         }
 
-        #endregion
 
-        #region Equality Tests
 
         [Fact]
         public void Equals_WithSameMessageAndKind_ReturnsTrue()
@@ -561,9 +540,7 @@ namespace Esox.SharpAndRust.Tests.Types
             Assert.True(error == error);
         }
 
-        #endregion
 
-        #region GetHashCode Tests
 
         [Fact]
         public void GetHashCode_IsConsistentForEqualErrors()
@@ -583,9 +560,7 @@ namespace Esox.SharpAndRust.Tests.Types
             Assert.NotEqual(error1.GetHashCode(), error2.GetHashCode());
         }
 
-        #endregion
 
-        #region Implicit Conversion Tests
 
         [Fact]
         public void ImplicitConversion_FromString_CreatesError()
@@ -596,9 +571,7 @@ namespace Esox.SharpAndRust.Tests.Types
             Assert.Equal(ErrorKind.Other, error.Kind);
         }
 
-        #endregion
 
-        #region Integration Tests
 
         [Fact]
         public void ComplexErrorScenario_WorksCorrectly()
@@ -640,6 +613,5 @@ namespace Esox.SharpAndRust.Tests.Types
             }
         }
 
-        #endregion
     }
 }

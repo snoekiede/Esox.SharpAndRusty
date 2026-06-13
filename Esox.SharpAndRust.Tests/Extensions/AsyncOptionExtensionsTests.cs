@@ -5,7 +5,6 @@ namespace Esox.SharpAndRust.Tests.Extensions;
 
 public class AsyncOptionExtensionsTests
 {
-    #region MapAsync Tests
 
     [Fact]
     public async Task MapAsync_WithSome_TransformsValue()
@@ -65,9 +64,7 @@ public class AsyncOptionExtensionsTests
             }, cts.Token));
     }
 
-    #endregion
 
-    #region BindAsync Tests
 
     [Fact]
     public async Task BindAsync_WithSome_ReturnsBoundResult()
@@ -131,9 +128,7 @@ public class AsyncOptionExtensionsTests
         Assert.False(binderCalled);
     }
 
-    #endregion
 
-    #region FilterAsync Tests
 
     [Fact]
     public async Task FilterAsync_WithSomeAndPredicateTrue_ReturnsSome()
@@ -193,9 +188,7 @@ public class AsyncOptionExtensionsTests
         Assert.False(predicateCalled);
     }
 
-    #endregion
 
-    #region InspectAsync Tests
 
     [Fact]
     public async Task InspectAsync_WithSome_CallsInspector()
@@ -239,9 +232,7 @@ public class AsyncOptionExtensionsTests
         Assert.True(result.IsNone());
     }
 
-    #endregion
 
-    #region InspectNoneAsync Tests
 
     [Fact]
     public async Task InspectNoneAsync_WithNone_CallsInspector()
@@ -281,9 +272,7 @@ public class AsyncOptionExtensionsTests
         Assert.True(result.IsSome());
     }
 
-    #endregion
 
-    #region MatchAsync (Action) Tests
 
     [Fact]
     public async Task MatchAsync_Action_WithSome_CallsOnSome()
@@ -337,9 +326,7 @@ public class AsyncOptionExtensionsTests
         Assert.True(noneCalled);
     }
 
-    #endregion
 
-    #region MatchAsync (Func) Tests
 
     [Fact]
     public async Task MatchAsync_Func_WithSome_ReturnsOnSomeResult()
@@ -387,9 +374,7 @@ public class AsyncOptionExtensionsTests
         Assert.Equal("No value", result);
     }
 
-    #endregion
 
-    #region OkOrElseAsync Tests
 
     [Fact]
     public async Task OkOrElseAsync_WithSome_ReturnsOk()
@@ -432,9 +417,7 @@ public class AsyncOptionExtensionsTests
         Assert.Equal("Error message", error);
     }
 
-    #endregion
 
-    #region Integration Tests
 
     [Fact]
     public async Task Integration_AsyncChaining_WorksCorrectly()
@@ -568,5 +551,4 @@ public class AsyncOptionExtensionsTests
         Assert.Equal("Value not found during async lookup", error);
     }
 
-    #endregion
 }

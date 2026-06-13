@@ -8,7 +8,6 @@ namespace Esox.SharpAndRust.Tests.Extensions;
 /// </summary>
 public class CollectionExtensionsEnhancedTests
 {
-    #region Either Sequence Tests
 
     [Fact]
     public void SequenceLeft_AllLeft_ReturnsLeftWithAllValues()
@@ -134,9 +133,7 @@ public class CollectionExtensionsEnhancedTests
         }
     }
 
-    #endregion
 
-    #region Either Traverse Tests
 
     [Fact]
     public void TraverseLeft_AllSucceed_ReturnsLeftWithAllValues()
@@ -264,9 +261,7 @@ public class CollectionExtensionsEnhancedTests
         }
     }
 
-    #endregion
 
-    #region Validation Traverse Tests
 
     [Fact]
     public void TraverseValidation_AllValid_ReturnsValidWithAllValues()
@@ -356,9 +351,7 @@ public class CollectionExtensionsEnhancedTests
         }
     }
 
-    #endregion
 
-    #region Validation Partition Tests
 
     [Fact]
     public void PartitionValidations_MixedValidations_PartitionsCorrectly()
@@ -437,9 +430,7 @@ public class CollectionExtensionsEnhancedTests
         Assert.Empty(invalid);
     }
 
-    #endregion
 
-    #region FirstOk Tests
 
     [Fact]
     public void FirstOk_WithOk_ReturnsFirstOk()
@@ -516,9 +507,7 @@ public class CollectionExtensionsEnhancedTests
         Assert.True(result.IsSuccess);
     }
 
-    #endregion
 
-    #region FirstSome Tests
 
     [Fact]
     public void FirstSome_WithSome_ReturnsFirstSome()
@@ -593,9 +582,7 @@ public class CollectionExtensionsEnhancedTests
         Assert.True(result is Option<int>.Some);
     }
 
-    #endregion
 
-    #region Choose Tests
 
     [Fact]
     public void Choose_FindsFirstValidTransformation()
@@ -675,9 +662,7 @@ public class CollectionExtensionsEnhancedTests
         Assert.True(result is Option<int>.Some);
     }
 
-    #endregion
 
-    #region SequenceAll Tests
 
     [Fact]
     public void SequenceAll_AllOk_ReturnsOkWithAllValues()
@@ -764,9 +749,7 @@ public class CollectionExtensionsEnhancedTests
         Assert.Empty(values);
     }
 
-    #endregion
 
-    #region AnyOk/AllOk Tests
 
     [Fact]
     public void AnyOk_WithOk_ReturnsTrue()
@@ -865,9 +848,7 @@ public class CollectionExtensionsEnhancedTests
         Assert.True(allOk); // Empty collection vacuously satisfies "all"
     }
 
-    #endregion
 
-    #region AnySome/AllSome Tests
 
     [Fact]
     public void AnySome_WithSome_ReturnsTrue()
@@ -966,9 +947,7 @@ public class CollectionExtensionsEnhancedTests
         Assert.True(allSome); // Empty collection vacuously satisfies "all"
     }
 
-    #endregion
 
-    #region Dictionary Extension Tests
 
     [Fact]
     public void ToOkDictionary_OnlyOk_ReturnsAllPairs()
@@ -1120,9 +1099,7 @@ public class CollectionExtensionsEnhancedTests
         Assert.Empty(dict);
     }
 
-    #endregion
 
-    #region Real-World Scenarios
 
     [Fact]
     public void FormValidation_AccumulatesAllFieldErrors()
@@ -1218,5 +1195,4 @@ public class CollectionExtensionsEnhancedTests
                 : Result<string, string>.Err($"{source} not found");
     }
 
-    #endregion
 }

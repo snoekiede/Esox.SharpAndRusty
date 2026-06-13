@@ -5,7 +5,6 @@ namespace Esox.SharpAndRust.Tests.Extensions;
 
 public class AsyncCollectionExtensionsTests
 {
-    #region Option SequenceAsync Tests
 
     [Fact]
     public async Task SequenceAsync_Option_AllSome_ReturnsSomeWithAllValues()
@@ -65,9 +64,7 @@ public class AsyncCollectionExtensionsTests
             async () => await tasks.SequenceAsync(cts.Token));
     }
 
-    #endregion
 
-    #region Option TraverseAsync Tests
 
     [Fact]
     public async Task TraverseAsync_Option_AllSucceed_ReturnsSomeWithAllValues()
@@ -131,9 +128,7 @@ public class AsyncCollectionExtensionsTests
         Assert.Equal(3, callCount); // Should stop at 3
     }
 
-    #endregion
 
-    #region Option TraverseParallelAsync Tests
 
     [Fact]
     public async Task TraverseParallelAsync_Option_AllSucceed_ReturnsSomeWithAllValues()
@@ -203,9 +198,7 @@ public class AsyncCollectionExtensionsTests
         }
     }
 
-    #endregion
 
-    #region Option CollectSomeAsync Tests
 
     [Fact]
     public async Task CollectSomeAsync_MixedOptions_ReturnsOnlySomeValues()
@@ -244,9 +237,7 @@ public class AsyncCollectionExtensionsTests
         Assert.Empty(result);
     }
 
-    #endregion
 
-    #region Result SequenceAsync Tests
 
     [Fact]
     public async Task SequenceAsync_Result_AllOk_ReturnsOkWithAllValues()
@@ -288,9 +279,7 @@ public class AsyncCollectionExtensionsTests
         Assert.Equal("error1", error);
     }
 
-    #endregion
 
-    #region Result TraverseAsync Tests
 
     [Fact]
     public async Task TraverseAsync_Result_AllSucceed_ReturnsOkWithAllValues()
@@ -356,9 +345,7 @@ public class AsyncCollectionExtensionsTests
         Assert.Equal(3, callCount); // Should stop at 3
     }
 
-    #endregion
 
-    #region Result TraverseParallelAsync Tests
 
     [Fact]
     public async Task TraverseParallelAsync_Result_AllSucceed_ReturnsOkWithAllValues()
@@ -402,9 +389,7 @@ public class AsyncCollectionExtensionsTests
         Assert.True(result.IsFailure);
     }
 
-    #endregion
 
-    #region Result CollectOkAsync Tests
 
     [Fact]
     public async Task CollectOkAsync_MixedResults_ReturnsOnlyOkValues()
@@ -443,9 +428,7 @@ public class AsyncCollectionExtensionsTests
         Assert.Empty(result);
     }
 
-    #endregion
 
-    #region Result CollectErrAsync Tests
 
     [Fact]
     public async Task CollectErrAsync_MixedResults_ReturnsOnlyErrors()
@@ -483,9 +466,7 @@ public class AsyncCollectionExtensionsTests
         Assert.Empty(result);
     }
 
-    #endregion
 
-    #region Result PartitionResultsAsync Tests
 
     [Fact]
     public async Task PartitionResultsAsync_MixedResults_PartitionsCorrectly()
@@ -527,9 +508,7 @@ public class AsyncCollectionExtensionsTests
         Assert.Empty(failures);
     }
 
-    #endregion
 
-    #region Integration Tests
 
     [Fact]
     public async Task Integration_Option_AsyncUserLookup_WorksCorrectly()
@@ -629,5 +608,4 @@ public class AsyncCollectionExtensionsTests
         Assert.Equal(48, available.Count()); // 50 - 2 failures
     }
 
-    #endregion
 }

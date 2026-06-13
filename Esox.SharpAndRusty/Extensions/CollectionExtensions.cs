@@ -7,7 +7,6 @@ namespace Esox.SharpAndRusty.Extensions;
 /// </summary>
 public static class CollectionExtensions
 {
-    #region Option Collection Extensions
 
     /// <summary>
     /// Transforms a collection of options into an option of a collection.
@@ -195,9 +194,7 @@ public static class CollectionExtensions
         return (values, noneCount);
     }
 
-    #endregion
 
-    #region Result Collection Extensions
 
     /// <summary>
     /// Transforms a collection of results into a result of a collection.
@@ -424,9 +421,7 @@ public static class CollectionExtensions
         return (successes, failures);
     }
 
-    #endregion
 
-    #region Either Collection Extensions
 
     /// <summary>
     /// Transforms a collection of eithers into an either of a collection of lefts.
@@ -640,9 +635,7 @@ public static class CollectionExtensions
         return new Either<L, IEnumerable<R>>.Right(values);
     }
 
-    #endregion
 
-    #region Validation Collection Extensions
 
     /// <summary>
     /// Maps each element of a collection through a function that returns a validation,
@@ -752,9 +745,7 @@ public static class CollectionExtensions
         return (valid, invalid);
     }
 
-    #endregion
 
-    #region Utility Extensions
 
     /// <summary>
     /// Returns the first <c>Ok</c> result from a collection, or <c>Err</c> containing all accumulated errors
@@ -1067,9 +1058,7 @@ public static class CollectionExtensions
         return true;
     }
 
-    #endregion
 
-    #region Dictionary Extensions
 
     /// <summary>
     /// Converts a collection of results containing key-value pairs to a dictionary,
@@ -1152,5 +1141,4 @@ public static class CollectionExtensions
         return dictionary;
     }
 
-    #endregion
 }
