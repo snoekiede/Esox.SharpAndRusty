@@ -1,9 +1,10 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
-namespace Esox.SharpAndRusty.Types
-{
+namespace Esox.SharpAndRusty.Types;
+
     /// <summary>
     /// Represents a rich error type inspired by Rust's error handling patterns.
     /// Provides context chaining, stack trace capture, and error categorization.
@@ -59,8 +60,7 @@ namespace Esox.SharpAndRusty.Types
         /// <returns>A new <see cref="Error"/> instance.</returns>
         public static Error New(string message)
         {
-            if (message is null) throw new ArgumentNullException(nameof(message));
-            return new Error(message, ErrorKind.Other, null, null, null);
+            return message is null ? throw new ArgumentNullException(nameof(message)) : new Error(message, ErrorKind.Other, null, null, null);
         }
 
         /// <summary>
@@ -71,8 +71,7 @@ namespace Esox.SharpAndRusty.Types
         /// <returns>A new <see cref="Error"/> instance.</returns>
         public static Error New(string message, ErrorKind kind)
         {
-            if (message is null) throw new ArgumentNullException(nameof(message));
-            return new Error(message, kind, null, null, null);
+            return message is null ? throw new ArgumentNullException(nameof(message)) : new Error(message, kind, null, null, null);
         }
 
         /// <summary>
@@ -407,11 +406,13 @@ namespace Esox.SharpAndRusty.Types
         /// <summary>
         /// The connection was refused by the remote server.
         /// </summary>
+        [SuppressMessage("ReSharper", "UnusedMember.Global", Justification = "Will be used vy clients of this nuget package")]
         ConnectionRefused,
-
+    
         /// <summary>
         /// The connection was reset by the remote server.
         /// </summary>
+        [SuppressMessage("ReSharper", "UnusedMember.Global", Justification = "Will be used vy clients of this nuget package")]
         ConnectionReset,
 
         /// <summary>
@@ -432,6 +433,7 @@ namespace Esox.SharpAndRusty.Types
         /// <summary>
         /// The operation is not supported.
         /// </summary>
+        [SuppressMessage("ReSharper", "UnusedMember.Global", Justification = "Will be used vy clients of this nuget package")]
         NotSupported,
 
         /// <summary>
@@ -442,6 +444,7 @@ namespace Esox.SharpAndRusty.Types
         /// <summary>
         /// An entity already exists.
         /// </summary>
+        [SuppressMessage("ReSharper", "UnusedMember.Global", Justification = "Will be used vy clients of this nuget package")]
         AlreadyExists,
 
         /// <summary>
@@ -462,6 +465,7 @@ namespace Esox.SharpAndRusty.Types
         /// <summary>
         /// Indicates that an operation failed due to the object being in an invalid state.
         /// </summary>
+        [SuppressMessage("ReSharper", "UnusedMember.Global", Justification = "Will be used vy clients of this nuget package")]
         InvalidState,
 
         /// <summary>
@@ -469,4 +473,4 @@ namespace Esox.SharpAndRusty.Types
         /// </summary>
         Other
     }
-}
+

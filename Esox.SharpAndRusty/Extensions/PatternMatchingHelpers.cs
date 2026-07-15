@@ -18,8 +18,8 @@ public static class PatternMatchingHelpers
         /// <returns>The original option for method chaining.</returns>
         public Option<T> IfSome(Action<T> action)
         {
-            if (action is null) throw new ArgumentNullException(nameof(action));
-        
+            ArgumentNullException.ThrowIfNull(action);
+
             if (option is Option<T>.Some some)
             {
                 action(some.Value);
@@ -37,7 +37,7 @@ public static class PatternMatchingHelpers
         /// <returns>The original option for method chaining.</returns>
         public Option<T> IfNone(Action action)
         {
-            if (action is null) throw new ArgumentNullException(nameof(action));
+            ArgumentNullException.ThrowIfNull(action);
         
             if (option.IsNone())
             {
@@ -68,7 +68,7 @@ public static class PatternMatchingHelpers
         /// <returns>The contained value if <c>Some</c>, otherwise the value produced by <paramref name="defaultFactory"/>.</returns>
         public T GetOrElse(Func<T> defaultFactory)
         {
-            if (defaultFactory is null) throw new ArgumentNullException(nameof(defaultFactory));
+            ArgumentNullException.ThrowIfNull(defaultFactory);
         
             return option is Option<T>.Some some ? some.Value : defaultFactory();
         }
@@ -114,7 +114,7 @@ public static class PatternMatchingHelpers
         {
             if (action is null) throw new ArgumentNullException(nameof(action));
         
-            if (result.TryGetValue(out var value))
+            if (result.TryGetValue(out T value))
             {
                 action(value);
             }
@@ -134,7 +134,7 @@ public static class PatternMatchingHelpers
         {
             if (action is null) throw new ArgumentNullException(nameof(action));
         
-            if (result.TryGetError(out var error))
+            if (result.TryGetError(out E error))
             {
                 action(error);
             }
@@ -158,7 +158,7 @@ public static class PatternMatchingHelpers
             if (onSuccess is null) throw new ArgumentNullException(nameof(onSuccess));
             if (onFailure is null) throw new ArgumentNullException(nameof(onFailure));
         
-            if (result.TryGetValue(out var value))
+            if (result.TryGetValue(out T value))
             {
                 onSuccess(value);
             }

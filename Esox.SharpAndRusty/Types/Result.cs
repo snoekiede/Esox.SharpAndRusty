@@ -1,5 +1,5 @@
-﻿namespace Esox.SharpAndRusty.Types
-{
+﻿namespace Esox.SharpAndRusty.Types;
+
     /// <summary>
     /// Represents the result of an operation that can either succeed with a value of type <typeparamref name="T"/>
     /// or fail with an error of type <typeparamref name="E"/>.
@@ -136,8 +136,8 @@
         /// <exception cref="ArgumentNullException">Thrown when defaultFactory is null.</exception>
         public T UnwrapOrElse(Func<E, T> defaultFactory)
         {
-            if (defaultFactory is null) throw new ArgumentNullException(nameof(defaultFactory));
-            return IsSuccess ? _value : defaultFactory(_error);
+        ArgumentNullException.ThrowIfNull(defaultFactory);
+        return IsSuccess ? _value : defaultFactory(_error);
         }
 
         /// <summary>
@@ -272,7 +272,7 @@
 
             try
             {
-                var value = await operation().ConfigureAwait(false);
+                T value = await operation().ConfigureAwait(false);
                 return Ok(value);
             }
             catch (Exception ex)
@@ -296,7 +296,7 @@
 
             try
             {
-                var value = operation();
+                T value = operation();
                 return Ok(value);
             }
             catch (Exception ex)
@@ -306,4 +306,4 @@
         }
 
     }
-}
+

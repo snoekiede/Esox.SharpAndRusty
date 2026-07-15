@@ -1,7 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
 using Esox.SharpAndRusty.Types;
 
-namespace Esox.SharpAndRusty.Sync
-{
+namespace Esox.SharpAndRusty.Sync;
+
     /// <summary>
     /// A reader-writer lock for protecting shared data, inspired by Rust's std::sync::RwLock.
     /// This type allows multiple concurrent readers or a single writer, providing interior mutability
@@ -483,18 +484,21 @@ namespace Esox.SharpAndRusty.Sync
         /// Gets whether the read lock is held by the current thread.
         /// Useful for diagnostics and debugging deadlock situations.
         /// </summary>
+        [SuppressMessage("ReSharper", "UnusedMember.Global", Justification = "Will be used vy clients of this nuget package")]
         public bool IsReadLockHeld => !_disposed && _lock.IsReadLockHeld;
 
         /// <summary>
         /// Gets whether the write lock is held by the current thread.
         /// Useful for diagnostics and debugging deadlock situations.
         /// </summary>
+        [SuppressMessage("ReSharper", "UnusedMember.Global", Justification = "Will be used vy clients of this nuget package")]
         public bool IsWriteLockHeld => !_disposed && _lock.IsWriteLockHeld;
 
         /// <summary>
         /// Gets the total number of unique threads that have entered read mode.
         /// Useful for monitoring concurrent access patterns.
         /// </summary>
+        [SuppressMessage("ReSharper", "UnusedMember.Global", Justification = "Will be used vy clients of this nuget package")]
         public int CurrentReadCount => !_disposed ? _lock.CurrentReadCount : 0;
 
         /// <summary>
@@ -778,4 +782,4 @@ namespace Esox.SharpAndRusty.Sync
             }
         }
     }
-}
+

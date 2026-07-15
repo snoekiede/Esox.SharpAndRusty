@@ -1,5 +1,6 @@
 using Esox.SharpAndRusty.Types;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Esox.SharpAndRusty.Extensions;
 
@@ -14,6 +15,7 @@ public static class ValidationExtensions
         /// Applies a validation containing a function to a validation containing a value, accumulating errors.
         /// This is the core applicative operation that enables error accumulation.
         /// </summary>
+        [SuppressMessage("ReSharper", "UnusedMember.Global", Justification = "Will be used by clients of this nuget package")]
         public Validation<TResult, E> Apply(
             Validation<T, E> validation)
         {
@@ -45,7 +47,7 @@ public static class ValidationExtensions
         Validation<T2, E> validation2,
         Func<T1, T2, TResult> combiner)
     {
-        if (combiner is null) throw new ArgumentNullException(nameof(combiner));
+        ArgumentNullException.ThrowIfNull(combiner);
 
         return (validation1, validation2) switch
         {
@@ -80,38 +82,41 @@ public static class ValidationExtensions
         
         T1? v1 = default;
         var has1 = false;
-        if (validation1 is Validation<T1, E>.Success s1)
+        switch (validation1)
         {
-            v1 = s1.Value;
-            has1 = true;
-        }
-        else if (validation1 is Validation<T1, E>.Failure f1)
-        {
-            errors = errors.AddRange(f1.Errors);
+            case Validation<T1, E>.Success s1:
+                v1 = s1.Value;
+                has1 = true;
+                break;
+            case Validation<T1, E>.Failure f1:
+                errors = errors.AddRange(f1.Errors);
+                break;
         }
 
         T2? v2 = default;
         var has2 = false;
-        if (validation2 is Validation<T2, E>.Success s2)
+        switch (validation2)
         {
-            v2 = s2.Value;
-            has2 = true;
-        }
-        else if (validation2 is Validation<T2, E>.Failure f2)
-        {
-            errors = errors.AddRange(f2.Errors);
+            case Validation<T2, E>.Success s2:
+                v2 = s2.Value;
+                has2 = true;
+                break;
+            case Validation<T2, E>.Failure f2:
+                errors = errors.AddRange(f2.Errors);
+                break;
         }
 
         T3? v3 = default;
         var has3 = false;
-        if (validation3 is Validation<T3, E>.Success s3)
+        switch (validation3)
         {
-            v3 = s3.Value;
-            has3 = true;
-        }
-        else if (validation3 is Validation<T3, E>.Failure f3)
-        {
-            errors = errors.AddRange(f3.Errors);
+            case Validation<T3, E>.Success s3:
+                v3 = s3.Value;
+                has3 = true;
+                break;
+            case Validation<T3, E>.Failure f3:
+                errors = errors.AddRange(f3.Errors);
+                break;
         }
 
         if (has1 && has2 && has3)
@@ -190,6 +195,7 @@ public static class ValidationExtensions
             return validation switch
             {
                 Validation<T, E>.Success success => binder(success.Value),
+                // ReSharper disable once HeapView.ObjectAllocation.Evident
                 Validation<T, E>.Failure failure => new Validation<TResult, E>.Failure(failure.Errors),
                 _ => throw new InvalidOperationException("Validation is in an invalid state.")
             };
@@ -234,6 +240,7 @@ public static class ValidationExtensions
         /// <summary>
         /// Converts a Result to a Validation.
         /// </summary>
+        [SuppressMessage("ReSharper", "UnusedMember.Global", Justification = "Will be used vy clients of this nuget package")]
         public Validation<T, E> ToValidation()
         {
             return result.TryGetValue(out var value)

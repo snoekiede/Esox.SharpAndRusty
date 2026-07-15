@@ -215,7 +215,7 @@ public abstract record ExtendedResult<T, TE>
 
         try
         {
-            var value = await operation().ConfigureAwait(false);
+            T value = await operation().ConfigureAwait(false);
             return Ok(value);
         }
         catch (Exception ex)
@@ -239,7 +239,7 @@ public abstract record ExtendedResult<T, TE>
 
         try
         {
-            var value = operation();
+            T value = operation();
             return Ok(value);
         }
         catch (Exception ex)

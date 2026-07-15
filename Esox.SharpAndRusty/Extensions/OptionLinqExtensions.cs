@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Esox.SharpAndRusty.Types;
 
 namespace Esox.SharpAndRusty.Extensions;
@@ -41,11 +42,13 @@ public static class OptionLinqExtensions
         public Option<TResult> Select<TResult>(
             Func<T, TResult> selector)
         {
-            if (selector is null) throw new ArgumentNullException(nameof(selector));
+            ArgumentNullException.ThrowIfNull(selector);
 
-            return option is Option<T>.Some some
-                ? new Option<TResult>.Some(selector(some.Value))
-                : new Option<TResult>.None();
+            return option switch
+            {
+                Option<T>.Some some => new Option<TResult>.Some(selector(some.Value)),
+                _ => new Option<TResult>.None()
+            };
         }
 
         /// <summary>
@@ -123,6 +126,7 @@ public static class OptionLinqExtensions
         ///              select profile.Name;
         /// </code>
         /// </example>
+        [SuppressMessage("ReSharper", "UnusedMember.Global", Justification = "Will be used vy clients of this nuget package")]
         public Option<TResult> SelectMany<TResult>(
             Func<T, Option<TResult>> selector)
         {

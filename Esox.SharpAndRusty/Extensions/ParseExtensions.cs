@@ -38,15 +38,12 @@ public static class ParseExtensions
                         .WithMetadata("targetType", typeof(T).Name));
             }
 
-            if (T.TryParse(input, provider, out var value))
-            {
-                return Result<T, Error>.Ok(value);
-            }
-
-            return Result<T, Error>.Err(
-                Error.New($"Could not parse '{input}' as {typeof(T).Name}.", ErrorKind.ParseError)
-                    .WithMetadata("input", input)
-                    .WithMetadata("targetType", typeof(T).Name));
+            return T.TryParse(input, provider, out var value)
+                ? Result<T, Error>.Ok(value)
+                : Result<T, Error>.Err(
+                    Error.New($"Could not parse '{input}' as {typeof(T).Name}.", ErrorKind.ParseError)
+                        .WithMetadata("input", input)
+                        .WithMetadata("targetType", typeof(T).Name));
         }
 
         /// <summary>
@@ -62,7 +59,7 @@ public static class ParseExtensions
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="tryParse"/> is null.</exception>
         public Result<T, Error> TryParse<T>(TryParseDelegate<T> tryParse, string? parserName = null)
         {
-            if (tryParse is null) throw new ArgumentNullException(nameof(tryParse));
+            ArgumentNullException.ThrowIfNull(tryParse);
 
             if (input is null)
             {

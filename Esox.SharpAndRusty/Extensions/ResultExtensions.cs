@@ -1,7 +1,7 @@
 ﻿using Esox.SharpAndRusty.Types;
 
-namespace Esox.SharpAndRusty.Extensions
-{
+namespace Esox.SharpAndRusty.Extensions;
+
     public static class ResultExtensions
     {
         /// <param name="result">The result to transform.</param>
@@ -19,7 +19,7 @@ namespace Esox.SharpAndRusty.Extensions
             /// <exception cref="ArgumentNullException">Thrown when mapper is null.</exception>
             public Result<U, E> Map<U>(Func<T, U> mapper)
             {
-                if (mapper is null) throw new ArgumentNullException(nameof(mapper));
+                ArgumentNullException.ThrowIfNull(mapper);
                 
                 return result.Match(
                     success: value => Result<U, E>.Ok(mapper(value)),
@@ -73,7 +73,7 @@ namespace Esox.SharpAndRusty.Extensions
             /// </example>
             public T Expect(string message)
             {
-                if (message is null) throw new ArgumentNullException(nameof(message));
+                ArgumentNullException.ThrowIfNull(message);
                 
                 return result.Match(
                     success: value => value,
@@ -170,7 +170,7 @@ namespace Esox.SharpAndRusty.Extensions
             /// </example>
             public Result<U, E> Select<U>(Func<T, U> selector)
             {
-                if (selector is null) throw new ArgumentNullException(nameof(selector));
+                ArgumentNullException.ThrowIfNull(selector);
                 return result.Map(selector);
             }
 
@@ -193,7 +193,7 @@ namespace Esox.SharpAndRusty.Extensions
             /// </example>
             public Result<U, E> SelectMany<U>(Func<T, Result<U, E>> selector)
             {
-                if (selector is null) throw new ArgumentNullException(nameof(selector));
+                ArgumentNullException.ThrowIfNull(selector);
                 return result.Bind(selector);
             }
 
@@ -226,8 +226,8 @@ namespace Esox.SharpAndRusty.Extensions
             /// </example>
             public Result<V, E> SelectMany<U, V>(Func<T, Result<U, E>> selector, Func<T, U, V> projector)
             {
-                if (selector is null) throw new ArgumentNullException(nameof(selector));
-                if (projector is null) throw new ArgumentNullException(nameof(projector));
+                ArgumentNullException.ThrowIfNull(selector);
+                ArgumentNullException.ThrowIfNull(projector);
                 
                 return result.Bind(t => selector(t).Map(u => projector(t, u)));
             }
@@ -303,4 +303,4 @@ namespace Esox.SharpAndRusty.Extensions
             }
         }
     }
-}
+

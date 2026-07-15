@@ -98,7 +98,7 @@ public static class TryExtensions
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var result = await asyncFunc().ConfigureAwait(false);
+            T result = await asyncFunc().ConfigureAwait(false);
             return Result<T, Exception>.Ok(result);
         }
         catch (Exception ex)
@@ -138,7 +138,7 @@ public static class TryExtensions
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var result = await asyncFunc().ConfigureAwait(false);
+            T result = await asyncFunc().ConfigureAwait(false);
             return Result<T, E>.Ok(result);
         }
         catch (Exception ex)
@@ -169,7 +169,7 @@ public static class TryExtensions
         
         try
         {
-            var result = func();
+            T? result = func();
             return result is not null
                 ? new Option<T>.Some(result)
                 : new Option<T>.None();
@@ -207,7 +207,7 @@ public static class TryExtensions
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var result = await asyncFunc().ConfigureAwait(false);
+            T? result = await asyncFunc().ConfigureAwait(false);
             return result is not null
                 ? new Option<T>.Some(result)
                 : new Option<T>.None();

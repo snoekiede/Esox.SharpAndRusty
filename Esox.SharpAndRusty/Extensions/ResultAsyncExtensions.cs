@@ -1,7 +1,7 @@
 using Esox.SharpAndRusty.Types;
 
-namespace Esox.SharpAndRusty.Extensions
-{
+namespace Esox.SharpAndRusty.Extensions;
+
     /// <summary>
     /// Provides async extension methods for the Result type, enabling seamless integration with async/await patterns.
     /// </summary>
@@ -105,7 +105,7 @@ namespace Esox.SharpAndRusty.Extensions
             Func<T, Task<Result<U, E>>> asyncBinder,
             CancellationToken cancellationToken = default)
         {
-            if (asyncBinder is null) throw new ArgumentNullException(nameof(asyncBinder));
+            ArgumentNullException.ThrowIfNull(asyncBinder);
 
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -333,4 +333,3 @@ namespace Esox.SharpAndRusty.Extensions
         }
 
     }
-}
