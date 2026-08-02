@@ -1063,7 +1063,7 @@ real-world usage patterns. While fully tested, we recommend:
 - Testing thoroughly in your specific use cases
 - Being prepared for potential API changes in minor version updates
 
-See [MUTEX_DOCUMENTATION.md](../MUTEX_DOCUMENTATION.md) for complete `Mutex<T>` documentation and usage examples.
+For complete documentation on synchronization primitives and other advanced features, see the [Advanced Features Guide](ADVANCED_FEATURES.md).
 
 ## Why Use Result Types?
 

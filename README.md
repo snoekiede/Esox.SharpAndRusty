@@ -32,6 +32,14 @@ This library is provided "as is" without warranty of any kind, either express or
 - 🧪 **Experimental: Mutex<T>**: Rust-inspired mutual exclusion primitive with Result-based locking (works in both sync and async contexts)
 - 🧪 **Experimental: RwLock<T>**: Rust-inspired reader-writer lock for shared data access (works in both sync and async contexts)
 
+## Documentation
+
+- 📖 **[Feature Documentation](docs/README.md)** - Detailed guides and API reference
+- 🚀 **[Advanced Features](Esox.SharpAndRusty/ADVANCED_FEATURES.md)** - Advanced patterns and techniques
+- 🔍 **[Analyzers](Esox.SharpAndRusty.Analyzers/README.md)** - Roslyn analyzer documentation
+- 📝 **[Changelog](CHANGELOG.md)** - Version history and breaking changes
+- 🤝 **[Contributing](CONTRIBUTING.md)** - How to contribute to the project
+
 ## Installation
 
 ```bash
@@ -1119,7 +1127,7 @@ When `Mutex<T>.Dispose()` is called while tasks are waiting on `LockAsync()` or 
 
 **Recommendation:** Always ensure all async lock operations complete before disposing the mutex. Avoid disposing mutexes that may have waiting async operations.
 
-See [MUTEX_DOCUMENTATION.md](../MUTEX_DOCUMENTATION.md) for complete `Mutex<T>` documentation and usage examples.
+For complete synchronization primitives documentation, see the [Advanced Features Guide](Esox.SharpAndRusty/ADVANCED_FEATURES.md).
 
 ## Why Use Result Types?
 

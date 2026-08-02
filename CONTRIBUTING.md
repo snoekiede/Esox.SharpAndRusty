@@ -665,10 +665,10 @@ When releasing a new version:
 ### Resources
 
 - **README.md**: Project overview and quick start
-- **ERROR_TYPE.md**: Complete Error type guide
-- **ERROR_TYPE_EXAMPLES.md**: Usage examples
-- **ERROR_TYPE_PRODUCTION_IMPROVEMENTS.md**: Optimization details
-- **CANCELLATION_TOKEN_SUPPORT.md**: Async cancellation guide
+- **[docs/](docs/README.md)**: Feature documentation hub
+- **[ADVANCED_FEATURES.md](Esox.SharpAndRusty/ADVANCED_FEATURES.md)**: Detailed feature documentation
+- **[Analyzers README](Esox.SharpAndRusty.Analyzers/README.md)**: Roslyn analyzer documentation
+- **CHANGELOG.md**: Version history and breaking changes
 
 ### Communication
 
