@@ -1,5 +1,5 @@
-using Esox.SharpAndRusty.Types;
 using Esox.SharpAndRusty.Extensions;
+using Esox.SharpAndRusty.Types;
 
 namespace Esox.SharpAndRust.Tests.Extensions;
 
@@ -16,8 +16,8 @@ public class ResultExtensionsTests
 
         // Assert
         var output = mapped.Match(
-            success: v => v,
-            failure: _ => "Error"
+            v => v,
+            _ => "Error"
         );
         Assert.Equal("Value: 5", output);
         Assert.True(mapped.IsSuccess);
@@ -34,8 +34,8 @@ public class ResultExtensionsTests
 
         // Assert
         var error = mapped.Match(
-            success: _ => "Success",
-            failure: e => e
+            _ => "Success",
+            e => e
         );
         Assert.Equal("Original error", error);
         Assert.True(mapped.IsFailure);
@@ -52,8 +52,8 @@ public class ResultExtensionsTests
 
         // Assert
         var value = mapped.Match(
-            success: v => v,
-            failure: _ => 0
+            v => v,
+            _ => 0
         );
         Assert.Equal(42, value);
         Assert.True(mapped.IsSuccess);
@@ -89,8 +89,8 @@ public class ResultExtensionsTests
 
         // Assert
         var output = bound.Match(
-            success: v => v,
-            failure: _ => "Error"
+            v => v,
+            _ => "Error"
         );
         Assert.Equal("Number: 5", output);
         Assert.True(bound.IsSuccess);
@@ -107,8 +107,8 @@ public class ResultExtensionsTests
 
         // Assert
         var error = bound.Match(
-            success: _ => "Success",
-            failure: e => e
+            _ => "Success",
+            e => e
         );
         Assert.Equal("Original error", error);
         Assert.True(bound.IsFailure);
@@ -125,8 +125,8 @@ public class ResultExtensionsTests
 
         // Assert
         var error = bound.Match(
-            success: _ => "Success",
-            failure: e => e
+            _ => "Success",
+            e => e
         );
         Assert.Equal("Binder error", error);
         Assert.True(bound.IsFailure);
@@ -165,8 +165,8 @@ public class ResultExtensionsTests
 
         // Assert
         var output = final.Match(
-            success: v => v,
-            failure: _ => "Error"
+            v => v,
+            _ => "Error"
         );
         Assert.Equal("Final: 20", output);
         Assert.True(final.IsSuccess);
@@ -245,8 +245,8 @@ public class ResultExtensionsTests
 
         // Assert
         var output = final.Match(
-            success: v => v,
-            failure: _ => "Error"
+            v => v,
+            _ => "Error"
         );
         Assert.Equal("Value: 10", output);
         Assert.True(final.IsSuccess);
@@ -267,8 +267,8 @@ public class ResultExtensionsTests
 
         // Assert
         var output = final.Match(
-            success: v => v,
-            failure: _ => "Error"
+            v => v,
+            _ => "Error"
         );
         Assert.Equal("VALID NUMBER: 10", output);
         Assert.True(final.IsSuccess);
@@ -418,8 +418,8 @@ public class ResultExtensionsTests
     {
         // Arrange & Act
         var result = from x in Result<int, string>.Ok(10)
-                     from y in Result<int, string>.Ok(20)
-                     select x + y;
+            from y in Result<int, string>.Ok(20)
+            select x + y;
 
         // Assert
         Assert.True(result.IsSuccess);
@@ -431,9 +431,9 @@ public class ResultExtensionsTests
     {
         // Arrange & Act
         var result = from x in Result<int, string>.Ok(10)
-                     from y in Result<int, string>.Err("Error in y")
-                     from z in Result<int, string>.Ok(30)
-                     select x + y + z;
+            from y in Result<int, string>.Err("Error in y")
+            from z in Result<int, string>.Ok(30)
+            select x + y + z;
 
         // Assert
         Assert.True(result.IsFailure);
@@ -445,21 +445,25 @@ public class ResultExtensionsTests
     public void LinqQuerySyntax_ComplexQuery_WorksCorrectly()
     {
         // Arrange
-        Result<int, string> ParseInt(string s) =>
-            int.TryParse(s, out var value)
+        Result<int, string> ParseInt(string s)
+        {
+            return int.TryParse(s, out var value)
                 ? Result<int, string>.Ok(value)
                 : Result<int, string>.Err($"Cannot parse '{s}'");
+        }
 
-        Result<int, string> Divide(int numerator, int denominator) =>
-            denominator != 0
+        Result<int, string> Divide(int numerator, int denominator)
+        {
+            return denominator != 0
                 ? Result<int, string>.Ok(numerator / denominator)
                 : Result<int, string>.Err("Division by zero");
+        }
 
         // Act
         var result = from x in ParseInt("100")
-                     from y in ParseInt("5")
-                     from z in Divide(x, y)
-                     select $"Result: {z}";
+            from y in ParseInt("5")
+            from z in Divide(x, y)
+            select $"Result: {z}";
 
         // Assert
         Assert.True(result.IsSuccess);
@@ -472,10 +476,10 @@ public class ResultExtensionsTests
     {
         // Arrange & Act
         var result = (from x in Result<int, string>.Ok(10)
-                      from y in Result<int, string>.Ok(20)
-                      select x + y)
-            .Bind(sum => sum > 25 
-                ? Result<int, string>.Ok(sum) 
+                from y in Result<int, string>.Ok(20)
+                select x + y)
+            .Bind(sum => sum > 25
+                ? Result<int, string>.Ok(sum)
                 : Result<int, string>.Err("Sum must be greater than 25"));
 
         // Assert
@@ -488,9 +492,9 @@ public class ResultExtensionsTests
     {
         // Arrange & Act
         var result = from a in Result<int, string>.Ok(2)
-                     from b in Result<int, string>.Ok(3)
-                     from c in Result<int, string>.Ok(4)
-                     select a * b * c;
+            from b in Result<int, string>.Ok(3)
+            from c in Result<int, string>.Ok(4)
+            select a * b * c;
 
         // Assert
         Assert.True(result.IsSuccess);
@@ -501,15 +505,17 @@ public class ResultExtensionsTests
     public void LinqQuerySyntax_WithConditionalLogic_WorksCorrectly()
     {
         // Arrange
-        Result<int, string> ValidatePositive(int value) =>
-            value > 0
+        Result<int, string> ValidatePositive(int value)
+        {
+            return value > 0
                 ? Result<int, string>.Ok(value)
                 : Result<int, string>.Err("Value must be positive");
+        }
 
         // Act
         var result = from x in Result<int, string>.Ok(10)
-                     from validated in ValidatePositive(x)
-                     select validated * 2;
+            from validated in ValidatePositive(x)
+            select validated * 2;
 
         // Assert
         Assert.True(result.IsSuccess);
@@ -520,15 +526,17 @@ public class ResultExtensionsTests
     public void LinqQuerySyntax_FailsValidation_ReturnsError()
     {
         // Arrange
-        Result<int, string> ValidatePositive(int value) =>
-            value > 0
+        Result<int, string> ValidatePositive(int value)
+        {
+            return value > 0
                 ? Result<int, string>.Ok(value)
                 : Result<int, string>.Err("Value must be positive");
+        }
 
         // Act
         var result = from x in Result<int, string>.Ok(-5)
-                     from validated in ValidatePositive(x)
-                     select validated * 2;
+            from validated in ValidatePositive(x)
+            select validated * 2;
 
         // Assert
         Assert.True(result.IsFailure);
@@ -541,8 +549,8 @@ public class ResultExtensionsTests
     {
         // Arrange & Act
         var result = (from x in Result<int, string>.Ok(5)
-                      from y in Result<int, string>.Ok(10)
-                      select x + y)
+                from y in Result<int, string>.Ok(10)
+                select x + y)
             .Map(sum => $"Total: {sum}");
 
         // Assert
@@ -556,13 +564,12 @@ public class ResultExtensionsTests
     {
         // Arrange & Act
         var result = from name in Result<string, string>.Ok("John")
-                     from age in Result<int, string>.Ok(30)
-                     select $"{name} is {age} years old";
+            from age in Result<int, string>.Ok(30)
+            select $"{name} is {age} years old";
 
         // Assert
         Assert.True(result.IsSuccess);
         var output = result.Match(v => v, _ => "Error");
         Assert.Equal("John is 30 years old", output);
     }
-
 }

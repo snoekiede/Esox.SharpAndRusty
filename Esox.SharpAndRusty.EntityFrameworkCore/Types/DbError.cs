@@ -28,57 +28,39 @@ public sealed record DbError(
         ArgumentNullException.ThrowIfNull(exception);
 
         if (exception is OperationCanceledException)
-        {
             return new DbError("Database operation was cancelled", DbErrorKind.Cancelled, exception);
-        }
 
         if (exception is TimeoutException)
-        {
             return new DbError(exception.Message, DbErrorKind.Timeout, exception, IsTransient: true);
-        }
 
         if (exception is DbUpdateConcurrencyException)
-        {
             return new DbError(
                 "Database concurrency conflict occurred",
                 DbErrorKind.ConcurrencyConflict,
                 exception,
                 IsTransient: true);
-        }
 
-        if (exception is DbUpdateException dbUpdateException)
-        {
-            return FromDbUpdateException(dbUpdateException);
-        }
+        if (exception is DbUpdateException dbUpdateException) return FromDbUpdateException(dbUpdateException);
 
-        if (exception is SqlException sqlException)
-        {
-            return FromSqlException(sqlException);
-        }
+        if (exception is SqlException sqlException) return FromSqlException(sqlException);
 
         if (exception is InvalidOperationException)
-        {
             return new DbError(exception.Message, DbErrorKind.QueryFailure, exception);
-        }
 
         return new DbError(exception.Message, DbErrorKind.Unknown, exception);
     }
 
     private static DbError FromDbUpdateException(DbUpdateException exception)
     {
-        if (exception.InnerException is SqlException sqlException)
-        {
-            return FromSqlException(sqlException);
-        }
+        if (exception.InnerException is SqlException sqlException) return FromSqlException(sqlException);
 
-        if (LooksLikeConstraintViolation(exception.Message) || LooksLikeConstraintViolation(exception.InnerException?.Message))
-        {
+        if (LooksLikeConstraintViolation(exception.Message) ||
+            LooksLikeConstraintViolation(exception.InnerException?.Message))
             return new DbError(
                 exception.Message,
                 DbErrorKind.ConstraintViolation,
                 exception,
                 ConstraintName: TryExtractConstraintName(exception.Message));
-        }
 
         return new DbError(exception.Message, DbErrorKind.UpdateFailure, exception);
     }
@@ -99,48 +81,34 @@ public sealed record DbError(
             exception.Message,
             kind,
             exception,
-            SqlErrorNumber: exception.Number,
-            ConstraintName: TryExtractConstraintName(exception.Message),
-            IsTransient: isTransient);
+            exception.Number,
+            TryExtractConstraintName(exception.Message),
+            isTransient);
     }
 
     private static bool LooksLikeConstraintViolation(string? message)
     {
-        if (string.IsNullOrWhiteSpace(message))
-        {
-            return false;
-        }
+        if (string.IsNullOrWhiteSpace(message)) return false;
 
         return message.Contains("constraint", StringComparison.OrdinalIgnoreCase)
-            || message.Contains("unique", StringComparison.OrdinalIgnoreCase)
-            || message.Contains("duplicate", StringComparison.OrdinalIgnoreCase)
-            || message.Contains("foreign key", StringComparison.OrdinalIgnoreCase)
-            || message.Contains("primary key", StringComparison.OrdinalIgnoreCase);
+               || message.Contains("unique", StringComparison.OrdinalIgnoreCase)
+               || message.Contains("duplicate", StringComparison.OrdinalIgnoreCase)
+               || message.Contains("foreign key", StringComparison.OrdinalIgnoreCase)
+               || message.Contains("primary key", StringComparison.OrdinalIgnoreCase);
     }
 
     private static string? TryExtractConstraintName(string? message)
     {
-        if (string.IsNullOrWhiteSpace(message))
-        {
-            return null;
-        }
+        if (string.IsNullOrWhiteSpace(message)) return null;
 
         const string marker = "constraint '";
         var markerIndex = message.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
-        if (markerIndex < 0)
-        {
-            return null;
-        }
+        if (markerIndex < 0) return null;
 
         var start = markerIndex + marker.Length;
         var end = message.IndexOf('\'', start);
-        if (end <= start)
-        {
-            return null;
-        }
+        if (end <= start) return null;
 
         return message[start..end];
     }
 }
-
-

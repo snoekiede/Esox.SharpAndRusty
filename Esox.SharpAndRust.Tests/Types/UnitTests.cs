@@ -1,11 +1,10 @@
-using Esox.SharpAndRusty.Types;
 using Esox.SharpAndRusty.Extensions;
+using Esox.SharpAndRusty.Types;
 
 namespace Esox.SharpAndRust.Tests.Types;
 
 public class UnitTests
 {
-
     [Fact]
     public void Value_ReturnsSingletonInstance()
     {
@@ -26,7 +25,6 @@ public class UnitTests
         // Assert
         Assert.Equal(Unit.Value, unit);
     }
-
 
 
     [Fact]
@@ -73,7 +71,6 @@ public class UnitTests
         // Act & Assert
         Assert.False(unit.Equals(obj));
     }
-
 
 
     [Fact]
@@ -149,7 +146,6 @@ public class UnitTests
     }
 
 
-
     [Fact]
     public void GetHashCode_ReturnsSameValueForAllUnits()
     {
@@ -174,12 +170,8 @@ public class UnitTests
         var unit2 = default(Unit);
 
         // Act & Assert - If objects are equal, hash codes must be equal
-        if (unit1.Equals(unit2))
-        {
-            Assert.Equal(unit1.GetHashCode(), unit2.GetHashCode());
-        }
+        if (unit1.Equals(unit2)) Assert.Equal(unit1.GetHashCode(), unit2.GetHashCode());
     }
-
 
 
     [Fact]
@@ -199,7 +191,6 @@ public class UnitTests
     }
 
 
-
     [Fact]
     public void ToString_ReturnsEmptyParentheses()
     {
@@ -212,7 +203,6 @@ public class UnitTests
         // Assert
         Assert.Equal("()", result);
     }
-
 
 
     [Fact]
@@ -236,12 +226,12 @@ public class UnitTests
 
         // Act
         var message = result.Match(
-            success: _ =>
+            _ =>
             {
                 matchCalled = true;
                 return "Success";
             },
-            failure: error => $"Error: {error}"
+            error => $"Error: {error}"
         );
 
         // Assert
@@ -286,8 +276,8 @@ public class UnitTests
 
         // Act
         var combined = from _ in result1
-                       from __ in result2
-                       select Unit.Value;
+            from __ in result2
+            select Unit.Value;
 
         // Assert
         Assert.True(combined.IsSuccess);
@@ -302,15 +292,14 @@ public class UnitTests
 
         // Act
         var combined = from _ in result1
-                       from __ in result2
-                       select Unit.Value;
+            from __ in result2
+            select Unit.Value;
 
         // Assert
         Assert.True(combined.IsFailure);
         Assert.True(combined.TryGetError(out var error));
         Assert.Equal("Error", error);
     }
-
 
 
     [Fact]
@@ -321,7 +310,7 @@ public class UnitTests
         {
             if (string.IsNullOrEmpty(input))
                 return Result<Unit, string>.Err("Input cannot be empty");
-            
+
             return Result<Unit, string>.Ok(Unit.Value);
         }
 
@@ -332,7 +321,7 @@ public class UnitTests
         // Assert
         Assert.True(successResult.IsSuccess);
         Assert.True(errorResult.IsFailure);
-        
+
         // Verify error message
         Assert.True(errorResult.TryGetError(out var error));
         Assert.Equal("Input cannot be empty", error);
@@ -342,9 +331,20 @@ public class UnitTests
     public void Unit_ChainingOperationsWithNoValue()
     {
         // Arrange
-        Result<Unit, string> Step1() => Result<Unit, string>.Ok(Unit.Value);
-        Result<Unit, string> Step2() => Result<Unit, string>.Ok(Unit.Value);
-        Result<Unit, string> Step3() => Result<Unit, string>.Ok(Unit.Value);
+        Result<Unit, string> Step1()
+        {
+            return Result<Unit, string>.Ok(Unit.Value);
+        }
+
+        Result<Unit, string> Step2()
+        {
+            return Result<Unit, string>.Ok(Unit.Value);
+        }
+
+        Result<Unit, string> Step3()
+        {
+            return Result<Unit, string>.Ok(Unit.Value);
+        }
 
         // Act
         var result = Step1()
@@ -359,9 +359,20 @@ public class UnitTests
     public void Unit_ErrorPropagationInChain()
     {
         // Arrange
-        Result<Unit, string> Step1() => Result<Unit, string>.Ok(Unit.Value);
-        Result<Unit, string> Step2() => Result<Unit, string>.Err("Step 2 failed");
-        Result<Unit, string> Step3() => Result<Unit, string>.Ok(Unit.Value);
+        Result<Unit, string> Step1()
+        {
+            return Result<Unit, string>.Ok(Unit.Value);
+        }
+
+        Result<Unit, string> Step2()
+        {
+            return Result<Unit, string>.Err("Step 2 failed");
+        }
+
+        Result<Unit, string> Step3()
+        {
+            return Result<Unit, string>.Ok(Unit.Value);
+        }
 
         // Act
         var result = Step1()
@@ -373,7 +384,6 @@ public class UnitTests
         Assert.True(result.TryGetError(out var error));
         Assert.Equal("Step 2 failed", error);
     }
-
 
 
     [Fact]
@@ -397,7 +407,7 @@ public class UnitTests
         var dict = new Dictionary<Unit, string>
         {
             [Unit.Value] = "First",
-            [default(Unit)] = "Second"  // Should overwrite "First"
+            [default] = "Second" // Should overwrite "First"
         };
 
         // Act & Assert
@@ -415,5 +425,4 @@ public class UnitTests
         Assert.Single(set);
         Assert.Contains(Unit.Value, set);
     }
-
 }

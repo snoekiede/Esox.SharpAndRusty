@@ -1,14 +1,13 @@
-using Esox.SharpAndRusty.Types;
 using Esox.SharpAndRusty.Extensions;
+using Esox.SharpAndRusty.Types;
 
 namespace Esox.SharpAndRust.Tests.Extensions;
 
 /// <summary>
-/// Tests for enhanced collection extensions: Either, Validation, Utility, and Dictionary extensions.
+///     Tests for enhanced collection extensions: Either, Validation, Utility, and Dictionary extensions.
 /// </summary>
 public class CollectionExtensionsEnhancedTests
 {
-
     [Fact]
     public void SequenceLeft_AllLeft_ReturnsLeftWithAllValues()
     {
@@ -25,10 +24,7 @@ public class CollectionExtensionsEnhancedTests
 
         // Assert
         Assert.True(result is Either<IEnumerable<int>, string>.Left);
-        if (result is Either<IEnumerable<int>, string>.Left left)
-        {
-            Assert.Equal(new[] { 1, 2, 3 }, left.Value);
-        }
+        if (result is Either<IEnumerable<int>, string>.Left left) Assert.Equal(new[] { 1, 2, 3 }, left.Value);
     }
 
     [Fact]
@@ -48,10 +44,7 @@ public class CollectionExtensionsEnhancedTests
 
         // Assert
         Assert.True(result is Either<IEnumerable<int>, string>.Right);
-        if (result is Either<IEnumerable<int>, string>.Right right)
-        {
-            Assert.Equal("error1", right.Value);
-        }
+        if (result is Either<IEnumerable<int>, string>.Right right) Assert.Equal("error1", right.Value);
     }
 
     [Fact]
@@ -65,10 +58,7 @@ public class CollectionExtensionsEnhancedTests
 
         // Assert
         Assert.True(result is Either<IEnumerable<int>, string>.Left);
-        if (result is Either<IEnumerable<int>, string>.Left left)
-        {
-            Assert.Empty(left.Value);
-        }
+        if (result is Either<IEnumerable<int>, string>.Left left) Assert.Empty(left.Value);
     }
 
     [Fact]
@@ -87,10 +77,7 @@ public class CollectionExtensionsEnhancedTests
 
         // Assert
         Assert.True(result is Either<string, IEnumerable<int>>.Right);
-        if (result is Either<string, IEnumerable<int>>.Right right)
-        {
-            Assert.Equal(new[] { 1, 2, 3 }, right.Value);
-        }
+        if (result is Either<string, IEnumerable<int>>.Right right) Assert.Equal(new[] { 1, 2, 3 }, right.Value);
     }
 
     [Fact]
@@ -110,10 +97,7 @@ public class CollectionExtensionsEnhancedTests
 
         // Assert
         Assert.True(result is Either<string, IEnumerable<int>>.Left);
-        if (result is Either<string, IEnumerable<int>>.Left left)
-        {
-            Assert.Equal("error1", left.Value);
-        }
+        if (result is Either<string, IEnumerable<int>>.Left left) Assert.Equal("error1", left.Value);
     }
 
     [Fact]
@@ -127,12 +111,8 @@ public class CollectionExtensionsEnhancedTests
 
         // Assert
         Assert.True(result is Either<string, IEnumerable<int>>.Right);
-        if (result is Either<string, IEnumerable<int>>.Right right)
-        {
-            Assert.Empty(right.Value);
-        }
+        if (result is Either<string, IEnumerable<int>>.Right right) Assert.Empty(right.Value);
     }
-
 
 
     [Fact]
@@ -150,10 +130,7 @@ public class CollectionExtensionsEnhancedTests
 
         // Assert
         Assert.True(result is Either<IEnumerable<int>, string>.Left);
-        if (result is Either<IEnumerable<int>, string>.Left left)
-        {
-            Assert.Equal(new[] { 1, 2, 3 }, left.Value);
-        }
+        if (result is Either<IEnumerable<int>, string>.Left left) Assert.Equal(new[] { 1, 2, 3 }, left.Value);
     }
 
     [Fact]
@@ -171,10 +148,7 @@ public class CollectionExtensionsEnhancedTests
 
         // Assert
         Assert.True(result is Either<IEnumerable<int>, string>.Right);
-        if (result is Either<IEnumerable<int>, string>.Right right)
-        {
-            Assert.Equal("Invalid: invalid", right.Value);
-        }
+        if (result is Either<IEnumerable<int>, string>.Right right) Assert.Equal("Invalid: invalid", right.Value);
     }
 
     [Fact]
@@ -192,10 +166,7 @@ public class CollectionExtensionsEnhancedTests
 
         // Assert
         Assert.True(result is Either<IEnumerable<int>, string>.Left);
-        if (result is Either<IEnumerable<int>, string>.Left left)
-        {
-            Assert.Empty(left.Value);
-        }
+        if (result is Either<IEnumerable<int>, string>.Left left) Assert.Empty(left.Value);
     }
 
     [Fact]
@@ -213,10 +184,7 @@ public class CollectionExtensionsEnhancedTests
 
         // Assert
         Assert.True(result is Either<string, IEnumerable<int>>.Right);
-        if (result is Either<string, IEnumerable<int>>.Right right)
-        {
-            Assert.Equal(new[] { 1, 2, 3 }, right.Value);
-        }
+        if (result is Either<string, IEnumerable<int>>.Right right) Assert.Equal(new[] { 1, 2, 3 }, right.Value);
     }
 
     [Fact]
@@ -234,10 +202,7 @@ public class CollectionExtensionsEnhancedTests
 
         // Assert
         Assert.True(result is Either<string, IEnumerable<int>>.Left);
-        if (result is Either<string, IEnumerable<int>>.Left left)
-        {
-            Assert.Equal("Invalid: invalid", left.Value);
-        }
+        if (result is Either<string, IEnumerable<int>>.Left left) Assert.Equal("Invalid: invalid", left.Value);
     }
 
     [Fact]
@@ -255,12 +220,8 @@ public class CollectionExtensionsEnhancedTests
 
         // Assert
         Assert.True(result is Either<string, IEnumerable<int>>.Right);
-        if (result is Either<string, IEnumerable<int>>.Right right)
-        {
-            Assert.Empty(right.Value);
-        }
+        if (result is Either<string, IEnumerable<int>>.Right right) Assert.Empty(right.Value);
     }
-
 
 
     [Fact]
@@ -278,10 +239,7 @@ public class CollectionExtensionsEnhancedTests
 
         // Assert
         Assert.True(result.IsSuccess);
-        if (result.TryGetValue(out var values))
-        {
-            Assert.Equal(new[] { 1, 2, 3 }, values);
-        }
+        if (result.TryGetValue(out var values)) Assert.Equal(new[] { 1, 2, 3 }, values);
     }
 
     [Fact]
@@ -322,10 +280,7 @@ public class CollectionExtensionsEnhancedTests
 
         // Assert
         Assert.True(result.IsSuccess);
-        if (result.TryGetValue(out var values))
-        {
-            Assert.Empty(values);
-        }
+        if (result.TryGetValue(out var values)) Assert.Empty(values);
     }
 
     [Fact]
@@ -350,7 +305,6 @@ public class CollectionExtensionsEnhancedTests
             Assert.Contains("Format error: bad", errors);
         }
     }
-
 
 
     [Fact]
@@ -431,7 +385,6 @@ public class CollectionExtensionsEnhancedTests
     }
 
 
-
     [Fact]
     public void FirstOk_WithOk_ReturnsFirstOk()
     {
@@ -508,7 +461,6 @@ public class CollectionExtensionsEnhancedTests
     }
 
 
-
     [Fact]
     public void FirstSome_WithSome_ReturnsFirstSome()
     {
@@ -526,10 +478,7 @@ public class CollectionExtensionsEnhancedTests
 
         // Assert
         Assert.True(result is Option<int>.Some);
-        if (result is Option<int>.Some some)
-        {
-            Assert.Equal(42, some.Value);
-        }
+        if (result is Option<int>.Some some) Assert.Equal(42, some.Value);
     }
 
     [Fact]
@@ -583,7 +532,6 @@ public class CollectionExtensionsEnhancedTests
     }
 
 
-
     [Fact]
     public void Choose_FindsFirstValidTransformation()
     {
@@ -599,10 +547,7 @@ public class CollectionExtensionsEnhancedTests
 
         // Assert
         Assert.True(result is Option<int>.Some);
-        if (result is Option<int>.Some some)
-        {
-            Assert.Equal(42, some.Value);
-        }
+        if (result is Option<int>.Some some) Assert.Equal(42, some.Value);
     }
 
     [Fact]
@@ -661,7 +606,6 @@ public class CollectionExtensionsEnhancedTests
         Assert.Equal(6, callCount); // Should stop after finding first valid (index 5)
         Assert.True(result is Option<int>.Some);
     }
-
 
 
     [Fact]
@@ -748,7 +692,6 @@ public class CollectionExtensionsEnhancedTests
         Assert.True(result.TryGetValue(out var values));
         Assert.Empty(values);
     }
-
 
 
     [Fact]
@@ -849,7 +792,6 @@ public class CollectionExtensionsEnhancedTests
     }
 
 
-
     [Fact]
     public void AnySome_WithSome_ReturnsTrue()
     {
@@ -946,7 +888,6 @@ public class CollectionExtensionsEnhancedTests
         // Assert
         Assert.True(allSome); // Empty collection vacuously satisfies "all"
     }
-
 
 
     [Fact]
@@ -1100,7 +1041,6 @@ public class CollectionExtensionsEnhancedTests
     }
 
 
-
     [Fact]
     public void FormValidation_AccumulatesAllFieldErrors()
     {
@@ -1133,20 +1073,26 @@ public class CollectionExtensionsEnhancedTests
         }
 
         // Helper methods
-        Validation<string, string> ValidateName(string name) =>
-            string.IsNullOrWhiteSpace(name)
+        Validation<string, string> ValidateName(string name)
+        {
+            return string.IsNullOrWhiteSpace(name)
                 ? Validation<string, string>.Invalid("Name is required")
                 : Validation<string, string>.Valid(name);
+        }
 
-        Validation<string, string> ValidateEmail(string email) =>
-            email.Contains("@")
+        Validation<string, string> ValidateEmail(string email)
+        {
+            return email.Contains("@")
                 ? Validation<string, string>.Valid(email)
                 : Validation<string, string>.Invalid("Invalid email format");
+        }
 
-        Validation<string, string> ValidateAge(string age) =>
-            int.TryParse(age, out var _)
+        Validation<string, string> ValidateAge(string age)
+        {
+            return int.TryParse(age, out var _)
                 ? Validation<string, string>.Valid(age)
                 : Validation<string, string>.Invalid("Age must be a number");
+        }
     }
 
     [Fact]
@@ -1165,10 +1111,12 @@ public class CollectionExtensionsEnhancedTests
         Assert.Contains("Failed to process corrupt.txt", failures);
 
         // Helper method
-        Result<string, string> ProcessFile(string filename) =>
-            filename.Contains("corrupt")
+        Result<string, string> ProcessFile(string filename)
+        {
+            return filename.Contains("corrupt")
                 ? Result<string, string>.Err($"Failed to process {filename}")
                 : Result<string, string>.Ok($"Processed {filename}");
+        }
     }
 
     [Fact]
@@ -1183,16 +1131,14 @@ public class CollectionExtensionsEnhancedTests
 
         // Assert
         Assert.True(config.IsSuccess);
-        if (config.TryGetValue(out var value))
-        {
-            Assert.Equal("config.json", value); // Falls back to default config
-        }
+        if (config.TryGetValue(out var value)) Assert.Equal("config.json", value); // Falls back to default config
 
         // Helper method
-        Result<string, string> LoadConfig(string source) =>
-            source == "config.json"
+        Result<string, string> LoadConfig(string source)
+        {
+            return source == "config.json"
                 ? Result<string, string>.Ok(source)
                 : Result<string, string>.Err($"{source} not found");
+        }
     }
-
 }

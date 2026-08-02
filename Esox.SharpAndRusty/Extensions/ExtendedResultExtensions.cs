@@ -7,8 +7,8 @@ public static class ExtendedResultExtensions
     extension<T, E>(ExtendedResult<T, E> result)
     {
         /// <summary>
-        /// Transforms the success value of a result using the specified mapper function.
-        /// If the result is a failure, the error is propagated unchanged.
+        ///     Transforms the success value of a result using the specified mapper function.
+        ///     If the result is a failure, the error is propagated unchanged.
         /// </summary>
         /// <typeparam name="U">The type of the transformed success value.</typeparam>
         /// <param name="mapper">A function to transform the success value.</param>
@@ -27,8 +27,9 @@ public static class ExtendedResultExtensions
         }
 
         /// <summary>
-        /// Chains together two operations that return results, allowing the second operation to depend on the success value of the first.
-        /// If the result is a failure, the error is propagated unchanged without calling the binder function.
+        ///     Chains together two operations that return results, allowing the second operation to depend on the success value of
+        ///     the first.
+        ///     If the result is a failure, the error is propagated unchanged without calling the binder function.
         /// </summary>
         /// <typeparam name="U">The type of the success value in the result returned by the binder.</typeparam>
         /// <param name="binder">A function that takes the success value and returns a new result.</param>
@@ -48,7 +49,7 @@ public static class ExtendedResultExtensions
         }
 
         /// <summary>
-        /// Extracts the success value from a result, or throws an exception if the result is a failure. Use with care.
+        ///     Extracts the success value from a result, or throws an exception if the result is a failure. Use with care.
         /// </summary>
         /// <returns>The success value contained in the result.</returns>
         /// <exception cref="InvalidOperationException">Thrown when attempting to unwrap a failure result.</exception>
@@ -63,15 +64,16 @@ public static class ExtendedResultExtensions
         }
 
         /// <summary>
-        /// Extracts the success value from a result with a custom error message, or throws an exception if the result is a failure.
-        /// Provides better context than <see cref="Unwrap"/> for debugging.
+        ///     Extracts the success value from a result with a custom error message, or throws an exception if the result is a
+        ///     failure.
+        ///     Provides better context than <see cref="Unwrap" /> for debugging.
         /// </summary>
         /// <param name="message">Custom error message to include in the exception.</param>
         /// <returns>The success value contained in the result.</returns>
         /// <exception cref="InvalidOperationException">Thrown with custom message when attempting to unwrap a failure result.</exception>
         /// <exception cref="ArgumentNullException">Thrown when message is null.</exception>
         /// <example>
-        /// <code>
+        ///     <code>
         /// var userId = userResult.Expect("User ID is required for this operation");
         /// </code>
         /// </example>
@@ -88,15 +90,15 @@ public static class ExtendedResultExtensions
         }
 
         /// <summary>
-        /// Transforms the error value while preserving the success value.
-        /// Useful for converting between different error types in a pipeline.
+        ///     Transforms the error value while preserving the success value.
+        ///     Useful for converting between different error types in a pipeline.
         /// </summary>
         /// <typeparam name="E2">The new error type.</typeparam>
         /// <param name="errorMapper">A function to transform the error value.</param>
         /// <returns>A new result with the same success value but transformed error type.</returns>
         /// <exception cref="ArgumentNullException">Thrown when errorMapper is null.</exception>
         /// <example>
-        /// <code>
+        ///     <code>
         /// Result&lt;User, string&gt; result = GetUser(id);
         /// Result&lt;User, ErrorCode&gt; mapped = result.MapError(msg => ErrorCode.NotFound);
         /// </code>
@@ -114,15 +116,15 @@ public static class ExtendedResultExtensions
         }
 
         /// <summary>
-        /// Executes actions on both success and failure without transforming the result.
-        /// Combines <see cref="Result{T,E}.Inspect"/> and <see cref="Result{T,E}.InspectErr"/> into a single call.
+        ///     Executes actions on both success and failure without transforming the result.
+        ///     Combines <see cref="Result{T,E}.Inspect" /> and <see cref="Result{T,E}.InspectErr" /> into a single call.
         /// </summary>
         /// <param name="onSuccess">Action to execute if the result is successful.</param>
         /// <param name="onFailure">Action to execute if the result is a failure.</param>
         /// <returns>The original result unchanged.</returns>
         /// <exception cref="ArgumentNullException">Thrown when onSuccess or onFailure is null.</exception>
         /// <example>
-        /// <code>
+        ///     <code>
         /// result.Tap(
         ///     onSuccess: user => Logger.Info($"Found user: {user.Name}"),
         ///     onFailure: error => Logger.Error($"Error: {error}")
@@ -140,17 +142,17 @@ public static class ExtendedResultExtensions
         }
 
         /// <summary>
-        /// Projects the success value of the result using a selector function.
-        /// This method enables LINQ query comprehension syntax for Result types with select projections.
-        /// Equivalent to <see cref="Map{U}(x)"/>.
-        /// If the result is a failure, the error is propagated unchanged without calling the selector.
+        ///     Projects the success value of the result using a selector function.
+        ///     This method enables LINQ query comprehension syntax for Result types with select projections.
+        ///     Equivalent to <see cref="Map{U}(x)" />.
+        ///     If the result is a failure, the error is propagated unchanged without calling the selector.
         /// </summary>
         /// <typeparam name="U">The type of the projected success value.</typeparam>
         /// <param name="selector">A transform function to apply to the success value.</param>
         /// <returns>A new result with the projected value if successful; otherwise, the original error.</returns>
         /// <exception cref="ArgumentNullException">Thrown when selector is null.</exception>
         /// <example>
-        /// <code>
+        ///     <code>
         /// var result = from x in Result&lt;int, string&gt;.Ok(10)
         ///              select x * 2;
         /// </code>
@@ -162,17 +164,17 @@ public static class ExtendedResultExtensions
         }
 
         /// <summary>
-        /// Projects the success value of the result into a new result using a selector function.
-        /// This method enables LINQ query comprehension syntax for Result types.
-        /// Equivalent to <see cref="Bind{U}(x)"/>.
-        /// If the result is a failure, the error is propagated unchanged without calling the selector.
+        ///     Projects the success value of the result into a new result using a selector function.
+        ///     This method enables LINQ query comprehension syntax for Result types.
+        ///     Equivalent to <see cref="Bind{U}(x)" />.
+        ///     If the result is a failure, the error is propagated unchanged without calling the selector.
         /// </summary>
         /// <typeparam name="U">The type of the success value in the result returned by the selector.</typeparam>
         /// <param name="selector">A transform function to apply to the success value.</param>
         /// <returns>The result returned by the selector if the original result is successful; otherwise, the original error.</returns>
         /// <exception cref="ArgumentNullException">Thrown when selector is null.</exception>
         /// <example>
-        /// <code>
+        ///     <code>
         /// var result = from x in ParseInt("10")
         ///              from y in ParseInt("20")
         ///              select x + y;
@@ -185,21 +187,22 @@ public static class ExtendedResultExtensions
         }
 
         /// <summary>
-        /// Projects the success value of the result into a new result and invokes a result selector function on both values.
-        /// This method enables LINQ query comprehension syntax with multiple from clauses and a select projection.
-        /// If either the original result or the selector result is a failure, the error is propagated unchanged.
+        ///     Projects the success value of the result into a new result and invokes a result selector function on both values.
+        ///     This method enables LINQ query comprehension syntax with multiple from clauses and a select projection.
+        ///     If either the original result or the selector result is a failure, the error is propagated unchanged.
         /// </summary>
         /// <typeparam name="U">The type of the intermediate success value returned by the selector.</typeparam>
         /// <typeparam name="V">The type of the final success value returned by the projector.</typeparam>
         /// <param name="selector">A transform function to apply to the original success value, returning an intermediate result.</param>
         /// <param name="projector">A function to create the final success value from the original and intermediate success values.</param>
         /// <returns>
-        /// A result containing the value produced by the projector if both the original and intermediate results are successful;
-        /// otherwise, the first error encountered.
+        ///     A result containing the value produced by the projector if both the original and intermediate results are
+        ///     successful;
+        ///     otherwise, the first error encountered.
         /// </returns>
         /// <exception cref="ArgumentNullException">Thrown when selector or projector is null.</exception>
         /// <example>
-        /// <code>
+        ///     <code>
         /// var result = from x in ParseInt("10")
         ///              from y in ParseInt("20")
         ///              select x + y;
@@ -226,16 +229,16 @@ public static class ExtendedResultExtensions
     extension<T, E>(IEnumerable<ExtendedResult<T, E>> results)
     {
         /// <summary>
-        /// Combines multiple results into a single result containing a collection of values.
-        /// If any result is an error, returns the first error encountered.
+        ///     Combines multiple results into a single result containing a collection of values.
+        ///     If any result is an error, returns the first error encountered.
         /// </summary>
         /// <returns>
-        /// A result containing all success values if all results are successful;
-        /// otherwise, the first error encountered.
+        ///     A result containing all success values if all results are successful;
+        ///     otherwise, the first error encountered.
         /// </returns>
         /// <exception cref="ArgumentNullException">Thrown when results is null.</exception>
         /// <example>
-        /// <code>
+        ///     <code>
         /// var userIds = new[] { 1, 2, 3 };
         /// var results = userIds.Select(id => GetUser(id));
         /// Result&lt;IEnumerable&lt;User&gt;, string&gt; combined = results.Combine();
@@ -260,13 +263,13 @@ public static class ExtendedResultExtensions
         }
 
         /// <summary>
-        /// Separates a collection of results into successes and failures.
-        /// Useful for batch operations where you want to process both successful and failed results.
+        ///     Separates a collection of results into successes and failures.
+        ///     Useful for batch operations where you want to process both successful and failed results.
         /// </summary>
         /// <returns>A tuple containing lists of successes and failures.</returns>
         /// <exception cref="ArgumentNullException">Thrown when results is null.</exception>
         /// <example>
-        /// <code>
+        ///     <code>
         /// var results = userIds.Select(id => GetUser(id));
         /// var (successes, failures) = results.Partition();
         /// Console.WriteLine($"Found {successes.Count} users, {failures.Count} errors");

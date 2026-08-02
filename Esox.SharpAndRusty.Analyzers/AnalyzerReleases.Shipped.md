@@ -5,8 +5,8 @@
 
 ### New Rules
 
-Rule ID | Category | Severity | Notes
---------|----------|----------|-------
-ESOX1001 | Usage | Warning | Result value must be used
-ESOX1002 | Usage | Warning | Option value must be used
+ Rule ID  | Category | Severity | Notes                     
+----------|----------|----------|---------------------------
+ ESOX1001 | Usage    | Warning  | Result value must be used 
+ ESOX1002 | Usage    | Warning  | Option value must be used 
 

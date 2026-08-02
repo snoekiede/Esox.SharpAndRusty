@@ -1,11 +1,10 @@
-using Esox.SharpAndRusty.Types;
 using Esox.SharpAndRusty.Extensions;
+using Esox.SharpAndRusty.Types;
 
 namespace Esox.SharpAndRust.Tests.Extensions;
 
 public class OptionExtensionsTests
 {
-
     [Fact]
     public void IsSome_WithSome_ReturnsTrue()
     {
@@ -43,7 +42,6 @@ public class OptionExtensionsTests
         Assert.True(someOption.IsSome());
         Assert.False(noneOption.IsSome());
     }
-
 
 
     [Fact]
@@ -95,7 +93,6 @@ public class OptionExtensionsTests
         Assert.True(someOption.IsSome() != someOption.IsNone());
         Assert.True(noneOption.IsSome() != noneOption.IsNone());
     }
-
 
 
     [Fact]
@@ -170,7 +167,6 @@ public class OptionExtensionsTests
         Assert.Same(user, someResult);
         Assert.Same(defaultUser, noneResult);
     }
-
 
 
     [Fact]
@@ -263,7 +259,6 @@ public class OptionExtensionsTests
         // Assert
         Assert.Equal(20, result);
     }
-
 
 
     [Fact]
@@ -374,7 +369,6 @@ public class OptionExtensionsTests
     }
 
 
-
     [Fact]
     public void Bind_WithSome_CallsBinder()
     {
@@ -444,7 +438,7 @@ public class OptionExtensionsTests
         var result = option
             .Bind(x => new Option<int>.Some(x * 2))
             .Bind(x => new Option<int>.None()) // Returns None here
-            .Bind(x => 
+            .Bind(x =>
             {
                 thirdBindCalled = true;
                 return new Option<int>.Some(x + 100);
@@ -474,10 +468,12 @@ public class OptionExtensionsTests
         Option<int> smallOption = new Option<int>.Some(5);
 
         // Define a function that does conditional binding
-        static Option<string> ConditionalBind(int x) =>
-            x > 10 
-                ? new Option<string>.Some("Large") 
+        static Option<string> ConditionalBind(int x)
+        {
+            return x > 10
+                ? new Option<string>.Some("Large")
                 : new Option<string>.None();
+        }
 
         // Act - Bind with conditional logic
         var largeResult = largeOption.Bind(ConditionalBind);
@@ -496,10 +492,10 @@ public class OptionExtensionsTests
 
         // Act - Map always wraps in Some
         var mapResult = option.Map(x => x > 10 ? x : 0);
-        
+
         // Act - Bind can return None
-        var bindResult = option.Bind(x => 
-            new Option<int>.Some(x) // Always returns Some for this test
+        var bindResult = option.Bind(x =>
+                new Option<int>.Some(x) // Always returns Some for this test
         );
 
         // Assert
@@ -508,7 +504,6 @@ public class OptionExtensionsTests
         Assert.Equal(42, ((Option<int>.Some)mapResult).Value);
         Assert.Equal(42, ((Option<int>.Some)bindResult).Value);
     }
-
 
 
     [Fact]
@@ -521,8 +516,8 @@ public class OptionExtensionsTests
 
         // Act
         option.Match(
-            onSome: value => someValue = value,
-            onNone: () => noneCalled = true
+            value => someValue = value,
+            () => noneCalled = true
         );
 
         // Assert
@@ -540,8 +535,8 @@ public class OptionExtensionsTests
 
         // Act
         option.Match(
-            onSome: value => someValue = value,
-            onNone: () => noneCalled = true
+            value => someValue = value,
+            () => noneCalled = true
         );
 
         // Assert
@@ -558,12 +553,12 @@ public class OptionExtensionsTests
 
         // Act
         option.Match(
-            onSome: value =>
+            value =>
             {
                 log.Add($"Found: {value}");
                 log.Add($"Length: {value.Length}");
             },
-            onNone: () => log.Add("Not found")
+            () => log.Add("Not found")
         );
 
         // Assert
@@ -581,8 +576,8 @@ public class OptionExtensionsTests
 
         // Act
         option.Match(
-            onSome: value => log.Add($"Found: {value}"),
-            onNone: () =>
+            value => log.Add($"Found: {value}"),
+            () =>
             {
                 log.Add("Not found");
                 log.Add("Using default");
@@ -596,7 +591,6 @@ public class OptionExtensionsTests
     }
 
 
-
     [Fact]
     public void Match_Func_WithSome_ReturnsOnSomeResult()
     {
@@ -605,8 +599,8 @@ public class OptionExtensionsTests
 
         // Act
         var result = option.Match(
-            onSome: value => $"Value: {value}",
-            onNone: () => "No value"
+            value => $"Value: {value}",
+            () => "No value"
         );
 
         // Assert
@@ -621,8 +615,8 @@ public class OptionExtensionsTests
 
         // Act
         var result = option.Match(
-            onSome: value => $"Value: {value}",
-            onNone: () => "No value"
+            value => $"Value: {value}",
+            () => "No value"
         );
 
         // Assert
@@ -638,13 +632,13 @@ public class OptionExtensionsTests
 
         // Act
         var someResult = someOption.Match(
-            onSome: value => value * 2,
-            onNone: () => 0
+            value => value * 2,
+            () => 0
         );
 
         var noneResult = noneOption.Match(
-            onSome: value => value * 2,
-            onNone: () => 0
+            value => value * 2,
+            () => 0
         );
 
         // Assert
@@ -660,8 +654,8 @@ public class OptionExtensionsTests
 
         // Act
         var result = option.Match(
-            onSome: value => new { Text = value, Length = value.Length },
-            onNone: () => new { Text = "default", Length = 0 }
+            value => new { Text = value, value.Length },
+            () => new { Text = "default", Length = 0 }
         );
 
         // Assert
@@ -677,8 +671,8 @@ public class OptionExtensionsTests
 
         // Act
         var result = option.Match(
-            onSome: value => value > 10 ? "Large" : "Small",
-            onNone: () => "Unknown"
+            value => value > 10 ? "Large" : "Small",
+            () => "Unknown"
         );
 
         // Assert
@@ -693,7 +687,7 @@ public class OptionExtensionsTests
         Func<int, string> onSome = null!;
 
         // Act & Assert
-        Assert.Throws<NullReferenceException>(() => 
+        Assert.Throws<NullReferenceException>(() =>
             option.Match(onSome, () => "default")
         );
     }
@@ -707,14 +701,13 @@ public class OptionExtensionsTests
 
         // Act
         var result = option.Match(
-            onSome: value => $"Value: {value}",
-            onNone: onNone
+            value => $"Value: {value}",
+            onNone
         );
 
         // Assert
         Assert.Equal("Value: 42", result);
     }
-
 
 
     [Fact]
@@ -727,8 +720,8 @@ public class OptionExtensionsTests
         var greeting = userOption
             .Map(name => name.ToUpper())
             .Match(
-                onSome: name => $"Hello, {name}!",
-                onNone: () => "Hello, Guest!"
+                name => $"Hello, {name}!",
+                () => "Hello, Guest!"
             );
 
         // Assert
@@ -757,11 +750,15 @@ public class OptionExtensionsTests
         Option<int> inputOption = new Option<int>.Some(25);
 
         // Define validation functions
-        static Option<int> ValidatePositive(int value) =>
-            value > 0 ? new Option<int>.Some(value) : new Option<int>.None();
-            
-        static Option<int> ValidateLessThan100(int value) =>
-            value < 100 ? new Option<int>.Some(value) : new Option<int>.None();
+        static Option<int> ValidatePositive(int value)
+        {
+            return value > 0 ? new Option<int>.Some(value) : new Option<int>.None();
+        }
+
+        static Option<int> ValidateLessThan100(int value)
+        {
+            return value < 100 ? new Option<int>.Some(value) : new Option<int>.None();
+        }
 
         // Act
         var result = inputOption
@@ -771,10 +768,7 @@ public class OptionExtensionsTests
 
         // Assert
         Assert.True(result.IsSome());
-        if (result is Option<string>.Some some)
-        {
-            Assert.Equal("Valid age: 25", some.Value);
-        }
+        if (result is Option<string>.Some some) Assert.Equal("Valid age: 25", some.Value);
     }
 
     [Fact]
@@ -784,8 +778,10 @@ public class OptionExtensionsTests
         Option<int> option = new Option<int>.Some(10);
 
         // Define filter function
-        static Option<int> FilterGreaterThan15(int x) =>
-            x > 15 ? new Option<int>.Some(x) : new Option<int>.None();
+        static Option<int> FilterGreaterThan15(int x)
+        {
+            return x > 15 ? new Option<int>.Some(x) : new Option<int>.None();
+        }
 
         // Act
         var result = option
@@ -793,8 +789,8 @@ public class OptionExtensionsTests
             .Bind(FilterGreaterThan15) // Some(20)
             .Map(x => x + 5) // 25
             .Match(
-                onSome: x => $"Final: {x}",
-                onNone: () => "Failed"
+                x => $"Final: {x}",
+                () => "Failed"
             );
 
         // Assert
@@ -822,7 +818,6 @@ public class OptionExtensionsTests
     }
 
 
-
     [Fact]
     public void Filter_WithSomeAndPredicateTrue_ReturnsSome()
     {
@@ -834,10 +829,7 @@ public class OptionExtensionsTests
 
         // Assert
         Assert.True(result.IsSome());
-        if (result is Option<int>.Some some)
-        {
-            Assert.Equal(42, some.Value);
-        }
+        if (result is Option<int>.Some some) Assert.Equal(42, some.Value);
     }
 
     [Fact]
@@ -884,10 +876,7 @@ public class OptionExtensionsTests
 
         // Assert
         Assert.True(result.IsSome());
-        if (result is Option<string>.Some some)
-        {
-            Assert.Equal("hello", some.Value);
-        }
+        if (result is Option<string>.Some some) Assert.Equal("hello", some.Value);
     }
 
     [Fact]
@@ -898,16 +887,13 @@ public class OptionExtensionsTests
 
         // Act
         var result = option
-            .Filter(x => x > 0)      // Pass
-            .Filter(x => x < 100)    // Pass
+            .Filter(x => x > 0) // Pass
+            .Filter(x => x < 100) // Pass
             .Filter(x => x % 2 == 0); // Pass (50 is even)
 
         // Assert
         Assert.True(result.IsSome());
-        if (result is Option<int>.Some some)
-        {
-            Assert.Equal(50, some.Value);
-        }
+        if (result is Option<int>.Some some) Assert.Equal(50, some.Value);
     }
 
     [Fact]
@@ -919,8 +905,8 @@ public class OptionExtensionsTests
 
         // Act
         var result = option
-            .Filter(x => x > 0)      // Pass
-            .Filter(x => x < 25)     // Fail
+            .Filter(x => x > 0) // Pass
+            .Filter(x => x < 25) // Fail
             .Filter(x =>
             {
                 thirdFilterCalled = true;
@@ -954,10 +940,7 @@ public class OptionExtensionsTests
 
         // Assert
         Assert.True(validAge.IsSome());
-        if (validAge is Option<int>.Some some)
-        {
-            Assert.Equal(25, some.Value);
-        }
+        if (validAge is Option<int>.Some some) Assert.Equal(25, some.Value);
     }
 
     [Fact]
@@ -971,10 +954,7 @@ public class OptionExtensionsTests
 
         // Assert
         Assert.True(validEmail.IsSome());
-        if (validEmail is Option<string>.Some some)
-        {
-            Assert.Equal("test@example.com", some.Value);
-        }
+        if (validEmail is Option<string>.Some some) Assert.Equal("test@example.com", some.Value);
     }
 
     [Fact]
@@ -985,17 +965,14 @@ public class OptionExtensionsTests
 
         // Act
         var result = option
-            .Map(x => x * 2)           // 20
-            .Filter(x => x > 15)       // Pass (20 > 15)
+            .Map(x => x * 2) // 20
+            .Filter(x => x > 15) // Pass (20 > 15)
             .Bind(x => new Option<string>.Some($"Value: {x}"))
             .Filter(s => s.Length > 5); // Pass
 
         // Assert
         Assert.True(result.IsSome());
-        if (result is Option<string>.Some some)
-        {
-            Assert.Equal("Value: 20", some.Value);
-        }
+        if (result is Option<string>.Some some) Assert.Equal("Value: 20", some.Value);
     }
 
     [Fact]
@@ -1022,10 +999,7 @@ public class OptionExtensionsTests
 
         // Assert
         Assert.True(result.IsSome());
-        if (result is Option<int>.Some some)
-        {
-            Assert.Equal(42, some.Value);
-        }
+        if (result is Option<int>.Some some) Assert.Equal(42, some.Value);
     }
 
     [Fact]
@@ -1040,7 +1014,6 @@ public class OptionExtensionsTests
         // Assert
         Assert.True(result.IsNone());
     }
-
 
 
     [Fact]
@@ -1156,8 +1129,8 @@ public class OptionExtensionsTests
             .Map(p => p)
             .Filter(p => p != null)
             .Match(
-                onSome: p => "Found",
-                onNone: () => "Not Found"
+                p => "Found",
+                () => "Not Found"
             );
 
         // Assert
@@ -1184,7 +1157,11 @@ public class OptionExtensionsTests
 
         // Act & Assert
         Assert.Throws<InvalidOperationException>(() =>
-            option.Map(x => { throw new InvalidOperationException("Mapper failed"); return x; })
+            option.Map(x =>
+            {
+                throw new InvalidOperationException("Mapper failed");
+                return x;
+            })
         );
     }
 
@@ -1196,7 +1173,11 @@ public class OptionExtensionsTests
 
         // Act & Assert
         Assert.Throws<InvalidOperationException>(() =>
-            option.Bind(x => { throw new InvalidOperationException("Binder failed"); return new Option<int>.Some(x); })
+            option.Bind(x =>
+            {
+                throw new InvalidOperationException("Binder failed");
+                return new Option<int>.Some(x);
+            })
         );
     }
 
@@ -1209,8 +1190,8 @@ public class OptionExtensionsTests
         // Act & Assert
         Assert.Throws<InvalidOperationException>(() =>
             option.Match(
-                onSome: x => throw new InvalidOperationException("OnSome failed"),
-                onNone: () => "default"
+                x => throw new InvalidOperationException("OnSome failed"),
+                () => "default"
             )
         );
     }
@@ -1224,8 +1205,8 @@ public class OptionExtensionsTests
         // Act & Assert
         Assert.Throws<InvalidOperationException>(() =>
             option.Match(
-                onSome: x => $"Value: {x}",
-                onNone: () => throw new InvalidOperationException("OnNone failed")
+                x => $"Value: {x}",
+                () => throw new InvalidOperationException("OnNone failed")
             )
         );
     }
@@ -1241,5 +1222,4 @@ public class OptionExtensionsTests
             option.GetValueOrElse(() => throw new InvalidOperationException("Factory failed"))
         );
     }
-
 }

@@ -1,11 +1,10 @@
-using Esox.SharpAndRusty.Types;
 using Esox.SharpAndRusty.Extensions;
+using Esox.SharpAndRusty.Types;
 
 namespace Esox.SharpAndRust.Tests.Extensions;
 
 public class AsyncOptionExtensionsTests
 {
-
     [Fact]
     public async Task MapAsync_WithSome_TransformsValue()
     {
@@ -21,10 +20,7 @@ public class AsyncOptionExtensionsTests
 
         // Assert
         Assert.True(result.IsSome());
-        if (result is Option<string>.Some some)
-        {
-            Assert.Equal("42", some.Value);
-        }
+        if (result is Option<string>.Some some) Assert.Equal("42", some.Value);
     }
 
     [Fact]
@@ -65,7 +61,6 @@ public class AsyncOptionExtensionsTests
     }
 
 
-
     [Fact]
     public async Task BindAsync_WithSome_ReturnsBoundResult()
     {
@@ -83,10 +78,7 @@ public class AsyncOptionExtensionsTests
 
         // Assert
         Assert.True(result.IsSome());
-        if (result is Option<string>.Some some)
-        {
-            Assert.Equal("Large: 42", some.Value);
-        }
+        if (result is Option<string>.Some some) Assert.Equal("Large: 42", some.Value);
     }
 
     [Fact]
@@ -129,7 +121,6 @@ public class AsyncOptionExtensionsTests
     }
 
 
-
     [Fact]
     public async Task FilterAsync_WithSomeAndPredicateTrue_ReturnsSome()
     {
@@ -145,10 +136,7 @@ public class AsyncOptionExtensionsTests
 
         // Assert
         Assert.True(result.IsSome());
-        if (result is Option<int>.Some some)
-        {
-            Assert.Equal(42, some.Value);
-        }
+        if (result is Option<int>.Some some) Assert.Equal(42, some.Value);
     }
 
     [Fact]
@@ -189,7 +177,6 @@ public class AsyncOptionExtensionsTests
     }
 
 
-
     [Fact]
     public async Task InspectAsync_WithSome_CallsInspector()
     {
@@ -207,10 +194,7 @@ public class AsyncOptionExtensionsTests
         // Assert
         Assert.Equal(42, inspectedValue);
         Assert.True(result.IsSome());
-        if (result is Option<int>.Some some)
-        {
-            Assert.Equal(42, some.Value);
-        }
+        if (result is Option<int>.Some some) Assert.Equal(42, some.Value);
     }
 
     [Fact]
@@ -231,7 +215,6 @@ public class AsyncOptionExtensionsTests
         Assert.False(inspectorCalled);
         Assert.True(result.IsNone());
     }
-
 
 
     [Fact]
@@ -271,7 +254,6 @@ public class AsyncOptionExtensionsTests
         Assert.False(inspectorCalled);
         Assert.True(result.IsSome());
     }
-
 
 
     [Fact]
@@ -327,7 +309,6 @@ public class AsyncOptionExtensionsTests
     }
 
 
-
     [Fact]
     public async Task MatchAsync_Func_WithSome_ReturnsOnSomeResult()
     {
@@ -375,7 +356,6 @@ public class AsyncOptionExtensionsTests
     }
 
 
-
     [Fact]
     public async Task OkOrElseAsync_WithSome_ReturnsOk()
     {
@@ -416,7 +396,6 @@ public class AsyncOptionExtensionsTests
         Assert.True(result.TryGetError(out var error));
         Assert.Equal("Error message", error);
     }
-
 
 
     [Fact]
@@ -489,10 +468,7 @@ public class AsyncOptionExtensionsTests
 
         // Assert
         Assert.True(result.IsSome());
-        if (result is Option<string>.Some some)
-        {
-            Assert.Equal("User42", some.Value);
-        }
+        if (result is Option<string>.Some some) Assert.Equal("User42", some.Value);
     }
 
     [Fact]
@@ -550,5 +526,4 @@ public class AsyncOptionExtensionsTests
         Assert.True(result.TryGetError(out var error));
         Assert.Equal("Value not found during async lookup", error);
     }
-
 }

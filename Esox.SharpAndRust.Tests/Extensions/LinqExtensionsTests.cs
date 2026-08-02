@@ -1,11 +1,10 @@
-using Esox.SharpAndRusty.Types;
 using Esox.SharpAndRusty.Extensions;
+using Esox.SharpAndRusty.Types;
 
 namespace Esox.SharpAndRust.Tests.Extensions;
 
 public class LinqExtensionsTests
 {
-
     [Fact]
     public void Option_Select_WithSome_TransformsValue()
     {
@@ -14,14 +13,11 @@ public class LinqExtensionsTests
 
         // Act
         var result = from x in option
-                     select x * 2;
+            select x * 2;
 
         // Assert
         Assert.True(result.IsSome());
-        if (result is Option<int>.Some some)
-        {
-            Assert.Equal(84, some.Value);
-        }
+        if (result is Option<int>.Some some) Assert.Equal(84, some.Value);
     }
 
     [Fact]
@@ -32,7 +28,7 @@ public class LinqExtensionsTests
 
         // Act
         var result = from x in option
-                     select x * 2;
+            select x * 2;
 
         // Assert
         Assert.True(result.IsNone());
@@ -47,15 +43,12 @@ public class LinqExtensionsTests
 
         // Act
         var result = from x in option1
-                     from y in option2
-                     select x + y;
+            from y in option2
+            select x + y;
 
         // Assert
         Assert.True(result.IsSome());
-        if (result is Option<int>.Some some)
-        {
-            Assert.Equal(30, some.Value);
-        }
+        if (result is Option<int>.Some some) Assert.Equal(30, some.Value);
     }
 
     [Fact]
@@ -67,8 +60,8 @@ public class LinqExtensionsTests
 
         // Act
         var result = from x in option1
-                     from y in option2
-                     select x + y;
+            from y in option2
+            select x + y;
 
         // Assert
         Assert.True(result.IsNone());
@@ -83,8 +76,8 @@ public class LinqExtensionsTests
 
         // Act
         var result = from x in option1
-                     from y in option2
-                     select x + y;
+            from y in option2
+            select x + y;
 
         // Assert
         Assert.True(result.IsNone());
@@ -98,15 +91,12 @@ public class LinqExtensionsTests
 
         // Act
         var result = from x in option
-                     where x > 10
-                     select x;
+            where x > 10
+            select x;
 
         // Assert
         Assert.True(result.IsSome());
-        if (result is Option<int>.Some some)
-        {
-            Assert.Equal(42, some.Value);
-        }
+        if (result is Option<int>.Some some) Assert.Equal(42, some.Value);
     }
 
     [Fact]
@@ -117,8 +107,8 @@ public class LinqExtensionsTests
 
         // Act
         var result = from x in option
-                     where x > 10
-                     select x;
+            where x > 10
+            select x;
 
         // Assert
         Assert.True(result.IsNone());
@@ -132,17 +122,14 @@ public class LinqExtensionsTests
 
         // Act
         var result = from x in option
-                     where x > 5
-                     from y in new Option<int>.Some(20)
-                     where y > 15
-                     select x + y;
+            where x > 5
+            from y in new Option<int>.Some(20)
+            where y > 15
+            select x + y;
 
         // Assert
         Assert.True(result.IsSome());
-        if (result is Option<int>.Some some)
-        {
-            Assert.Equal(30, some.Value);
-        }
+        if (result is Option<int>.Some some) Assert.Equal(30, some.Value);
     }
 
     [Fact]
@@ -153,10 +140,10 @@ public class LinqExtensionsTests
 
         // Act
         var result = from x in option
-                     where x > 5
-                     from y in new Option<int>.Some(20)
-                     where y > 50  // This fails
-                     select x + y;
+            where x > 5
+            from y in new Option<int>.Some(20)
+            where y > 50 // This fails
+            select x + y;
 
         // Assert
         Assert.True(result.IsNone());
@@ -166,24 +153,23 @@ public class LinqExtensionsTests
     public void Option_NestedQuery_WorksCorrectly()
     {
         // Arrange
-        Option<int> GetValue(int x) => new Option<int>.Some(x * 2);
+        Option<int> GetValue(int x)
+        {
+            return new Option<int>.Some(x * 2);
+        }
 
         var option = new Option<int>.Some(5);
 
         // Act
         var result = from x in option
-                     from y in GetValue(x)
-                     from z in GetValue(y)
-                     select z;
+            from y in GetValue(x)
+            from z in GetValue(y)
+            select z;
 
         // Assert
         Assert.True(result.IsSome());
-        if (result is Option<int>.Some some)
-        {
-            Assert.Equal(20, some.Value); // 5 * 2 * 2
-        }
+        if (result is Option<int>.Some some) Assert.Equal(20, some.Value); // 5 * 2 * 2
     }
-
 
 
     [Fact]
@@ -233,25 +219,28 @@ public class LinqExtensionsTests
     }
 
 
-
     [Fact]
     public void Integration_Option_UserLookupWithLinq_WorksCorrectly()
     {
         // Arrange
-        Option<int> GetUserId(string username) =>
-            username == "admin"
+        Option<int> GetUserId(string username)
+        {
+            return username == "admin"
                 ? new Option<int>.Some(1)
                 : new Option<int>.None();
+        }
 
-        Option<string> GetUserEmail(int userId) =>
-            userId > 0
+        Option<string> GetUserEmail(int userId)
+        {
+            return userId > 0
                 ? new Option<string>.Some($"user{userId}@example.com")
                 : new Option<string>.None();
+        }
 
         // Act
         var result = from userId in GetUserId("admin")
-                     from email in GetUserEmail(userId)
-                     select new { userId, email };
+            from email in GetUserEmail(userId)
+            select new { userId, email };
 
         // Assert
         Assert.True(result.IsSome());
@@ -268,24 +257,23 @@ public class LinqExtensionsTests
     public void Integration_Option_ValidationChain_WorksCorrectly()
     {
         // Arrange
-        Option<int> ParseInt(string s) =>
-            int.TryParse(s, out var n)
+        Option<int> ParseInt(string s)
+        {
+            return int.TryParse(s, out var n)
                 ? new Option<int>.Some(n)
                 : new Option<int>.None();
+        }
 
         // Act
         var result = from x in ParseInt("10")
-                     where x > 0
-                     from y in ParseInt("20")
-                     where y > 0
-                     select x + y;
+            where x > 0
+            from y in ParseInt("20")
+            where y > 0
+            select x + y;
 
         // Assert
         Assert.True(result.IsSome());
-        if (result is Option<int>.Some some)
-        {
-            Assert.Equal(30, some.Value);
-        }
+        if (result is Option<int>.Some some) Assert.Equal(30, some.Value);
     }
 
     [Fact]
@@ -294,28 +282,29 @@ public class LinqExtensionsTests
         // Arrange
         var data = new Option<string>.Some("42");
 
-        Option<int> Parse(string s) =>
-            int.TryParse(s, out var n)
+        Option<int> Parse(string s)
+        {
+            return int.TryParse(s, out var n)
                 ? new Option<int>.Some(n)
                 : new Option<int>.None();
+        }
 
-        Option<int> Validate(int n) =>
-            n > 0 && n < 100
+        Option<int> Validate(int n)
+        {
+            return n > 0 && n < 100
                 ? new Option<int>.Some(n)
                 : new Option<int>.None();
+        }
 
         // Act
         var result = from str in data
-                     from parsed in Parse(str)
-                     from validated in Validate(parsed)
-                     select validated * 2;
+            from parsed in Parse(str)
+            from validated in Validate(parsed)
+            select validated * 2;
 
         // Assert
         Assert.True(result.IsSome());
-        if (result is Option<int>.Some some)
-        {
-            Assert.Equal(84, some.Value);
-        }
+        if (result is Option<int>.Some some) Assert.Equal(84, some.Value);
     }
 
     [Fact]
@@ -334,10 +323,10 @@ public class LinqExtensionsTests
 
         // Act
         var result = from x in new Option<int>.Some(5)
-                     from y in GetValue(x)      // Called
-                     from z in GetValue(-1)      // Called, returns None
-                     from w in GetValue(100)     // Not called
-                     select w;
+            from y in GetValue(x) // Called
+            from z in GetValue(-1) // Called, returns None
+            from w in GetValue(100) // Not called
+            select w;
 
         // Assert
         Assert.True(result.IsNone());
@@ -348,27 +337,31 @@ public class LinqExtensionsTests
     public void Integration_Option_ComplexBusinessLogic_WorksCorrectly()
     {
         // Arrange
-        Option<(int Id, string Name, int Age)> GetUser(int id) =>
-            id == 1
+        Option<(int Id, string Name, int Age)> GetUser(int id)
+        {
+            return id == 1
                 ? new Option<(int, string, int)>.Some((1, "Alice", 30))
                 : new Option<(int, string, int)>.None();
+        }
 
-        Option<(int Id, int UserId, decimal Amount)> GetLastOrder(int userId) =>
-            userId == 1
+        Option<(int Id, int UserId, decimal Amount)> GetLastOrder(int userId)
+        {
+            return userId == 1
                 ? new Option<(int, int, decimal)>.Some((101, 1, 99.99m))
                 : new Option<(int, int, decimal)>.None();
+        }
 
         // Act
         var result = from user in GetUser(1)
-                     where user.Age >= 18
-                     from order in GetLastOrder(user.Id)
-                     where order.Amount > 50
-                     select new
-                     {
-                         UserName = user.Name,
-                         OrderId = order.Id,
-                         Amount = order.Amount
-                     };
+            where user.Age >= 18
+            from order in GetLastOrder(user.Id)
+            where order.Amount > 50
+            select new
+            {
+                UserName = user.Name,
+                OrderId = order.Id,
+                order.Amount
+            };
 
         // Assert
         Assert.True(result.IsSome());
@@ -383,7 +376,6 @@ public class LinqExtensionsTests
     }
 
 
-
     [Fact]
     public void Comparison_QuerySyntax_EquivalentToMethodSyntax()
     {
@@ -393,8 +385,8 @@ public class LinqExtensionsTests
 
         // Act - Query syntax
         var queryResult = from x in option1
-                          from y in option2
-                          select x + y;
+            from y in option2
+            select x + y;
 
         // Act - Method syntax
         var methodResult = option1.Bind(x =>
@@ -406,9 +398,7 @@ public class LinqExtensionsTests
 
         if (queryResult is Option<int>.Some querySome &&
             methodResult is Option<int>.Some methodSome)
-        {
             Assert.Equal(querySome.Value, methodSome.Value);
-        }
     }
 
     [Fact]
@@ -419,10 +409,10 @@ public class LinqExtensionsTests
 
         // Act - Query syntax
         var queryResult = from x in option
-                          where x > 5
-                          from y in new Option<int>.Some(20)
-                          where y > 15
-                          select x + y;
+            where x > 5
+            from y in new Option<int>.Some(20)
+            where y > 15
+            select x + y;
 
         // Act - Method syntax
         var methodResult = option
@@ -437,9 +427,6 @@ public class LinqExtensionsTests
 
         if (queryResult is Option<int>.Some querySome &&
             methodResult is Option<int>.Some methodSome)
-        {
             Assert.Equal(querySome.Value, methodSome.Value);
-        }
     }
-
 }

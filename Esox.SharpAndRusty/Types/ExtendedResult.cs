@@ -1,27 +1,44 @@
-﻿namespace Esox.SharpAndRusty.Types;
+﻿// ReSharper disable HeapView.ObjectAllocation.Evident
+namespace Esox.SharpAndRusty.Types;
 
 public abstract record ExtendedResult<T, TE>
 {
-    public sealed record Success(T Value) : ExtendedResult<T, TE>;
-    public sealed record Failure(TE Error) : ExtendedResult<T, TE>;
-    
-    public static ExtendedResult<T, TE> Ok(T value) => new Success(value);
-    public static ExtendedResult<T, TE> Err(TE error) => new Failure(error);
-    
     /// <summary>
-    /// Gets a value indicating whether this result represents a successful operation.
+    ///     Gets a value indicating whether this result represents a successful operation.
     /// </summary>
     public bool IsSuccess => this is Success;
-    
+
     /// <summary>
-    /// Gets a value indicating whether this result represents a failed operation.
+    ///     Gets a value indicating whether this result represents a failed operation.
     /// </summary>
     public bool IsFailure => this is Failure;
-    
+
     /// <summary>
-    /// Attempts to get the success value from the result.
+    ///     Determines whether the specified result is equal to the current result.
     /// </summary>
-    /// <param name="value">When this method returns, contains the success value if the result is successful; otherwise, the default value.</param>
+    public virtual bool Equals(ExtendedResult<T, TE>? other)
+    {
+        if (ReferenceEquals(this, other)) return true;
+        if (other is null) return false;
+
+        return (this, other) switch
+        {
+            (Success s1, Success s2) => EqualityComparer<T>.Default.Equals(s1.Value, s2.Value),
+            (Failure f1, Failure f2) => EqualityComparer<TE>.Default.Equals(f1.Error, f2.Error),
+            _ => false
+        };
+    }
+
+    public static ExtendedResult<T, TE> Ok(T value) => new Success(value);
+    public static ExtendedResult<T, TE> Err(TE error) => new Failure(error);
+
+    /// <summary>
+    ///     Attempts to get the success value from the result.
+    /// </summary>
+    /// <param name="value">
+    ///     When this method returns, contains the success value if the result is successful; otherwise, the
+    ///     default value.
+    /// </param>
     /// <returns>true if the result is successful; otherwise, false.</returns>
     public bool TryGetValue(out T value)
     {
@@ -33,12 +50,13 @@ public abstract record ExtendedResult<T, TE>
             case Failure:
                 break;
         }
+
         value = default!;
         return false;
     }
-    
+
     /// <summary>
-    /// Matches the result and executes the appropriate function based on whether it's a success or failure.
+    ///     Matches the result and executes the appropriate function based on whether it's a success or failure.
     /// </summary>
     /// <typeparam name="TR">The return type of the match operation.</typeparam>
     /// <param name="success">Function to execute if the result is successful.</param>
@@ -57,10 +75,14 @@ public abstract record ExtendedResult<T, TE>
             _ => throw new InvalidOperationException("Unrecognized ExtendedResult type.")
         };
     }
+
     /// <summary>
-    /// Attempts to get the error value from the result.
+    ///     Attempts to get the error value from the result.
     /// </summary>
-    /// <param name="error">When this method returns, contains the error value if the result is a failure; otherwise, the default value.</param>
+    /// <param name="error">
+    ///     When this method returns, contains the error value if the result is a failure; otherwise, the
+    ///     default value.
+    /// </param>
     /// <returns>true if the result is a failure; otherwise, false.</returns>
     public bool TryGetError(out TE error)
     {
@@ -72,42 +94,43 @@ public abstract record ExtendedResult<T, TE>
                 error = failure.Error;
                 return true;
         }
+
         error = default!;
         return false;
     }
-    
+
     /// <summary>
-    /// Returns the success value if the result is successful; otherwise, returns the specified default value.
+    ///     Returns the success value if the result is successful; otherwise, returns the specified default value.
     /// </summary>
     /// <param name="defaultValue">The default value to return if the result is a failure.</param>
     /// <returns>The success value or the default value.</returns>
     public T UnwrapOr(T defaultValue)
     {
-        return this switch 
+        return this switch
         {
             Success success => success.Value,
             _ => defaultValue
         };
     }
-    
+
     /// <summary>
-    /// Returns the success value if the result is successful; otherwise, computes and returns a default value.
+    ///     Returns the success value if the result is successful; otherwise, computes and returns a default value.
     /// </summary>
     /// <param name="defaultFactory">A function that produces a default value.</param>
     /// <returns>The success value or the computed default value.</returns>
     /// <exception cref="ArgumentNullException">Thrown when defaultFactory is null.</exception>
     public T UnwrapOrElse(Func<TE, T> defaultFactory)
     {
-        return this switch 
+        return this switch
         {
             Success success => success.Value,
             Failure failure => defaultFactory(failure.Error),
             _ => default!
         };
     }
-    
+
     /// <summary>
-    /// Returns this result if it is successful; otherwise, returns the result produced by the alternative function.
+    ///     Returns this result if it is successful; otherwise, returns the result produced by the alternative function.
     /// </summary>
     /// <param name="alternative">A function that produces an alternative result based on the error.</param>
     /// <returns>This result if successful; otherwise, the alternative result.</returns>
@@ -122,10 +145,10 @@ public abstract record ExtendedResult<T, TE>
             _ => throw new InvalidOperationException("Unrecognized ExtendedResult type.")
         };
     }
-    
+
     /// <summary>
-    /// Executes the specified action with the success value if the result is successful.
-    /// Useful for side effects without transforming the result.
+    ///     Executes the specified action with the success value if the result is successful.
+    ///     Useful for side effects without transforming the result.
     /// </summary>
     /// <param name="action">The action to execute.</param>
     /// <returns>This result unchanged.</returns>
@@ -133,16 +156,13 @@ public abstract record ExtendedResult<T, TE>
     public ExtendedResult<T, TE> Inspect(Action<T> action)
     {
         if (action is null) throw new ArgumentNullException(nameof(action));
-        if (this is Success success)
-        {
-            action(success.Value);
-        }
+        if (this is Success success) action(success.Value);
         return this;
     }
-    
+
     /// <summary>
-    /// Executes the specified action with the error value if the result is a failure.
-    /// Useful for side effects without transforming the result.
+    ///     Executes the specified action with the error value if the result is a failure.
+    ///     Useful for side effects without transforming the result.
     /// </summary>
     /// <param name="action">The action to execute.</param>
     /// <returns>This result unchanged.</returns>
@@ -150,31 +170,12 @@ public abstract record ExtendedResult<T, TE>
     public ExtendedResult<T, TE> InspectErr(Action<TE> action)
     {
         if (action is null) throw new ArgumentNullException(nameof(action));
-        if (this is Failure failure)
-        {
-            action(failure.Error);
-        }
+        if (this is Failure failure) action(failure.Error);
         return this;
     }
-    
-    /// <summary>
-    /// Determines whether the specified result is equal to the current result.
-    /// </summary>
-    public virtual bool Equals(ExtendedResult<T, TE>? other)
-    {
-        if (ReferenceEquals(this, other)) return true;
-        if (other is null) return false;
-
-        return (this, other) switch
-        {
-            (Success s1, Success s2) => EqualityComparer<T>.Default.Equals(s1.Value, s2.Value),
-            (Failure f1, Failure f2) => EqualityComparer<TE>.Default.Equals(f1.Error, f2.Error),
-            _ => false
-        };
-    }
 
     /// <summary>
-    /// Returns the hash code for this result.
+    ///     Returns the hash code for this result.
     /// </summary>
     public override int GetHashCode()
     {
@@ -185,9 +186,9 @@ public abstract record ExtendedResult<T, TE>
             _ => 0
         };
     }
-    
+
     /// <summary>
-    /// Returns a string representation of this result.
+    ///     Returns a string representation of this result.
     /// </summary>
     public override string ToString()
     {
@@ -198,11 +199,11 @@ public abstract record ExtendedResult<T, TE>
             _ => "ExtendedResult(Unknown)"
         };
     }
-    
-    
+
+
     /// <summary>
-    /// Executes an asynchronous operation and wraps the result in a Result type.
-    /// If the operation throws an exception, it is caught and converted to an error using the error handler.
+    ///     Executes an asynchronous operation and wraps the result in a Result type.
+    ///     If the operation throws an exception, it is caught and converted to an error using the error handler.
     /// </summary>
     /// <param name="operation">The asynchronous operation to execute.</param>
     /// <param name="errorHandler">A function that converts an exception to an error value.</param>
@@ -215,7 +216,7 @@ public abstract record ExtendedResult<T, TE>
 
         try
         {
-            var value = await operation().ConfigureAwait(false);
+            T value = await operation().ConfigureAwait(false);
             return Ok(value);
         }
         catch (Exception ex)
@@ -223,10 +224,10 @@ public abstract record ExtendedResult<T, TE>
             return Err(errorHandler(ex));
         }
     }
-    
+
     /// <summary>
-    /// Executes a synchronous operation and wraps the result in a Result type.
-    /// If the operation throws an exception, it is caught and converted to an error using the error handler.
+    ///     Executes a synchronous operation and wraps the result in a Result type.
+    ///     If the operation throws an exception, it is caught and converted to an error using the error handler.
     /// </summary>
     /// <param name="operation">The operation to execute.</param>
     /// <param name="errorHandler">A function that converts an exception to an error value.</param>
@@ -239,7 +240,7 @@ public abstract record ExtendedResult<T, TE>
 
         try
         {
-            var value = operation();
+            T value = operation();
             return Ok(value);
         }
         catch (Exception ex)
@@ -249,23 +250,20 @@ public abstract record ExtendedResult<T, TE>
     }
 
     /// <summary>
-    /// Implicitly converts a value of type <typeparamref name="T"/> to a successful result.
+    ///     Implicitly converts a value of type <typeparamref name="T" /> to a successful result.
     /// </summary>
     /// <param name="value">The success value.</param>
-    /// <returns>An <see cref="ExtendedResult{T,TE}"/> representing success.</returns>
-    public static implicit operator ExtendedResult<T, TE>(T value)
-    {
-        return Ok(value);
-    }
+    /// <returns>An <see cref="ExtendedResult{T,TE}" /> representing success.</returns>
+    public static implicit operator ExtendedResult<T, TE>(T value) => Ok(value);
 
     /// <summary>
-    /// Implicitly converts a value of type <typeparamref name="TE"/> to a failed result.
+    ///     Implicitly converts a value of type <typeparamref name="TE" /> to a failed result.
     /// </summary>
     /// <param name="error">The error value.</param>
-    /// <returns>An <see cref="ExtendedResult{T,TE}"/> representing failure.</returns>
-    public static implicit operator ExtendedResult<T, TE>(TE error)
-    {
-        return Err(error);
-    }
+    /// <returns>An <see cref="ExtendedResult{T,TE}" /> representing failure.</returns>
+    public static implicit operator ExtendedResult<T, TE>(TE error) => Err(error);
 
+    public sealed record Success(T Value) : ExtendedResult<T, TE>;
+
+    public sealed record Failure(TE Error) : ExtendedResult<T, TE>;
 }

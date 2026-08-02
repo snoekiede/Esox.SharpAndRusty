@@ -3,30 +3,34 @@ using Esox.SharpAndRusty.Types;
 namespace Esox.SharpAndRusty.Extensions;
 
 /// <summary>
-/// Provides asynchronous extension methods for the <see cref="Option{T}"/> type.
+///     Provides asynchronous extension methods for the <see cref="Option{T}" /> type.
 /// </summary>
 public static class AsyncOptionExtensions
 {
     extension<T>(Option<T> option)
     {
         /// <summary>
-        /// Asynchronously transforms the value contained in the option using an async mapping function.
+        ///     Asynchronously transforms the value contained in the option using an async mapping function.
         /// </summary>
         /// <typeparam name="T">The type of the value in the option.</typeparam>
         /// <typeparam name="TResult">The type of the transformed value.</typeparam>
         /// <param name="option">The option to transform.</param>
-        /// <param name="asyncMapper">An async function that transforms the value from type <typeparamref name="T"/> to type <typeparamref name="TResult"/>.</param>
+        /// <param name="asyncMapper">
+        ///     An async function that transforms the value from type <typeparamref name="T" /> to type
+        ///     <typeparamref name="TResult" />.
+        /// </param>
         /// <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
         /// <returns>
-        /// A task that represents the asynchronous operation. The task result contains:
-        /// A new <see cref="Option{TResult}"/> containing the transformed value if the option is <c>Some</c>; otherwise, <c>None</c>.
+        ///     A task that represents the asynchronous operation. The task result contains:
+        ///     A new <see cref="Option{TResult}" /> containing the transformed value if the option is <c>Some</c>; otherwise,
+        ///     <c>None</c>.
         /// </returns>
         /// <remarks>
-        /// The async mapper is only invoked if the option is <c>Some</c>.
-        /// If the option is <c>None</c>, the operation completes immediately without calling the mapper.
+        ///     The async mapper is only invoked if the option is <c>Some</c>.
+        ///     If the option is <c>None</c>, the operation completes immediately without calling the mapper.
         /// </remarks>
         /// <example>
-        /// <code>
+        ///     <code>
         /// var userOption = new Option&lt;int&gt;.Some(42);
         /// var result = await userOption.MapAsync(async id =&gt;
         /// {
@@ -51,23 +55,28 @@ public static class AsyncOptionExtensions
         }
 
         /// <summary>
-        /// Asynchronously chains together multiple operations that return <see cref="Option{T}"/> values (also known as flatMap or chain).
+        ///     Asynchronously chains together multiple operations that return <see cref="Option{T}" /> values (also known as
+        ///     flatMap or chain).
         /// </summary>
         /// <typeparam name="T">The type of the value in the option.</typeparam>
         /// <typeparam name="TResult">The type of the value in the resulting option.</typeparam>
         /// <param name="option">The option to bind.</param>
-        /// <param name="asyncBinder">An async function that takes the current value and returns a new <see cref="Option{TResult}"/>.</param>
+        /// <param name="asyncBinder">
+        ///     An async function that takes the current value and returns a new
+        ///     <see cref="Option{TResult}" />.
+        /// </param>
         /// <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
         /// <returns>
-        /// A task that represents the asynchronous operation. The task result contains:
-        /// The <see cref="Option{TResult}"/> returned by <paramref name="asyncBinder"/> if the option is <c>Some</c>; otherwise, <c>None</c>.
+        ///     A task that represents the asynchronous operation. The task result contains:
+        ///     The <see cref="Option{TResult}" /> returned by <paramref name="asyncBinder" /> if the option is <c>Some</c>;
+        ///     otherwise, <c>None</c>.
         /// </returns>
         /// <remarks>
-        /// The async binder is only invoked if the option is <c>Some</c>.
-        /// This method allows chaining async operations that may themselves fail (return None).
+        ///     The async binder is only invoked if the option is <c>Some</c>.
+        ///     This method allows chaining async operations that may themselves fail (return None).
         /// </remarks>
         /// <example>
-        /// <code>
+        ///     <code>
         /// var userIdOption = new Option&lt;int&gt;.Some(42);
         /// var result = await userIdOption.BindAsync(async id =&gt;
         ///     await FindUserInDatabaseAsync(id)); // Returns Option&lt;User&gt;
@@ -88,22 +97,23 @@ public static class AsyncOptionExtensions
         }
 
         /// <summary>
-        /// Asynchronously filters the option based on an async predicate.
-        /// Returns <c>Some</c> if the option is <c>Some</c> and the async predicate returns <c>true</c>; otherwise, returns <c>None</c>.
+        ///     Asynchronously filters the option based on an async predicate.
+        ///     Returns <c>Some</c> if the option is <c>Some</c> and the async predicate returns <c>true</c>; otherwise, returns
+        ///     <c>None</c>.
         /// </summary>
         /// <typeparam name="T">The type of the value in the option.</typeparam>
         /// <param name="option">The option to filter.</param>
         /// <param name="asyncPredicate">An async function to test the contained value.</param>
         /// <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
         /// <returns>
-        /// A task that represents the asynchronous operation. The task result contains:
-        /// <c>Some</c> if the option is <c>Some</c> and the async predicate returns <c>true</c>; otherwise, <c>None</c>.
+        ///     A task that represents the asynchronous operation. The task result contains:
+        ///     <c>Some</c> if the option is <c>Some</c> and the async predicate returns <c>true</c>; otherwise, <c>None</c>.
         /// </returns>
         /// <remarks>
-        /// The async predicate is only invoked if the option is <c>Some</c>.
+        ///     The async predicate is only invoked if the option is <c>Some</c>.
         /// </remarks>
         /// <example>
-        /// <code>
+        ///     <code>
         /// var userOption = new Option&lt;User&gt;.Some(user);
         /// var result = await userOption.FilterAsync(async u =&gt;
         ///     await IsUserActiveAsync(u));
@@ -125,22 +135,23 @@ public static class AsyncOptionExtensions
         }
 
         /// <summary>
-        /// Asynchronously executes a side effect action on the contained value if the option is <c>Some</c>, then returns the option unchanged.
-        /// Useful for debugging, logging, or other side effects in async contexts.
+        ///     Asynchronously executes a side effect action on the contained value if the option is <c>Some</c>, then returns the
+        ///     option unchanged.
+        ///     Useful for debugging, logging, or other side effects in async contexts.
         /// </summary>
         /// <typeparam name="T">The type of the value in the option.</typeparam>
         /// <param name="option">The option to inspect.</param>
         /// <param name="asyncInspector">An async action to execute on the contained value.</param>
         /// <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
         /// <returns>
-        /// A task that represents the asynchronous operation. The task result contains the original option, unchanged.
+        ///     A task that represents the asynchronous operation. The task result contains the original option, unchanged.
         /// </returns>
         /// <remarks>
-        /// The async inspector is only invoked if the option is <c>Some</c>.
-        /// The option is returned unchanged, making this method suitable for insertion into a chain of operations.
+        ///     The async inspector is only invoked if the option is <c>Some</c>.
+        ///     The option is returned unchanged, making this method suitable for insertion into a chain of operations.
         /// </remarks>
         /// <example>
-        /// <code>
+        ///     <code>
         /// var result = await userOption
         ///     .InspectAsync(async user =&gt; 
         ///         await LogUserAccessAsync(user))
@@ -162,21 +173,21 @@ public static class AsyncOptionExtensions
         }
 
         /// <summary>
-        /// Asynchronously executes a side effect action if the option is <c>None</c>, then returns the option unchanged.
-        /// Useful for debugging, logging, or other side effects when a value is absent in async contexts.
+        ///     Asynchronously executes a side effect action if the option is <c>None</c>, then returns the option unchanged.
+        ///     Useful for debugging, logging, or other side effects when a value is absent in async contexts.
         /// </summary>
         /// <typeparam name="T">The type of the value in the option.</typeparam>
         /// <param name="option">The option to inspect.</param>
         /// <param name="asyncInspector">An async action to execute if the option is <c>None</c>.</param>
         /// <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
         /// <returns>
-        /// A task that represents the asynchronous operation. The task result contains the original option, unchanged.
+        ///     A task that represents the asynchronous operation. The task result contains the original option, unchanged.
         /// </returns>
         /// <remarks>
-        /// The async inspector is only invoked if the option is <c>None</c>.
+        ///     The async inspector is only invoked if the option is <c>None</c>.
         /// </remarks>
         /// <example>
-        /// <code>
+        ///     <code>
         /// var result = await userOption
         ///     .InspectNoneAsync(async () =&gt; 
         ///         await LogUserNotFoundAsync());
@@ -196,7 +207,7 @@ public static class AsyncOptionExtensions
         }
 
         /// <summary>
-        /// Asynchronously executes one of two async actions based on whether the option contains a value.
+        ///     Asynchronously executes one of two async actions based on whether the option contains a value.
         /// </summary>
         /// <typeparam name="T">The type of the value in the option.</typeparam>
         /// <param name="option">The option to match.</param>
@@ -205,7 +216,7 @@ public static class AsyncOptionExtensions
         /// <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
         /// <example>
-        /// <code>
+        ///     <code>
         /// await userOption.MatchAsync(
         ///     async user =&gt; await ProcessUserAsync(user),
         ///     async () =&gt; await HandleMissingUserAsync());
@@ -219,17 +230,14 @@ public static class AsyncOptionExtensions
             cancellationToken.ThrowIfCancellationRequested();
 
             if (option is Option<T>.Some some)
-            {
                 await onSomeAsync(some.Value).ConfigureAwait(false);
-            }
             else
-            {
                 await onNoneAsync().ConfigureAwait(false);
-            }
         }
 
         /// <summary>
-        /// Asynchronously executes one of two async functions based on whether the option contains a value and returns the result.
+        ///     Asynchronously executes one of two async functions based on whether the option contains a value and returns the
+        ///     result.
         /// </summary>
         /// <typeparam name="T">The type of the value in the option.</typeparam>
         /// <typeparam name="TResult">The type of the result.</typeparam>
@@ -238,11 +246,11 @@ public static class AsyncOptionExtensions
         /// <param name="onNoneAsync">The async function to execute if the option is <c>None</c>.</param>
         /// <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
         /// <returns>
-        /// A task that represents the asynchronous operation. The task result contains
-        /// the result of executing either <paramref name="onSomeAsync"/> or <paramref name="onNoneAsync"/>.
+        ///     A task that represents the asynchronous operation. The task result contains
+        ///     the result of executing either <paramref name="onSomeAsync" /> or <paramref name="onNoneAsync" />.
         /// </returns>
         /// <example>
-        /// <code>
+        ///     <code>
         /// var message = await userOption.MatchAsync(
         ///     async user =&gt; await FormatUserMessageAsync(user),
         ///     async () =&gt; await GetDefaultMessageAsync());
@@ -255,17 +263,15 @@ public static class AsyncOptionExtensions
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (option is Option<T>.Some some)
-            {
-                return await onSomeAsync(some.Value).ConfigureAwait(false);
-            }
+            if (option is Option<T>.Some some) return await onSomeAsync(some.Value).ConfigureAwait(false);
 
             return await onNoneAsync().ConfigureAwait(false);
         }
 
         /// <summary>
-        /// Asynchronously converts the option to a <see cref="Result{T, E}"/> using an async error factory.
-        /// Returns <c>Ok</c> if the option is <c>Some</c>; otherwise, returns <c>Err</c> with an error produced by the async factory.
+        ///     Asynchronously converts the option to a <see cref="Result{T, E}" /> using an async error factory.
+        ///     Returns <c>Ok</c> if the option is <c>Some</c>; otherwise, returns <c>Err</c> with an error produced by the async
+        ///     factory.
         /// </summary>
         /// <typeparam name="T">The type of the value in the option.</typeparam>
         /// <typeparam name="E">The type of the error.</typeparam>
@@ -273,11 +279,11 @@ public static class AsyncOptionExtensions
         /// <param name="asyncErrorFactory">An async function that produces an error if the option is <c>None</c>.</param>
         /// <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
         /// <returns>
-        /// A task that represents the asynchronous operation. The task result contains:
-        /// A result containing the value if <c>Some</c>; otherwise, a result containing the produced error.
+        ///     A task that represents the asynchronous operation. The task result contains:
+        ///     A result containing the value if <c>Some</c>; otherwise, a result containing the produced error.
         /// </returns>
         /// <example>
-        /// <code>
+        ///     <code>
         /// var result = await userOption.OkOrElseAsync(async () =&gt;
         ///     await CreateNotFoundErrorAsync("User not found"));
         /// </code>
@@ -286,10 +292,7 @@ public static class AsyncOptionExtensions
             Func<Task<E>> asyncErrorFactory,
             CancellationToken cancellationToken = default)
         {
-            if (option is Option<T>.Some some)
-            {
-                return Result<T, E>.Ok(some.Value);
-            }
+            if (option is Option<T>.Some some) return Result<T, E>.Ok(some.Value);
 
             cancellationToken.ThrowIfCancellationRequested();
             var error = await asyncErrorFactory().ConfigureAwait(false);

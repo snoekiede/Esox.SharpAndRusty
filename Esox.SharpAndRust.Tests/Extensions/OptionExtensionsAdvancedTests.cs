@@ -1,11 +1,10 @@
-using Esox.SharpAndRusty.Types;
 using Esox.SharpAndRusty.Extensions;
+using Esox.SharpAndRusty.Types;
 
 namespace Esox.SharpAndRust.Tests.Extensions;
 
 public class OptionExtensionsAdvancedTests
 {
-
     [Fact]
     public void Filter_WithSome_PredicateTrue_ReturnsSome()
     {
@@ -85,7 +84,6 @@ public class OptionExtensionsAdvancedTests
     }
 
 
-
     [Fact]
     public void Zip_BothSome_ReturnsSomeTuple()
     {
@@ -144,7 +142,6 @@ public class OptionExtensionsAdvancedTests
         // Assert
         Assert.True(result.IsNone());
     }
-
 
 
     [Fact]
@@ -206,7 +203,6 @@ public class OptionExtensionsAdvancedTests
     }
 
 
-
     [Fact]
     public void Flatten_SomeContainingSome_ReturnsInnerSome()
     {
@@ -260,12 +256,8 @@ public class OptionExtensionsAdvancedTests
 
         // Assert
         Assert.True(result.IsSome());
-        if (result is Option<string>.Some some)
-        {
-            Assert.Equal("42", some.Value);
-        }
+        if (result is Option<string>.Some some) Assert.Equal("42", some.Value);
     }
-
 
 
     [Fact]
@@ -325,7 +317,6 @@ public class OptionExtensionsAdvancedTests
         // Assert
         Assert.True(result.IsSome());
     }
-
 
 
     [Fact]
@@ -389,7 +380,6 @@ public class OptionExtensionsAdvancedTests
     }
 
 
-
     [Fact]
     public void Xor_OnlyFirstSome_ReturnsFirst()
     {
@@ -449,7 +439,6 @@ public class OptionExtensionsAdvancedTests
     }
 
 
-
     [Fact]
     public void Inspect_WithSome_CallsAction()
     {
@@ -504,7 +493,6 @@ public class OptionExtensionsAdvancedTests
     }
 
 
-
     [Fact]
     public void InspectNone_WithNone_CallsAction()
     {
@@ -555,7 +543,6 @@ public class OptionExtensionsAdvancedTests
     }
 
 
-
     [Fact]
     public void OkOr_WithSome_ReturnsOk()
     {
@@ -601,7 +588,6 @@ public class OptionExtensionsAdvancedTests
         Assert.True(result.TryGetError(out var actualError));
         Assert.Equal("Value not found", actualError.Message);
     }
-
 
 
     [Fact]
@@ -651,7 +637,7 @@ public class OptionExtensionsAdvancedTests
         Option<int> option = new Option<int>.None();
 
         // Act
-        var result = option.OkOrElse(() => 
+        var result = option.OkOrElse(() =>
             Error.New("Value not found")
                 .WithContext("During user lookup")
                 .WithMetadata("attemptTime", DateTime.UtcNow)
@@ -665,7 +651,6 @@ public class OptionExtensionsAdvancedTests
     }
 
 
-
     [Fact]
     public void ToNullable_WithSome_ReturnsValue()
     {
@@ -673,7 +658,7 @@ public class OptionExtensionsAdvancedTests
         Option<int> option = new Option<int>.Some(42);
 
         // Act
-        int? result = option.ToNullable();
+        var result = option.ToNullable();
 
         // Assert
         Assert.NotNull(result);
@@ -687,7 +672,7 @@ public class OptionExtensionsAdvancedTests
         Option<int> option = new Option<int>.None();
 
         // Act
-        int? result = option.ToNullable();
+        var result = option.ToNullable();
 
         // Assert
         Assert.Null(result);
@@ -701,15 +686,14 @@ public class OptionExtensionsAdvancedTests
         Option<DateTime> dateOption = new Option<DateTime>.None();
 
         // Act
-        bool? boolResult = boolOption.ToNullable();
-        DateTime? dateResult = dateOption.ToNullable();
+        var boolResult = boolOption.ToNullable();
+        var dateResult = dateOption.ToNullable();
 
         // Assert
         Assert.True(boolResult.HasValue);
         Assert.True(boolResult.Value);
         Assert.False(dateResult.HasValue);
     }
-
 
 
     [Fact]
@@ -813,5 +797,4 @@ public class OptionExtensionsAdvancedTests
         Assert.Equal(3, debugLog.Count);
         Assert.DoesNotContain("No value", debugLog);
     }
-
 }

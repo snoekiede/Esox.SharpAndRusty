@@ -392,7 +392,7 @@ var result = from _ in Initialize()
 - Built on `ReaderWriterLockSlim` for efficiency
 
 #### Documentation
-- **MUTEX_DOCUMENTATION.md** - Complete Mutex<T> usage guide
+- See README.md for Mutex<T> overview
   - API reference with all methods
   - Usage examples (basic to advanced)
   - Comparison with Rust's Mutex
@@ -619,12 +619,10 @@ var result = from _ in Initialize()
 
 ### Documentation
 
-- **ERROR_TYPE.md** - Complete Error type documentation
-- **ERROR_TYPE_EXAMPLES.md** - Usage examples and patterns
-- **CANCELLATION_TOKEN_SUPPORT.md** - Async cancellation guide
-- **ADVANCED_FEATURES.md** - Advanced features comprehensive guide
+- **ADVANCED_FEATURES.md** - Advanced features comprehensive guide (in Esox.SharpAndRusty folder)
 - Expanded README with LINQ examples
 - Added API reference sections
+- Consolidated documentation structure
 
 ### Changed
 

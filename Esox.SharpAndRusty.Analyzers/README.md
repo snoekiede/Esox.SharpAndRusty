@@ -1,14 +1,17 @@
 ﻿# Esox.SharpAndRusty.Analyzers
 
-A Roslyn analyzer that enforces proper handling of `Result<T, E>` and `Option<T>` types from the Esox.SharpAndRusty library, similar to Rust's `#[must_use]` attribute.
+A Roslyn analyzer that enforces proper handling of `Result<T, E>` and `Option<T>` types from the Esox.SharpAndRusty
+library, similar to Rust's `#[must_use]` attribute.
 
 ## Features
 
 ### ESOX1001: Result value must be used
 
-This analyzer warns when a method returning `Result<T, E>` is called but its return value is ignored. This prevents developers from accidentally ignoring potential errors.
+This analyzer warns when a method returning `Result<T, E>` is called but its return value is ignored. This prevents
+developers from accidentally ignoring potential errors.
 
 **❌ Bad:**
+
 ```csharp
 public Result<int, string> GetValue() => Result<int, string>.Ok(42);
 
@@ -19,6 +22,7 @@ public void Process()
 ```
 
 **✅ Good:**
+
 ```csharp
 public void Process()
 {
@@ -39,6 +43,7 @@ public void Process()
 This analyzer warns when a method returning `Option<T>` is called but its return value is ignored.
 
 **❌ Bad:**
+
 ```csharp
 public Option<string> GetName() => new Option<string>.Some("John");
 
@@ -49,6 +54,7 @@ public void Process()
 ```
 
 **✅ Good:**
+
 ```csharp
 public void Process()
 {
@@ -74,17 +80,21 @@ dotnet add package Esox.SharpAndRusty
 dotnet add package Esox.SharpAndRusty.Analyzers
 ```
 
-Once installed, the analyzer will start warning about unhandled Result and Option types immediately in your IDE and during builds.
+Once installed, the analyzer will start warning about unhandled Result and Option types immediately in your IDE and
+during builds.
 
 ## Rationale
 
-In Rust, the `Result` type is annotated with `#[must_use]`, which causes the compiler to emit a warning if a Result is not used. This is a powerful safety feature that prevents developers from accidentally ignoring errors.
+In Rust, the `Result` type is annotated with `#[must_use]`, which causes the compiler to emit a warning if a Result is
+not used. This is a powerful safety feature that prevents developers from accidentally ignoring errors.
 
-This analyzer brings the same safety to C# code using the Esox.SharpAndRusty library, helping create more robust applications.
+This analyzer brings the same safety to C# code using the Esox.SharpAndRusty library, helping create more robust
+applications.
 
 ## Configuration
 
-The analyzers are enabled by default with **Warning** severity. You can configure them in your `.editorconfig` or `globalconfig` file:
+The analyzers are enabled by default with **Warning** severity. You can configure them in your `.editorconfig` or
+`globalconfig` file:
 
 ```ini
 # Promote to error
@@ -115,17 +125,19 @@ If you have a legitimate reason to not handle a Result or Option (rare!), you ca
 ## How It Works
 
 The analyzer detects when:
-- A method call returns `Result<T, E>` or `Option<T>` 
+
+- A method call returns `Result<T, E>` or `Option<T>`
 - The return value is not:
-  - Assigned to a variable
-  - Returned from the calling method
-  - Used as an argument
-  - Used in pattern matching
-  - Used in any other meaningful way
+    - Assigned to a variable
+    - Returned from the calling method
+    - Used as an argument
+    - Used in pattern matching
+    - Used in any other meaningful way
 
 ## Contributing
 
-Contributions are welcome! Please see the [main repository](https://github.com/snoekiede/Esox.SharpAndRusty) for contribution guidelines.
+Contributions are welcome! Please see the [main repository](https://github.com/snoekiede/Esox.SharpAndRusty) for
+contribution guidelines.
 
 ## License
 

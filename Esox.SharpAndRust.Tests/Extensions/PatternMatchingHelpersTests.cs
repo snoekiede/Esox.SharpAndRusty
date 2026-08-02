@@ -1,11 +1,10 @@
-using Esox.SharpAndRusty.Types;
 using Esox.SharpAndRusty.Extensions;
+using Esox.SharpAndRusty.Types;
 
 namespace Esox.SharpAndRust.Tests.Extensions;
 
 public class PatternMatchingHelpersTests
 {
-
     [Fact]
     public void IfSome_WithSome_ExecutesAction()
     {
@@ -54,7 +53,6 @@ public class PatternMatchingHelpersTests
     }
 
 
-
     [Fact]
     public void IfNone_WithNone_ExecutesAction()
     {
@@ -95,7 +93,6 @@ public class PatternMatchingHelpersTests
         Assert.Throws<ArgumentNullException>(() =>
             option.IfNone(null!));
     }
-
 
 
     [Fact]
@@ -139,7 +136,6 @@ public class PatternMatchingHelpersTests
         Assert.Equal("Hello", someResult);
         Assert.Equal("Default", noneResult);
     }
-
 
 
     [Fact]
@@ -192,7 +188,6 @@ public class PatternMatchingHelpersTests
     }
 
 
-
     [Fact]
     public void GetOrThrow_WithSome_ReturnsValue()
     {
@@ -229,7 +224,6 @@ public class PatternMatchingHelpersTests
         Assert.Throws<ArgumentNullException>(() =>
             option.GetOrThrow(null!));
     }
-
 
 
     [Fact]
@@ -280,7 +274,6 @@ public class PatternMatchingHelpersTests
     }
 
 
-
     [Fact]
     public void OnFailure_WithFailure_ExecutesAction()
     {
@@ -327,7 +320,6 @@ public class PatternMatchingHelpersTests
         Assert.Throws<ArgumentNullException>(() =>
             result.OnFailure(null!));
     }
-
 
 
     [Fact]
@@ -391,7 +383,6 @@ public class PatternMatchingHelpersTests
     }
 
 
-
     [Fact]
     public void GetValueOrDefault_WithSuccess_ReturnsValue()
     {
@@ -417,7 +408,6 @@ public class PatternMatchingHelpersTests
         // Assert
         Assert.Equal(99, value);
     }
-
 
 
     [Fact]
@@ -470,7 +460,6 @@ public class PatternMatchingHelpersTests
     }
 
 
-
     [Fact]
     public void GetValueOrThrow_WithSuccess_ReturnsValue()
     {
@@ -511,7 +500,6 @@ public class PatternMatchingHelpersTests
     }
 
 
-
     [Fact]
     public void ToOption_WithSuccess_ReturnsSome()
     {
@@ -523,10 +511,7 @@ public class PatternMatchingHelpersTests
 
         // Assert
         Assert.True(option.IsSome());
-        if (option is Option<int>.Some some)
-        {
-            Assert.Equal(42, some.Value);
-        }
+        if (option is Option<int>.Some some) Assert.Equal(42, some.Value);
     }
 
     [Fact]
@@ -541,7 +526,6 @@ public class PatternMatchingHelpersTests
         // Assert
         Assert.True(option.IsNone());
     }
-
 
 
     [Fact]
@@ -636,5 +620,4 @@ public class PatternMatchingHelpersTests
         // Assert
         Assert.Equal(99, value);
     }
-
 }

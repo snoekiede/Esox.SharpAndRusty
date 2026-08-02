@@ -1,5 +1,5 @@
-using Esox.SharpAndRusty.Types;
 using Esox.SharpAndRusty.Extensions;
+using Esox.SharpAndRusty.Types;
 
 namespace Esox.SharpAndRust.Tests.Types;
 
@@ -156,8 +156,8 @@ public class ExtendedResultTests
         var result = ExtendedResult<int, string>.Ok(42);
 
         var output = result.Match(
-            success: value => $"Value: {value}",
-            failure: error => $"Error: {error}"
+            value => $"Value: {value}",
+            error => $"Error: {error}"
         );
 
         Assert.Equal("Value: 42", output);
@@ -169,8 +169,8 @@ public class ExtendedResultTests
         var result = ExtendedResult<int, string>.Err("Something went wrong");
 
         var output = result.Match(
-            success: value => $"Value: {value}",
-            failure: error => $"Error: {error}"
+            value => $"Value: {value}",
+            error => $"Error: {error}"
         );
 
         Assert.Equal("Error: Something went wrong", output);
@@ -182,8 +182,8 @@ public class ExtendedResultTests
         var result = ExtendedResult<Person, ValidationError>.Ok(new Person("Alice", 30));
 
         var output = result.Match(
-            success: person => $"{person.Name} is {person.Age}",
-            failure: error => $"Validation failed: {error.Message}"
+            person => $"{person.Name} is {person.Age}",
+            error => $"Validation failed: {error.Message}"
         );
 
         Assert.Equal("Alice is 30", output);
@@ -195,8 +195,8 @@ public class ExtendedResultTests
         var result = ExtendedResult<Person, ValidationError>.Err(new ValidationError("Invalid age"));
 
         var output = result.Match(
-            success: person => $"{person.Name} is {person.Age}",
-            failure: error => $"Validation failed: {error.Message}"
+            person => $"{person.Name} is {person.Age}",
+            error => $"Validation failed: {error.Message}"
         );
 
         Assert.Equal("Validation failed: Invalid age", output);
@@ -208,7 +208,7 @@ public class ExtendedResultTests
         var result = ExtendedResult<int, string>.Ok(42);
 
         var exception = Assert.Throws<ArgumentNullException>(() =>
-            result.Match(success: null!, failure: error => error)
+            result.Match(null!, error => error)
         );
 
         Assert.Equal("success", exception.ParamName);
@@ -220,7 +220,7 @@ public class ExtendedResultTests
         var result = ExtendedResult<int, string>.Ok(42);
 
         var exception = Assert.Throws<ArgumentNullException>(() =>
-            result.Match(success: value => value.ToString(), failure: null!)
+            result.Match(value => value.ToString(), null!)
         );
 
         Assert.Equal("failure", exception.ParamName);
@@ -233,19 +233,18 @@ public class ExtendedResultTests
         var failureResult = ExtendedResult<int, string>.Err("error");
 
         var successOutput = successResult.Match(
-            success: value => value * 2,
-            failure: _ => 0
+            value => value * 2,
+            _ => 0
         );
 
         var failureOutput = failureResult.Match(
-            success: value => value * 2,
-            failure: _ => 0
+            value => value * 2,
+            _ => 0
         );
 
         Assert.Equal(84, successOutput);
         Assert.Equal(0, failureOutput);
     }
-
 
 
     [Fact]
@@ -362,7 +361,6 @@ public class ExtendedResultTests
     }
 
 
-
     [Fact]
     public void GetHashCode_TwoSuccessWithSameValue_HaveSameHashCode()
     {
@@ -440,7 +438,6 @@ public class ExtendedResultTests
     }
 
 
-
     [Fact]
     public void ToString_Success_ReturnsFormattedString()
     {
@@ -496,7 +493,6 @@ public class ExtendedResultTests
 
         Assert.Contains("Failure", str);
     }
-
 
 
     [Fact]
@@ -556,7 +552,6 @@ public class ExtendedResultTests
     }
 
 
-
     [Fact]
     public void Try_Success_ReturnsOk()
     {
@@ -609,7 +604,6 @@ public class ExtendedResultTests
         Assert.True(result.TryGetError(out var error));
         Assert.Equal("Invalid argument", error.Message);
     }
-
 
 
     [Fact]
@@ -683,11 +677,6 @@ public class ExtendedResultTests
         Assert.Contains("Failure", summary);
     }
 
-
-    // Helper types for testing
-    private record Person(string Name, int Age);
-    private record ValidationError(string Message);
-
     [Fact]
     public void Try_Success()
     {
@@ -709,7 +698,7 @@ public class ExtendedResultTests
     [Fact]
     public void Ok_WithNullValue_Works()
     {
-        ExtendedResult<string?, string> result = ExtendedResult<string?, string>.Ok(null);
+        var result = ExtendedResult<string?, string>.Ok(null);
 
         Assert.True(result.TryGetValue(out var value));
         Assert.Null(value);
@@ -727,7 +716,7 @@ public class ExtendedResultTests
         Assert.Null(or);
 
         // Inspect gets called with null
-        string? seen = "init";
+        var seen = "init";
         var returned = result.Inspect(v => seen = v);
         Assert.Null(seen);
         Assert.True(returned.TryGetValue(out _));
@@ -736,7 +725,7 @@ public class ExtendedResultTests
     [Fact]
     public void Err_WithNullError_Works()
     {
-        ExtendedResult<int, string?> result = ExtendedResult<int, string?>.Err(null);
+        var result = ExtendedResult<int, string?>.Err(null);
 
         Assert.True(result.TryGetError(out var error));
         Assert.Null(error);
@@ -754,7 +743,7 @@ public class ExtendedResultTests
         Assert.Equal(-1, computed);
 
         // InspectErr gets called with null
-        string? seen = "init";
+        var seen = "init";
         var returned = result.InspectErr(e => seen = e);
         Assert.Null(seen);
         Assert.True(returned.TryGetError(out _));
@@ -819,7 +808,8 @@ public class ExtendedResultTests
     {
         // success path
         var s = ExtendedResult<int, string>.Ok(2);
-        int seenValue = 0; string? seenError = null;
+        var seenValue = 0;
+        string? seenError = null;
         var sReturned = s.Tap(val => seenValue = val, err => seenError = err);
         Assert.Equal(2, seenValue);
         Assert.Null(seenError);
@@ -828,7 +818,8 @@ public class ExtendedResultTests
 
         // failure path
         var f = ExtendedResult<int, string>.Err("E");
-        seenValue = 0; seenError = null;
+        seenValue = 0;
+        seenError = null;
         var fReturned = f.Tap(val => seenValue = val, err => seenError = err);
         Assert.Equal(0, seenValue);
         Assert.Equal("E", seenError);
@@ -840,7 +831,7 @@ public class ExtendedResultTests
     public void Linq_Select_ProjectsValue()
     {
         var query = from x in ExtendedResult<int, string>.Ok(10)
-                    select x * 3;
+            select x * 3;
         Assert.True(query.TryGetValue(out var value));
         Assert.Equal(30, value);
     }
@@ -849,8 +840,8 @@ public class ExtendedResultTests
     public void Linq_SelectMany_ChainsTwo_Ok()
     {
         var query = from x in ExtendedResult<int, string>.Ok(10)
-                    from y in ExtendedResult<int, string>.Ok(5)
-                    select x + y;
+            from y in ExtendedResult<int, string>.Ok(5)
+            select x + y;
         Assert.True(query.TryGetValue(out var value));
         Assert.Equal(15, value);
     }
@@ -859,8 +850,8 @@ public class ExtendedResultTests
     public void Linq_SelectMany_PropagatesError()
     {
         var query = from x in ExtendedResult<int, string>.Ok(10)
-                    from y in ExtendedResult<int, string>.Err("bad")
-                    select x + y;
+            from y in ExtendedResult<int, string>.Err("bad")
+            select x + y;
         Assert.True(query.TryGetError(out var error));
         Assert.Equal("bad", error);
     }
@@ -872,11 +863,11 @@ public class ExtendedResultTests
         {
             ExtendedResult<int, string>.Ok(1),
             ExtendedResult<int, string>.Ok(2),
-            ExtendedResult<int, string>.Ok(3),
+            ExtendedResult<int, string>.Ok(3)
         };
         var combined = items.Combine();
         Assert.True(combined.TryGetValue(out var values));
-        Assert.Equal(new[] {1,2,3}, values);
+        Assert.Equal(new[] { 1, 2, 3 }, values);
     }
 
     [Fact]
@@ -886,7 +877,7 @@ public class ExtendedResultTests
         {
             ExtendedResult<int, string>.Ok(1),
             ExtendedResult<int, string>.Err("err2"),
-            ExtendedResult<int, string>.Ok(3),
+            ExtendedResult<int, string>.Ok(3)
         };
         var combined = items.Combine();
         Assert.True(combined.TryGetError(out var error));
@@ -901,11 +892,11 @@ public class ExtendedResultTests
             ExtendedResult<int, string>.Ok(1),
             ExtendedResult<int, string>.Err("e1"),
             ExtendedResult<int, string>.Ok(2),
-            ExtendedResult<int, string>.Err("e2"),
+            ExtendedResult<int, string>.Err("e2")
         };
         var (successes, failures) = items.Partition();
-        Assert.Equal(new[] {1,2}, successes);
-        Assert.Equal(new[] {"e1","e2"}, failures);
+        Assert.Equal(new[] { 1, 2 }, successes);
+        Assert.Equal(new[] { "e1", "e2" }, failures);
     }
 
 
@@ -964,8 +955,15 @@ public class ExtendedResultTests
         Assert.Equal("Something went wrong", error);
 
         // Local functions using implicit conversion
-        static ExtendedResult<int, string> GetSuccessResult() => 100;
-        static ExtendedResult<int, string> GetErrorResult() => "Something went wrong";
+        static ExtendedResult<int, string> GetSuccessResult()
+        {
+            return 100;
+        }
+
+        static ExtendedResult<int, string> GetErrorResult()
+        {
+            return "Something went wrong";
+        }
     }
 
     [Fact]
@@ -1000,8 +998,8 @@ public class ExtendedResultTests
         static string ProcessResult(ExtendedResult<int, string> result)
         {
             return result.Match(
-                success: v => $"Success: {v}",
-                failure: e => $"Error: {e}"
+                v => $"Success: {v}",
+                e => $"Error: {e}"
             );
         }
     }
@@ -1037,12 +1035,12 @@ public class ExtendedResultTests
     public void ImplicitConversion_WorksInCollections()
     {
         // Arrange & Act - Mix implicit conversions in array initialization
-        ExtendedResult<int, string>[] results = new[]
+        var results = new[]
         {
             ExtendedResult<int, string>.Ok(1), // Explicit
-            2,                                   // Implicit success
+            2, // Implicit success
             ExtendedResult<int, string>.Err("error1"), // Explicit
-            "error2"                            // Implicit error
+            "error2" // Implicit error
         };
 
         // Assert
@@ -1058,5 +1056,9 @@ public class ExtendedResultTests
         Assert.Equal("error2", results[3].Match(_ => "", e => e));
     }
 
-}
 
+    // Helper types for testing
+    private record Person(string Name, int Age);
+
+    private record ValidationError(string Message);
+}
