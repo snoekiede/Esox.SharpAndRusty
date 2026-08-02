@@ -1,11 +1,10 @@
-using Esox.SharpAndRusty.Types;
 using Esox.SharpAndRusty.Extensions;
+using Esox.SharpAndRusty.Types;
 
 namespace Esox.SharpAndRust.Tests.Extensions;
 
 public class ResultExtensionsAdvancedTests
 {
-
     [Fact]
     public void MapError_TransformsErrorType()
     {
@@ -42,10 +41,9 @@ public class ResultExtensionsAdvancedTests
         var result = Result<int, string>.Err("error");
 
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() =>
             result.MapError((Func<string, int>)null!));
     }
-
 
 
     [Fact]
@@ -70,7 +68,7 @@ public class ResultExtensionsAdvancedTests
         // Act & Assert
         var exception = Assert.Throws<InvalidOperationException>(() =>
             result.Expect("User ID is required"));
-        
+
         Assert.Contains("User ID is required", exception.Message);
         Assert.Contains("Not found", exception.Message);
     }
@@ -82,10 +80,9 @@ public class ResultExtensionsAdvancedTests
         var result = Result<int, string>.Ok(42);
 
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() =>
             result.Expect(null!));
     }
-
 
 
     [Fact]
@@ -98,8 +95,8 @@ public class ResultExtensionsAdvancedTests
 
         // Act
         var returned = result.Tap(
-            onSuccess: _ => successCalled = true,
-            onFailure: _ => failureCalled = true
+            _ => successCalled = true,
+            _ => failureCalled = true
         );
 
         // Assert
@@ -119,8 +116,8 @@ public class ResultExtensionsAdvancedTests
 
         // Act
         var returned = result.Tap(
-            onSuccess: _ => successCalled = true,
-            onFailure: _ => failureCalled = true
+            _ => successCalled = true,
+            _ => failureCalled = true
         );
 
         // Assert
@@ -138,11 +135,10 @@ public class ResultExtensionsAdvancedTests
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() =>
             result.Tap(null!, _ => { }));
-        
+
         Assert.Throws<ArgumentNullException>(() =>
             result.Tap(_ => { }, null!));
     }
-
 
 
     [Fact]
@@ -211,7 +207,6 @@ public class ResultExtensionsAdvancedTests
     }
 
 
-
     [Fact]
     public void Combine_ReturnsAllSuccessValues()
     {
@@ -274,7 +269,6 @@ public class ResultExtensionsAdvancedTests
         Assert.Throws<ArgumentNullException>(() =>
             ResultExtensions.Combine<int, string>(null!));
     }
-
 
 
     [Fact]
@@ -345,7 +339,6 @@ public class ResultExtensionsAdvancedTests
     }
 
 
-
     [Fact]
     public void Map_ThrowsOnNullMapper()
     {
@@ -413,7 +406,6 @@ public class ResultExtensionsAdvancedTests
     }
 
 
-
     [Fact]
     public void MapError_CanBeChainedWithOtherOperations()
     {
@@ -441,11 +433,11 @@ public class ResultExtensionsAdvancedTests
         var final = result
             .Map(x => x * 2)
             .Tap(
-                onSuccess: value => Console.WriteLine($"Success: {value}"),
-                onFailure: error => Console.WriteLine($"Error: {error}")
+                value => Console.WriteLine($"Success: {value}"),
+                error => Console.WriteLine($"Error: {error}")
             )
-            .Bind(x => x > 15 
-                ? Result<int, string>.Ok(x) 
+            .Bind(x => x > 15
+                ? Result<int, string>.Ok(x)
                 : Result<int, string>.Err("Too small"))
             .MapError(msg => msg.ToUpper());
 
@@ -466,5 +458,4 @@ public class ResultExtensionsAdvancedTests
         // Assert
         Assert.Equal(94, value);
     }
-
 }

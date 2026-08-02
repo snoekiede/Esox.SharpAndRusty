@@ -8,7 +8,7 @@ public class ParseExtensionsTests
     [Fact]
     public void TryParse_GenericInt_WhenValid_ReturnsOk()
     {
-        Result<int, Error> result = "123".TryParse<int>();
+        var result = "123".TryParse<int>();
 
         Assert.True(result.IsSuccess);
         Assert.True(result.TryGetValue(out var value));
@@ -30,7 +30,7 @@ public class ParseExtensionsTests
     [Fact]
     public void TryParse_GenericInt_WhenInvalid_ReturnsParseError()
     {
-        Result<int, Error> result = "abc".TryParse<int>();
+        var result = "abc".TryParse<int>();
 
         Assert.True(result.IsFailure);
         Assert.True(result.TryGetError(out var error));
@@ -55,7 +55,7 @@ public class ParseExtensionsTests
     [Fact]
     public void TryParse_DelegateOverload_WithIntTryParse_ReturnsOk()
     {
-        Result<int, Error> result = "42".TryParse<int>(int.TryParse, nameof(int.TryParse));
+        var result = "42".TryParse<int>(int.TryParse, nameof(int.TryParse));
 
         Assert.True(result.IsSuccess);
         Assert.True(result.TryGetValue(out var value));
@@ -66,7 +66,6 @@ public class ParseExtensionsTests
     public void TryParse_DelegateOverload_WhenParserIsNull_ThrowsArgumentNullException()
     {
         Assert.Throws<ArgumentNullException>(() =>
-            "42".TryParse<int>((ParseExtensions.TryParseDelegate<int>)null!));
+            "42".TryParse((ParseExtensions.TryParseDelegate<int>)null!));
     }
 }
-

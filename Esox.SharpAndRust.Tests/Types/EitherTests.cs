@@ -1,11 +1,10 @@
-using Esox.SharpAndRusty.Types;
 using Esox.SharpAndRusty.Extensions;
+using Esox.SharpAndRusty.Types;
 
 namespace Esox.SharpAndRust.Tests.Types;
 
 public class EitherTests
 {
-
     [Fact]
     public void Left_Construction_CreatesLeftEither()
     {
@@ -31,7 +30,6 @@ public class EitherTests
         Assert.True(either.TryGetRight(out var value));
         Assert.Equal("Hello", value);
     }
-
 
 
     [Fact]
@@ -91,7 +89,6 @@ public class EitherTests
     }
 
 
-
     [Fact]
     public void Match_WithLeft_ExecutesLeftFunction()
     {
@@ -100,8 +97,8 @@ public class EitherTests
 
         // Act
         var result = either.Match(
-            onLeft: x => $"Left: {x}",
-            onRight: x => $"Right: {x}");
+            x => $"Left: {x}",
+            x => $"Right: {x}");
 
         // Assert
         Assert.Equal("Left: 42", result);
@@ -115,8 +112,8 @@ public class EitherTests
 
         // Act
         var result = either.Match(
-            onLeft: x => $"Left: {x}",
-            onRight: x => $"Right: {x}");
+            x => $"Left: {x}",
+            x => $"Right: {x}");
 
         // Assert
         Assert.Equal("Right: Hello", result);
@@ -154,8 +151,8 @@ public class EitherTests
 
         // Act
         either.Match(
-            onLeft: _ => leftCalled = true,
-            onRight: _ => rightCalled = true);
+            _ => leftCalled = true,
+            _ => rightCalled = true);
 
         // Assert
         Assert.True(leftCalled);
@@ -172,14 +169,13 @@ public class EitherTests
 
         // Act
         either.Match(
-            onLeft: _ => leftCalled = true,
-            onRight: _ => rightCalled = true);
+            _ => leftCalled = true,
+            _ => rightCalled = true);
 
         // Assert
         Assert.False(leftCalled);
         Assert.True(rightCalled);
     }
-
 
 
     [Fact]
@@ -250,8 +246,8 @@ public class EitherTests
 
         // Act
         var result = either.Map(
-            leftMapper: x => x.ToString(),
-            rightMapper: x => x.Length.ToString());
+            x => x.ToString(),
+            x => x.Length.ToString());
 
         // Assert
         Assert.True(result.IsLeft);
@@ -267,15 +263,14 @@ public class EitherTests
 
         // Act
         var result = either.Map(
-            leftMapper: x => x.ToString(),
-            rightMapper: x => x.Length.ToString());
+            x => x.ToString(),
+            x => x.Length.ToString());
 
         // Assert
         Assert.True(result.IsRight);
         Assert.True(result.TryGetRight(out var value));
         Assert.Equal("5", value);
     }
-
 
 
     [Fact]
@@ -324,7 +319,6 @@ public class EitherTests
     }
 
 
-
     [Fact]
     public void LeftOption_WithLeft_ReturnsSome()
     {
@@ -336,10 +330,7 @@ public class EitherTests
 
         // Assert
         Assert.True(option.IsSome());
-        if (option is Option<int>.Some some)
-        {
-            Assert.Equal(42, some.Value);
-        }
+        if (option is Option<int>.Some some) Assert.Equal(42, some.Value);
     }
 
     [Fact]
@@ -366,10 +357,7 @@ public class EitherTests
 
         // Assert
         Assert.True(option.IsSome());
-        if (option is Option<string>.Some some)
-        {
-            Assert.Equal("Hello", some.Value);
-        }
+        if (option is Option<string>.Some some) Assert.Equal("Hello", some.Value);
     }
 
     [Fact]
@@ -384,7 +372,6 @@ public class EitherTests
         // Assert
         Assert.True(option.IsNone());
     }
-
 
 
     [Fact]
@@ -412,7 +399,6 @@ public class EitherTests
         // Assert
         Assert.Equal("Right(Hello)", str);
     }
-
 
 
     [Fact]
@@ -560,12 +546,11 @@ public class EitherTests
     }
 
 
-
     [Fact]
     public void Partition_SplitsEithersCorrectly()
     {
         // Arrange
-        Either<int, string>[] eithers = new Either<int, string>[]
+        var eithers = new Either<int, string>[]
         {
             new Either<int, string>.Left(1),
             new Either<int, string>.Right("A"),
@@ -575,7 +560,7 @@ public class EitherTests
         };
 
         // Act
-        var (lefts, rights) = eithers.Partition<int, string>();
+        var (lefts, rights) = eithers.Partition();
 
         // Assert
         Assert.Equal(3, lefts.Count);
@@ -588,7 +573,7 @@ public class EitherTests
     public void Lefts_CollectsAllLeftValues()
     {
         // Arrange
-        Either<int, string>[] eithers = new Either<int, string>[]
+        var eithers = new Either<int, string>[]
         {
             new Either<int, string>.Left(1),
             new Either<int, string>.Right("A"),
@@ -598,7 +583,7 @@ public class EitherTests
         };
 
         // Act
-        var lefts = eithers.Lefts<int, string>().ToList();
+        var lefts = eithers.Lefts().ToList();
 
         // Assert
         Assert.Equal(3, lefts.Count);
@@ -609,7 +594,7 @@ public class EitherTests
     public void Rights_CollectsAllRightValues()
     {
         // Arrange
-        Either<int, string>[] eithers = new Either<int, string>[]
+        var eithers = new Either<int, string>[]
         {
             new Either<int, string>.Left(1),
             new Either<int, string>.Right("A"),
@@ -619,13 +604,12 @@ public class EitherTests
         };
 
         // Act
-        var rights = eithers.Rights<int, string>().ToList();
+        var rights = eithers.Rights().ToList();
 
         // Assert
         Assert.Equal(2, rights.Count);
         Assert.Equal(new[] { "A", "B" }, rights);
     }
-
 
 
     [Fact]
@@ -636,21 +620,20 @@ public class EitherTests
         {
             if (fileExists)
                 return new Either<FileConfig, EnvConfig>.Left(new FileConfig("config.json"));
-            else
-                return new Either<FileConfig, EnvConfig>.Right(new EnvConfig("ENV_VAR"));
+            return new Either<FileConfig, EnvConfig>.Right(new EnvConfig("ENV_VAR"));
         }
 
         // Act - file exists
         var fileResult = LoadConfig(true);
         var fileMessage = fileResult.Match(
-            onLeft: fc => $"Using file: {fc.Path}",
-            onRight: ec => $"Using env: {ec.VarName}");
+            fc => $"Using file: {fc.Path}",
+            ec => $"Using env: {ec.VarName}");
 
         // Act - file doesn't exist
         var envResult = LoadConfig(false);
         var envMessage = envResult.Match(
-            onLeft: fc => $"Using file: {fc.Path}",
-            onRight: ec => $"Using env: {ec.VarName}");
+            fc => $"Using file: {fc.Path}",
+            ec => $"Using env: {ec.VarName}");
 
         // Assert
         Assert.Equal("Using file: config.json", fileMessage);
@@ -665,8 +648,7 @@ public class EitherTests
         {
             if (cached)
                 return new Either<CachedData, DatabaseData>.Left(new CachedData(42, DateTime.UtcNow));
-            else
-                return new Either<CachedData, DatabaseData>.Right(new DatabaseData(42, true));
+            return new Either<CachedData, DatabaseData>.Right(new DatabaseData(42, true));
         }
 
         // Act
@@ -705,10 +687,11 @@ public class EitherTests
     }
 
 
-
     private record FileConfig(string Path);
-    private record EnvConfig(string VarName);
-    private record CachedData(int Id, DateTime CachedAt);
-    private record DatabaseData(int Id, bool Fresh);
 
+    private record EnvConfig(string VarName);
+
+    private record CachedData(int Id, DateTime CachedAt);
+
+    private record DatabaseData(int Id, bool Fresh);
 }

@@ -47,4 +47,3 @@ public class ResultOptionAccessTests
         Assert.True(errorOption.IsNone());
     }
 }
-

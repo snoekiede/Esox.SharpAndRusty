@@ -3,14 +3,14 @@ using Esox.SharpAndRusty.Types;
 namespace Esox.SharpAndRusty.Extensions;
 
 /// <summary>
-/// Provides extension methods for working with <see cref="Either{L, R}"/> types.
+///     Provides extension methods for working with <see cref="Either{L,R}" /> types.
 /// </summary>
 public static class EitherExtensions
 {
     extension<L, R>(Either<L, R> either)
     {
         /// <summary>
-        /// Chains together operations that return Either values, operating on the Right value.
+        ///     Chains together operations that return Either values, operating on the Right value.
         /// </summary>
         /// <typeparam name="L">The type of the Left value.</typeparam>
         /// <typeparam name="R">The type of the current Right value.</typeparam>
@@ -30,9 +30,9 @@ public static class EitherExtensions
                 _ => throw new InvalidOperationException("Either is in an invalid state.")
             };
         }
-        
+
         /// <summary>
-        /// Chains together operations that return Either values, operating on the Left value.
+        ///     Chains together operations that return Either values, operating on the Left value.
         /// </summary>
         /// <typeparam name="L">The type of the current Left value.</typeparam>
         /// <typeparam name="R">The type of the Right value.</typeparam>
@@ -52,9 +52,9 @@ public static class EitherExtensions
                 _ => throw new InvalidOperationException("Either is in an invalid state.")
             };
         }
-        
+
         /// <summary>
-        /// Executes an action if the Either is Left.
+        ///     Executes an action if the Either is Left.
         /// </summary>
         /// <typeparam name="L">The type of the Left value.</typeparam>
         /// <typeparam name="R">The type of the Right value.</typeparam>
@@ -65,16 +65,13 @@ public static class EitherExtensions
         {
             if (action is null) throw new ArgumentNullException(nameof(action));
 
-            if (either is Either<L, R>.Left left)
-            {
-                action(left.Value);
-            }
+            if (either is Either<L, R>.Left left) action(left.Value);
 
             return either;
         }
-        
+
         /// <summary>
-        /// Executes an action if the Either is Right.
+        ///     Executes an action if the Either is Right.
         /// </summary>
         /// <typeparam name="L">The type of the Left value.</typeparam>
         /// <typeparam name="R">The type of the Right value.</typeparam>
@@ -85,53 +82,44 @@ public static class EitherExtensions
         {
             if (action is null) throw new ArgumentNullException(nameof(action));
 
-            if (either is Either<L, R>.Right right)
-            {
-                action(right.Value);
-            }
+            if (either is Either<L, R>.Right right) action(right.Value);
 
             return either;
         }
-        
+
         /// <summary>
-        /// Gets the Left value or returns a default value.
+        ///     Gets the Left value or returns a default value.
         /// </summary>
         /// <typeparam name="L">The type of the Left value.</typeparam>
         /// <typeparam name="R">The type of the Right value.</typeparam>
         /// <param name="either">The either to extract the value from.</param>
         /// <param name="defaultValue">The value to return if the either is Right.</param>
-        /// <returns>The Left value if present, otherwise <paramref name="defaultValue"/>.</returns>
-        public L GetLeftOrDefault(L defaultValue)
-        {
-            return either is Either<L, R>.Left left ? left.Value : defaultValue;
-        }
-        
+        /// <returns>The Left value if present, otherwise <paramref name="defaultValue" />.</returns>
+        public L GetLeftOrDefault(L defaultValue) => either is Either<L, R>.Left left ? left.Value : defaultValue;
+
         /// <summary>
-        /// Gets the Right value or returns a default value.
+        ///     Gets the Right value or returns a default value.
         /// </summary>
         /// <typeparam name="L">The type of the Left value.</typeparam>
         /// <typeparam name="R">The type of the Right value.</typeparam>
         /// <param name="either">The either to extract the value from.</param>
         /// <param name="defaultValue">The value to return if the either is Left.</param>
-        /// <returns>The Right value if present, otherwise <paramref name="defaultValue"/>.</returns>
-        public R GetRightOrDefault(R defaultValue)
-        {
-            return either is Either<L, R>.Right right ? right.Value : defaultValue;
-        }
+        /// <returns>The Right value if present, otherwise <paramref name="defaultValue" />.</returns>
+        public R GetRightOrDefault(R defaultValue) => either is Either<L, R>.Right right ? right.Value : defaultValue;
     }
 
     extension<L, R>(IEnumerable<Either<L, R>> eithers)
     {
         /// <summary>
-        /// Converts a collection of Eithers into an Either of two collections.
+        ///     Converts a collection of Eithers into an Either of two collections.
         /// </summary>
         /// <typeparam name="L">The type of the Left values.</typeparam>
         /// <typeparam name="R">The type of the Right values.</typeparam>
         /// <param name="eithers">The collection of eithers to partition.</param>
         /// <returns>
-        /// A tuple containing:
-        /// - A list of all Left values
-        /// - A list of all Right values
+        ///     A tuple containing:
+        ///     - A list of all Left values
+        ///     - A list of all Right values
         /// </returns>
         public (List<L> lefts, List<R> rights) Partition()
         {
@@ -153,9 +141,9 @@ public static class EitherExtensions
 
             return (lefts, rights);
         }
-        
+
         /// <summary>
-        /// Collects all Left values from a collection of Eithers.
+        ///     Collects all Left values from a collection of Eithers.
         /// </summary>
         /// <typeparam name="L">The type of the Left values.</typeparam>
         /// <typeparam name="R">The type of the Right values.</typeparam>
@@ -165,15 +153,12 @@ public static class EitherExtensions
         {
             foreach (var either in eithers)
             {
-                if (either is Either<L, R>.Left left)
-                {
-                    yield return left.Value;
-                }
+                if (either is Either<L, R>.Left left) yield return left.Value;
             }
         }
-        
+
         /// <summary>
-        /// Collects all Right values from a collection of Eithers.
+        ///     Collects all Right values from a collection of Eithers.
         /// </summary>
         /// <typeparam name="L">The type of the Left values.</typeparam>
         /// <typeparam name="R">The type of the Right values.</typeparam>
@@ -183,16 +168,8 @@ public static class EitherExtensions
         {
             foreach (var either in eithers)
             {
-                if (either is Either<L, R>.Right right)
-                {
-                    yield return right.Value;
-                }
+                if (either is Either<L, R>.Right right) yield return right.Value;
             }
         }
     }
-    
-
-
-
-    
 }

@@ -1,12 +1,11 @@
-using Esox.SharpAndRusty.Types;
-using Esox.SharpAndRusty.Extensions;
 using System.Text.Json;
+using Esox.SharpAndRusty.Extensions;
+using Esox.SharpAndRusty.Types;
 
 namespace Esox.SharpAndRust.Tests.Extensions;
 
 public class TryExtensionsTests
 {
-
     [Fact]
     public void Try_WithSuccessfulFunction_ReturnsOk()
     {
@@ -75,7 +74,6 @@ public class TryExtensionsTests
     }
 
 
-
     [Fact]
     public void Try_WithErrorMapper_Success_ReturnsOk()
     {
@@ -137,7 +135,6 @@ public class TryExtensionsTests
         Assert.True(result.TryGetError(out var error));
         Assert.Equal(ErrorKind.InvalidInput, error.Kind);
     }
-
 
 
     [Fact]
@@ -226,7 +223,6 @@ public class TryExtensionsTests
     }
 
 
-
     [Fact]
     public async Task TryAsync_WithErrorMapper_Success_ReturnsOk()
     {
@@ -277,10 +273,13 @@ public class TryExtensionsTests
         // Arrange, Act & Assert
         await Assert.ThrowsAsync<ArgumentNullException>(async () =>
             await TryExtensions.TryAsync(
-                async () => { await Task.Delay(10); return 42; },
+                async () =>
+                {
+                    await Task.Delay(10);
+                    return 42;
+                },
                 (Func<Exception, string>)null!));
     }
-
 
 
     [Fact]
@@ -291,10 +290,7 @@ public class TryExtensionsTests
 
         // Assert
         Assert.True(result.IsSome());
-        if (result is Option<string>.Some some)
-        {
-            Assert.Equal("Hello", some.Value);
-        }
+        if (result is Option<string>.Some some) Assert.Equal("Hello", some.Value);
     }
 
     [Fact]
@@ -338,10 +334,7 @@ public class TryExtensionsTests
 
         // Assert
         Assert.True(result.IsSome());
-        if (result is Option<TestUser>.Some some)
-        {
-            Assert.Equal("Alice", some.Value.Name);
-        }
+        if (result is Option<TestUser>.Some some) Assert.Equal("Alice", some.Value.Name);
     }
 
     [Fact]
@@ -359,7 +352,6 @@ public class TryExtensionsTests
     }
 
 
-
     [Fact]
     public async Task TryOptionAsync_WithSuccessfulFunction_ReturnsSome()
     {
@@ -372,10 +364,7 @@ public class TryExtensionsTests
 
         // Assert
         Assert.True(result.IsSome());
-        if (result is Option<string>.Some some)
-        {
-            Assert.Equal("Hello", some.Value);
-        }
+        if (result is Option<string>.Some some) Assert.Equal("Hello", some.Value);
     }
 
     [Fact]
@@ -431,7 +420,6 @@ public class TryExtensionsTests
         // Assert
         Assert.True(result.IsNone());
     }
-
 
 
     [Fact]
@@ -504,14 +492,9 @@ public class TryExtensionsTests
 
         // Assert
         Assert.True(result.IsSome());
-        if (result is Option<string>.Some some)
-        {
-            Assert.Equal("Bob is 25 years old", some.Value);
-        }
+        if (result is Option<string>.Some some) Assert.Equal("Bob is 25 years old", some.Value);
     }
 
 
-
     private record TestUser(string Name, int Age);
-
 }

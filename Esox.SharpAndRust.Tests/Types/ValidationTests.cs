@@ -1,12 +1,11 @@
-using Esox.SharpAndRusty.Types;
-using Esox.SharpAndRusty.Extensions;
 using System.Collections.Immutable;
+using Esox.SharpAndRusty.Extensions;
+using Esox.SharpAndRusty.Types;
 
 namespace Esox.SharpAndRust.Tests.Types;
 
 public class ValidationTests
 {
-
     [Fact]
     public void Valid_CreatesSuccessfulValidation()
     {
@@ -46,7 +45,6 @@ public class ValidationTests
         Assert.Equal(3, errors.Count);
         Assert.Equal(new[] { "error1", "error2", "error3" }, errors);
     }
-
 
 
     [Fact]
@@ -106,7 +104,6 @@ public class ValidationTests
     }
 
 
-
     [Fact]
     public void Match_WithSuccess_ExecutesSuccessFunction()
     {
@@ -115,8 +112,8 @@ public class ValidationTests
 
         // Act
         var result = validation.Match(
-            onSuccess: v => $"Value: {v}",
-            onFailure: errors => $"Errors: {string.Join(", ", errors)}");
+            v => $"Value: {v}",
+            errors => $"Errors: {string.Join(", ", errors)}");
 
         // Assert
         Assert.Equal("Value: 42", result);
@@ -130,13 +127,12 @@ public class ValidationTests
 
         // Act
         var result = validation.Match(
-            onSuccess: v => $"Value: {v}",
-            onFailure: errors => $"Errors: {string.Join(", ", errors)}");
+            v => $"Value: {v}",
+            errors => $"Errors: {string.Join(", ", errors)}");
 
         // Assert
         Assert.Equal("Errors: error1, error2", result);
     }
-
 
 
     [Fact]
@@ -200,7 +196,6 @@ public class ValidationTests
     }
 
 
-
     [Fact]
     public void ToResult_WithErrorCombiner_Success()
     {
@@ -260,7 +255,6 @@ public class ValidationTests
         Assert.True(result.TryGetError(out var error));
         Assert.Equal("error1", error);
     }
-
 
 
     [Fact]
@@ -425,7 +419,6 @@ public class ValidationTests
     }
 
 
-
     [Fact]
     public void Bind_WithSuccess_ChainsValidation()
     {
@@ -478,7 +471,6 @@ public class ValidationTests
     }
 
 
-
     [Fact]
     public void Sequence_AllSuccess_ReturnsAllValues()
     {
@@ -523,7 +515,6 @@ public class ValidationTests
     }
 
 
-
     [Fact]
     public void OnSuccess_WithSuccess_ExecutesAction()
     {
@@ -565,7 +556,6 @@ public class ValidationTests
         Assert.Equal(2, capturedErrors.Count);
         Assert.True(result.IsFailure);
     }
-
 
 
     [Fact]
@@ -628,34 +618,25 @@ public class ValidationTests
             (name, email, age, password) => new TestUser(name, email, age));
     }
 
-    private Validation<string, string> ValidateName(string name)
-    {
-        return !string.IsNullOrWhiteSpace(name) && name.Length >= 3
+    private Validation<string, string> ValidateName(string name) =>
+        !string.IsNullOrWhiteSpace(name) && name.Length >= 3
             ? Validation<string, string>.Valid(name)
             : Validation<string, string>.Invalid("Name must be at least 3 characters");
-    }
 
-    private Validation<string, string> ValidateEmail(string email)
-    {
-        return email.Contains("@") && email.Contains(".")
+    private Validation<string, string> ValidateEmail(string email) =>
+        email.Contains("@") && email.Contains(".")
             ? Validation<string, string>.Valid(email)
             : Validation<string, string>.Invalid("Email must be valid");
-    }
 
-    private Validation<int, string> ValidateAge(int age)
-    {
-        return age >= 18 && age <= 120
+    private Validation<int, string> ValidateAge(int age) =>
+        age >= 18 && age <= 120
             ? Validation<int, string>.Valid(age)
             : Validation<int, string>.Invalid("Age must be between 18 and 120");
-    }
 
-    private Validation<string, string> ValidatePassword(string password)
-    {
-        return password.Length >= 8
+    private Validation<string, string> ValidatePassword(string password) =>
+        password.Length >= 8
             ? Validation<string, string>.Valid(password)
             : Validation<string, string>.Invalid("Password must be at least 8 characters");
-    }
-
 
 
     [Fact]
@@ -696,32 +677,23 @@ public class ValidationTests
             (db, cache, logging, timeout) => config);
     }
 
-    private Validation<string, string> ValidateDatabase(string url)
-    {
-        return !string.IsNullOrWhiteSpace(url)
+    private Validation<string, string> ValidateDatabase(string url) =>
+        !string.IsNullOrWhiteSpace(url)
             ? Validation<string, string>.Valid(url)
             : Validation<string, string>.Invalid("Database URL is required");
-    }
 
-    private Validation<string, string> ValidateCache(string url)
-    {
-        return !string.IsNullOrWhiteSpace(url)
+    private Validation<string, string> ValidateCache(string url) =>
+        !string.IsNullOrWhiteSpace(url)
             ? Validation<string, string>.Valid(url)
             : Validation<string, string>.Invalid("Cache URL is required");
-    }
 
-    private Validation<bool, string> ValidateLogging(bool enabled)
-    {
-        return Validation<bool, string>.Valid(enabled); // Always valid
-    }
+    private Validation<bool, string> ValidateLogging(bool enabled) =>
+        Validation<bool, string>.Valid(enabled); // Always valid
 
-    private Validation<int, string> ValidateTimeout(int seconds)
-    {
-        return seconds > 0 && seconds <= 300
+    private Validation<int, string> ValidateTimeout(int seconds) =>
+        seconds > 0 && seconds <= 300
             ? Validation<int, string>.Valid(seconds)
             : Validation<int, string>.Invalid("Timeout must be between 1 and 300 seconds");
-    }
-
 
 
     [Fact]
@@ -742,38 +714,30 @@ public class ValidationTests
         Assert.Contains("Name", error);
     }
 
-    private Result<string, string> ValidateNameResult(string name)
-    {
-        return !string.IsNullOrWhiteSpace(name) && name.Length >= 3
+    private Result<string, string> ValidateNameResult(string name) =>
+        !string.IsNullOrWhiteSpace(name) && name.Length >= 3
             ? Result<string, string>.Ok(name)
             : Result<string, string>.Err("Name must be at least 3 characters");
-    }
 
-    private Result<string, string> ValidateEmailResult(string email)
-    {
-        return email.Contains("@")
+    private Result<string, string> ValidateEmailResult(string email) =>
+        email.Contains("@")
             ? Result<string, string>.Ok(email)
             : Result<string, string>.Err("Email must be valid");
-    }
 
-    private Result<int, string> ValidateAgeResult(int age)
-    {
-        return age >= 18
+    private Result<int, string> ValidateAgeResult(int age) =>
+        age >= 18
             ? Result<int, string>.Ok(age)
             : Result<int, string>.Err("Age must be at least 18");
-    }
 
-    private Result<string, string> ValidatePasswordResult(string password)
-    {
-        return password.Length >= 8
+    private Result<string, string> ValidatePasswordResult(string password) =>
+        password.Length >= 8
             ? Result<string, string>.Ok(password)
             : Result<string, string>.Err("Password must be at least 8 characters");
-    }
-
 
 
     private record TestUser(string Name, string Email, int Age);
-    private record RegistrationForm(string Name, string Email, int Age, string Password);
-    private record AppConfig(string DatabaseUrl, string CacheUrl, bool EnableLogging, int TimeoutSeconds);
 
+    private record RegistrationForm(string Name, string Email, int Age, string Password);
+
+    private record AppConfig(string DatabaseUrl, string CacheUrl, bool EnableLogging, int TimeoutSeconds);
 }

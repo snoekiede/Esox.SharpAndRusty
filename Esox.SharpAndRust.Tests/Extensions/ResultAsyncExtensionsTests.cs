@@ -1,11 +1,11 @@
-using Esox.SharpAndRusty.Types;
+using System.Diagnostics;
 using Esox.SharpAndRusty.Extensions;
+using Esox.SharpAndRusty.Types;
 
 namespace Esox.SharpAndRust.Tests.Extensions;
 
 public class ResultAsyncExtensionsTests
 {
-
     [Fact]
     public async Task MapAsync_TaskResult_TransformsSuccessValue()
     {
@@ -69,7 +69,6 @@ public class ResultAsyncExtensionsTests
         // Assert
         Assert.True(mapped.IsFailure);
     }
-
 
 
     [Fact]
@@ -159,7 +158,6 @@ public class ResultAsyncExtensionsTests
     }
 
 
-
     [Fact]
     public async Task MapErrorAsync_TransformsErrorType()
     {
@@ -190,7 +188,6 @@ public class ResultAsyncExtensionsTests
     }
 
 
-
     [Fact]
     public async Task TapAsync_ExecutesSuccessAction()
     {
@@ -201,12 +198,12 @@ public class ResultAsyncExtensionsTests
 
         // Act
         var result = await resultTask.TapAsync(
-            onSuccess: async _ =>
+            async _ =>
             {
                 await Task.Delay(1);
                 successCalled = true;
             },
-            onFailure: async _ =>
+            async _ =>
             {
                 await Task.Delay(1);
                 failureCalled = true;
@@ -229,12 +226,12 @@ public class ResultAsyncExtensionsTests
 
         // Act
         var result = await resultTask.TapAsync(
-            onSuccess: async _ =>
+            async _ =>
             {
                 await Task.Delay(1);
                 successCalled = true;
             },
-            onFailure: async _ =>
+            async _ =>
             {
                 await Task.Delay(1);
                 failureCalled = true;
@@ -246,7 +243,6 @@ public class ResultAsyncExtensionsTests
         Assert.True(failureCalled);
         Assert.True(result.IsFailure);
     }
-
 
 
     [Fact]
@@ -284,7 +280,6 @@ public class ResultAsyncExtensionsTests
         Assert.True(result.IsSuccess);
         Assert.Equal(99, result.UnwrapOr(0));
     }
-
 
 
     [Fact]
@@ -352,7 +347,6 @@ public class ResultAsyncExtensionsTests
         combined.TryGetValue(out var values);
         Assert.Equal([1, 2, 3], values);
     }
-
 
 
     [Fact]
@@ -423,7 +417,6 @@ public class ResultAsyncExtensionsTests
     }
 
 
-
     [Fact]
     public async Task MapAsync_ThrowsOnNullTask()
     {
@@ -458,7 +451,6 @@ public class ResultAsyncExtensionsTests
     }
 
 
-
     [Fact]
     public async Task MapAsync_TaskResult_RespectsCancellation()
     {
@@ -482,7 +474,7 @@ public class ResultAsyncExtensionsTests
         // Arrange
         var cts = new CancellationTokenSource();
         var result = Result<int, string>.Ok(42);
-        
+
         // Act & Assert
         await cts.CancelAsync();
         await Assert.ThrowsAsync<OperationCanceledException>(async () =>
@@ -499,7 +491,7 @@ public class ResultAsyncExtensionsTests
         // Arrange
         var cts = new CancellationTokenSource();
         var result = Result<int, string>.Ok(42);
-        
+
         // Act & Assert
         await Assert.ThrowsAsync<OperationCanceledException>(async () =>
             await result.MapAsync(async x =>
@@ -533,7 +525,7 @@ public class ResultAsyncExtensionsTests
         // Arrange
         var cts = new CancellationTokenSource();
         var result = Result<int, string>.Ok(42);
-        
+
         // Act & Assert
         await cts.CancelAsync();
         await Assert.ThrowsAsync<OperationCanceledException>(async () =>
@@ -550,7 +542,7 @@ public class ResultAsyncExtensionsTests
         // Arrange
         var cts = new CancellationTokenSource();
         var result = Result<int, string>.Ok(42);
-        
+
         // Act & Assert
         await Assert.ThrowsAsync<OperationCanceledException>(async () =>
             await result.BindAsync(async x =>
@@ -593,8 +585,8 @@ public class ResultAsyncExtensionsTests
         // Act & Assert
         await Assert.ThrowsAsync<TaskCanceledException>(async () =>
             await resultTask.TapAsync(
-                onSuccess: async _ => await Task.Delay(10, cts.Token),
-                onFailure: async _ => await Task.Delay(10, cts.Token),
+                async _ => await Task.Delay(10, cts.Token),
+                async _ => await Task.Delay(10, cts.Token),
                 cts.Token));
     }
 
@@ -608,12 +600,12 @@ public class ResultAsyncExtensionsTests
         // Act & Assert
         await Assert.ThrowsAsync<OperationCanceledException>(async () =>
             await resultTask.TapAsync(
-                onSuccess: async _ =>
+                async _ =>
                 {
                     await Task.Delay(10, cts.Token);
                     await cts.CancelAsync();
                 },
-                onFailure: async _ => await Task.Delay(10, cts.Token),
+                async _ => await Task.Delay(10, cts.Token),
                 cts.Token));
     }
 
@@ -627,8 +619,8 @@ public class ResultAsyncExtensionsTests
         // Act & Assert
         await Assert.ThrowsAsync<OperationCanceledException>(async () =>
             await resultTask.TapAsync(
-                onSuccess: async _ => await Task.Delay(10, cts.Token),
-                onFailure: async _ =>
+                async _ => await Task.Delay(10, cts.Token),
+                async _ =>
                 {
                     await Task.Delay(10, cts.Token);
                     await cts.CancelAsync();
@@ -679,7 +671,7 @@ public class ResultAsyncExtensionsTests
     {
         // Arrange
         var cts = new CancellationTokenSource();
-        var resultTasks = new []
+        var resultTasks = new[]
         {
             Task.Run(async () =>
             {
@@ -717,7 +709,6 @@ public class ResultAsyncExtensionsTests
         Assert.True(mapped.IsSuccess);
         Assert.Equal(84, mapped.UnwrapOr(0));
     }
-
 
 
     [Fact]
@@ -759,8 +750,8 @@ public class ResultAsyncExtensionsTests
         var resultTasks = new[]
         {
             GetValueAsync(1, 100), // Slowest
-            GetValueAsync(2, 10),  // Fastest
-            GetValueAsync(3, 50)   // Middle
+            GetValueAsync(2, 10), // Fastest
+            GetValueAsync(3, 50) // Middle
         };
 
         // Act
@@ -784,10 +775,10 @@ public class ResultAsyncExtensionsTests
 
         var resultTasks = new[]
         {
-            GetValueAsync(1, false),
-            GetValueAsync(2, true),  // First error
-            GetValueAsync(3, true),  // Second error
-            GetValueAsync(4, false)
+            GetValueAsync(1),
+            GetValueAsync(2, true), // First error
+            GetValueAsync(3, true), // Second error
+            GetValueAsync(4)
         };
 
         // Act
@@ -821,13 +812,13 @@ public class ResultAsyncExtensionsTests
 
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-            await result.MapAsync<int, string, int>(async _ =>
+            await result.MapAsync(async _ =>
             {
                 await Task.Delay(10);
                 throw new InvalidOperationException("Async mapper failed");
-                #pragma warning disable CS0162 // Unreachable code detected
+#pragma warning disable CS0162 // Unreachable code detected
                 return 0;
-                #pragma warning restore CS0162
+#pragma warning restore CS0162
             }));
     }
 
@@ -843,9 +834,9 @@ public class ResultAsyncExtensionsTests
             {
                 await Task.CompletedTask;
                 throw new InvalidOperationException("Binder failed");
-                #pragma warning disable CS0162 // Unreachable code detected
+#pragma warning disable CS0162 // Unreachable code detected
                 return Result<int, string>.Ok(0);
-                #pragma warning restore CS0162
+#pragma warning restore CS0162
             }));
     }
 
@@ -857,13 +848,13 @@ public class ResultAsyncExtensionsTests
 
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-            await result.BindAsync<int, string, int>(async _ =>
+            await result.BindAsync(async _ =>
             {
                 await Task.Delay(10);
                 throw new InvalidOperationException("Async binder failed");
-                #pragma warning disable CS0162 // Unreachable code detected
+#pragma warning disable CS0162 // Unreachable code detected
                 return Result<int, string>.Ok(0);
-                #pragma warning restore CS0162
+#pragma warning restore CS0162
             }));
     }
 
@@ -876,12 +867,12 @@ public class ResultAsyncExtensionsTests
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             await resultTask.TapAsync(
-                onSuccess: async _ =>
+                async _ =>
                 {
                     await Task.Delay(10);
                     throw new InvalidOperationException("Success action failed");
                 },
-                onFailure: async _ => await Task.Delay(10)));
+                async _ => await Task.Delay(10)));
     }
 
     [Fact]
@@ -893,8 +884,8 @@ public class ResultAsyncExtensionsTests
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             await resultTask.TapAsync(
-                onSuccess: async _ => await Task.Delay(10),
-                onFailure: async _ =>
+                async _ => await Task.Delay(10),
+                async _ =>
                 {
                     await Task.Delay(10);
                     throw new InvalidOperationException("Failure action failed");
@@ -1010,7 +1001,7 @@ public class ResultAsyncExtensionsTests
             return Result<int, string>.Ok(value);
         }
 
-        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+        var stopwatch = Stopwatch.StartNew();
 
         // Act
         var result = await SlowOperationAsync(10)
@@ -1064,10 +1055,11 @@ public class ResultAsyncExtensionsTests
         {
             await Task.Delay(100);
             var sum = 0;
-            for (int i = 0; i < 1000; i++)
+            for (var i = 0; i < 1000; i++)
             {
                 sum += x;
             }
+
             return sum;
         });
 
@@ -1075,6 +1067,4 @@ public class ResultAsyncExtensionsTests
         Assert.True(mapped.IsSuccess);
         Assert.Equal(42000, mapped.UnwrapOr(0));
     }
-
 }
-

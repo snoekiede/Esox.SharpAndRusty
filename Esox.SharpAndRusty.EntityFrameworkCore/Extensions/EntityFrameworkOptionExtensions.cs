@@ -1,6 +1,6 @@
-﻿using Esox.SharpAndRusty.Types;
+﻿using System.Linq.Expressions;
+using Esox.SharpAndRusty.Types;
 using Microsoft.EntityFrameworkCore;
-using System.Linq.Expressions;
 
 namespace Esox.SharpAndRusty.EntityFrameworkCore.Extensions;
 
@@ -48,4 +48,3 @@ public static class EntityFrameworkOptionExtensions
         return query.Where(predicate).SingleOrNoneAsync(cancellationToken);
     }
 }
-

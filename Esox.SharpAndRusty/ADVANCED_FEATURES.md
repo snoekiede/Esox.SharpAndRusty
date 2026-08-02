@@ -54,7 +54,8 @@ Option<string> name = "Alice";     // Some("Alice")
 
 ### ⚠️ Known Limitation: Same-Type T and E
 
-When `T` and `E` are the same type in `Result<T, E>` or `ExtendedResult<T, TE>`, the compiler raises a CS0457 ambiguous conversion error. Use explicit factory methods in this case:
+When `T` and `E` are the same type in `Result<T, E>` or `ExtendedResult<T, TE>`, the compiler raises a CS0457 ambiguous
+conversion error. Use explicit factory methods in this case:
 
 ```csharp
 // ❌ Compiler error CS0457
@@ -87,6 +88,7 @@ var result = GetUserData(id)
 ```
 
 ### Use Cases
+
 - Converting between different error representations
 - Integrating with different error handling strategies
 - Maintaining type safety across API boundaries
@@ -113,6 +115,7 @@ var config = LoadConfig()
 ```
 
 ### Benefits
+
 - More informative error messages
 - Clear intent in code
 - Better debugging experience
@@ -140,6 +143,7 @@ await ProcessOrder(orderId)
 ```
 
 ### Benefits
+
 - Cleaner than separate `Inspect`/`InspectErr` calls
 - Consistent API for side effects
 - Easier to reason about logging/monitoring
@@ -228,6 +232,7 @@ var report = new LoadReport
 ```
 
 ### Use Cases for Collection Operations
+
 - Batch processing of multiple items
 - Reporting on success/failure rates
 - Partial success handling
@@ -352,7 +357,8 @@ var result = await GetUserAsync(userId)
 
 The `where` clause is **intentionally not supported** for Result types because:
 
-1. **Predicates return bool, not errors**: LINQ `where` filters based on boolean conditions, but Result types need meaningful error messages
+1. **Predicates return bool, not errors**: LINQ `where` filters based on boolean conditions, but Result types need
+   meaningful error messages
 2. **Explicit is better**: Using `Bind` with validation functions makes error handling explicit and testable
 3. **Type safety**: Validation functions can enforce type constraints and provide rich error information
 

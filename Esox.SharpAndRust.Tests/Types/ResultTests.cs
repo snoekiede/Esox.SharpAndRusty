@@ -57,8 +57,8 @@ public class ResultTests
 
         // Act
         var actualValue = result.Match(
-            success: value => value * 2,
-            failure: _ => 0
+            value => value * 2,
+            _ => 0
         );
 
         // Assert
@@ -74,8 +74,8 @@ public class ResultTests
 
         // Act
         var actualMessage = result.Match(
-            success: _ => "Success",
-            failure: error => $"Error: {error}"
+            _ => "Success",
+            error => $"Error: {error}"
         );
 
         // Assert
@@ -90,8 +90,8 @@ public class ResultTests
 
         // Act
         var value = result.Match(
-            success: v => v,
-            failure: _ => "Error"
+            v => v,
+            _ => "Error"
         );
 
         // Assert
@@ -106,8 +106,8 @@ public class ResultTests
 
         // Act
         var errorCode = result.Match(
-            success: _ => 0,
-            failure: e => e
+            _ => 0,
+            e => e
         );
 
         // Assert
@@ -123,13 +123,13 @@ public class ResultTests
 
         // Act
         var name = result.Match(
-            success: p => p.Name,
-            failure: _ => "Unknown"
+            p => p.Name,
+            _ => "Unknown"
         );
 
         var age = result.Match(
-            success: p => p.Age.ToString(),
-            failure: _ => "Unknown"
+            p => p.Age.ToString(),
+            _ => "Unknown"
         );
 
         // Assert
@@ -170,13 +170,13 @@ public class ResultTests
 
         // Act
         var successOutput = successResult.Match(
-            success: value => $"Value: {value}",
-            failure: error => $"Error: {error}"
+            value => $"Value: {value}",
+            error => $"Error: {error}"
         );
 
         var failureOutput = failureResult.Match(
-            success: value => $"Value: {value}",
-            failure: error => $"Error: {error}"
+            value => $"Value: {value}",
+            error => $"Error: {error}"
         );
 
         // Assert
@@ -524,7 +524,11 @@ public class ResultTests
     public void Try_ReturnsErrorForFailedOperation()
     {
         // Arrange
-        var operation = () => { throw new InvalidOperationException("Test error"); return 42; };
+        var operation = () =>
+        {
+            throw new InvalidOperationException("Test error");
+            return 42;
+        };
 
         // Act
         var result = Result<int, string>.Try(operation, ex => ex.Message);
@@ -591,16 +595,23 @@ public class ResultTests
         Assert.Equal("Something went wrong", error);
 
         // Local functions using implicit conversion
-        static Result<int, string> GetSuccessResult() => 100;
-        static Result<int, string> GetErrorResult() => "Something went wrong";
+        static Result<int, string> GetSuccessResult()
+        {
+            return 100;
+        }
+
+        static Result<int, string> GetErrorResult()
+        {
+            return "Something went wrong";
+        }
     }
 
     [Fact]
     public void ImplicitConversion_CanBeUsedWithNullableTypes()
     {
         // Act
-        Result<string?, int> resultWithNull = (string?)null;
-        Result<int, string?> errorWithNull = (string?)null;
+        Result<string?, int> resultWithNull = null;
+        Result<int, string?> errorWithNull = null;
 
         // Assert
         Assert.True(resultWithNull.IsSuccess);
@@ -627,8 +638,8 @@ public class ResultTests
         static string ProcessResult(Result<int, string> result)
         {
             return result.Match(
-                success: v => $"Success: {v}",
-                failure: e => $"Error: {e}"
+                v => $"Success: {v}",
+                e => $"Error: {e}"
             );
         }
     }

@@ -4,7 +4,6 @@ namespace Esox.SharpAndRust.Tests.Types;
 
 public class OptionTests
 {
-
     [Fact]
     public void Some_CreatesOptionWithValue()
     {
@@ -52,7 +51,6 @@ public class OptionTests
     }
 
 
-
     [Fact]
     public void Some_Value_ReturnsStoredValue()
     {
@@ -81,7 +79,6 @@ public class OptionTests
         Assert.Equal("test", value2);
         Assert.Equal(value1, value2);
     }
-
 
 
     [Fact]
@@ -140,14 +137,10 @@ public class OptionTests
 
         // Act
         if (option is Option<string>.Some(var value))
-        {
             // Assert
             Assert.Equal("Hello", value);
-        }
         else
-        {
             Assert.Fail("Should have matched Some case");
-        }
     }
 
     [Fact]
@@ -167,7 +160,6 @@ public class OptionTests
 
         Assert.Equal(user.ToString(), result);
     }
-
 
 
     [Fact]
@@ -220,7 +212,7 @@ public class OptionTests
         Option<int> noneOption = new Option<int>.None();
 
         // Act & Assert
-        Assert.NotEqual<Option<int>>(someOption, noneOption);
+        Assert.NotEqual(someOption, noneOption);
         Assert.False(someOption.Equals(noneOption));
         Assert.False(someOption == noneOption);
         Assert.True(someOption != noneOption);
@@ -251,7 +243,6 @@ public class OptionTests
         Assert.Equal(option1, option2);
         Assert.NotEqual(option1, option3);
     }
-
 
 
     [Fact]
@@ -332,7 +323,6 @@ public class OptionTests
     }
 
 
-
     [Fact]
     public void Some_ToString_ShowsValue()
     {
@@ -375,7 +365,6 @@ public class OptionTests
     }
 
 
-
     [Fact]
     public void Option_IsAbstractRecord()
     {
@@ -414,7 +403,6 @@ public class OptionTests
         Assert.Null(option2.Value);
         Assert.IsType<Option<int?>.None>(option3);
     }
-
 
 
     [Fact]
@@ -479,7 +467,6 @@ public class OptionTests
         // Assert
         Assert.Equal(new[] { 1, 2, 3 }, values);
     }
-
 
 
     [Fact]
@@ -555,7 +542,6 @@ public class OptionTests
     }
 
 
-
     [Fact]
     public void Some_WithDefaultValue_StoresDefault()
     {
@@ -618,7 +604,6 @@ public class OptionTests
     }
 
 
-
     [Fact]
     public void Some_DoesNotEqualNull()
     {
@@ -642,7 +627,6 @@ public class OptionTests
         Assert.False(option == null);
         Assert.True(option != null);
     }
-
 
 
     [Fact]
@@ -680,7 +664,10 @@ public class OptionTests
         var some = (Option<int>.Some)option;
         Assert.Equal(100, some.Value);
 
-        static Option<int> GetOption() => 100;
+        static Option<int> GetOption()
+        {
+            return 100;
+        }
     }
 
     [Fact]
@@ -829,7 +816,10 @@ public class OptionTests
         var some = (Option<string>.Some)someOption;
         Assert.Equal("test", some.Value);
 
-        static Option<string> GetValueOption() => "test";
+        static Option<string> GetValueOption()
+        {
+            return "test";
+        }
     }
 
     [Fact]
@@ -853,7 +843,7 @@ public class OptionTests
 
         static Option<string> GetNonNullOption()
         {
-            string? value = "test";
+            var value = "test";
             return value!;
         }
     }
@@ -863,7 +853,7 @@ public class OptionTests
     {
         // Arrange
         string? nullValue = null;
-        string? nonNullValue = "hello";
+        var nonNullValue = "hello";
 
         // Act
         var noneResult = ProcessOption(nullValue!);
@@ -889,7 +879,7 @@ public class OptionTests
     {
         // Arrange
         string? nullValue = null;
-        string? nonNullValue = "test";
+        var nonNullValue = "test";
 
         Option<string> nullOption = nullValue!;
         Option<string> valueOption = nonNullValue!;
@@ -922,7 +912,7 @@ public class OptionTests
 
         // Arrange
         string? nullValue = null;
-        string? nonNullValue = "value";
+        var nonNullValue = "value";
 
         // Act
         Option<string?> optionFromNull = nullValue;
@@ -937,5 +927,4 @@ public class OptionTests
         var some = (Option<string?>.Some)optionFromValue;
         Assert.Equal("value", some.Value);
     }
-
 }

@@ -1,11 +1,10 @@
-using Esox.SharpAndRusty.Types;
 using Esox.SharpAndRusty.Extensions;
+using Esox.SharpAndRusty.Types;
 
 namespace Esox.SharpAndRust.Tests.Extensions;
 
 public class AsyncCollectionExtensionsTests
 {
-
     [Fact]
     public async Task SequenceAsync_Option_AllSome_ReturnsSomeWithAllValues()
     {
@@ -22,10 +21,7 @@ public class AsyncCollectionExtensionsTests
 
         // Assert
         Assert.True(result.IsSome());
-        if (result is Option<IEnumerable<int>>.Some some)
-        {
-            Assert.Equal(new[] { 1, 2, 3 }, some.Value);
-        }
+        if (result is Option<IEnumerable<int>>.Some some) Assert.Equal(new[] { 1, 2, 3 }, some.Value);
     }
 
     [Fact]
@@ -60,10 +56,8 @@ public class AsyncCollectionExtensionsTests
         };
 
         // Act & Assert
-        await Assert.ThrowsAsync<OperationCanceledException>(
-            async () => await tasks.SequenceAsync(cts.Token));
+        await Assert.ThrowsAsync<OperationCanceledException>(async () => await tasks.SequenceAsync(cts.Token));
     }
-
 
 
     [Fact]
@@ -81,10 +75,7 @@ public class AsyncCollectionExtensionsTests
 
         // Assert
         Assert.True(result.IsSome());
-        if (result is Option<IEnumerable<int>>.Some some)
-        {
-            Assert.Equal(new[] { 2, 4, 6 }, some.Value);
-        }
+        if (result is Option<IEnumerable<int>>.Some some) Assert.Equal(new[] { 2, 4, 6 }, some.Value);
     }
 
     [Fact]
@@ -129,7 +120,6 @@ public class AsyncCollectionExtensionsTests
     }
 
 
-
     [Fact]
     public async Task TraverseParallelAsync_Option_AllSucceed_ReturnsSomeWithAllValues()
     {
@@ -143,14 +133,11 @@ public class AsyncCollectionExtensionsTests
                 await Task.Delay(10);
                 return new Option<int>.Some(n * 2);
             },
-            maxDegreeOfParallelism: 5);
+            5);
 
         // Assert
         Assert.True(result.IsSome());
-        if (result is Option<IEnumerable<int>>.Some some)
-        {
-            Assert.Equal(numbers.Select(n => n * 2), some.Value);
-        }
+        if (result is Option<IEnumerable<int>>.Some some) Assert.Equal(numbers.Select(n => n * 2), some.Value);
     }
 
     [Fact]
@@ -168,7 +155,7 @@ public class AsyncCollectionExtensionsTests
                     ? new Option<int>.None()
                     : new Option<int>.Some(n);
             },
-            maxDegreeOfParallelism: 5);
+            5);
 
         // Assert
         Assert.True(result.IsNone());
@@ -188,16 +175,12 @@ public class AsyncCollectionExtensionsTests
                 await Task.Delay(Random.Shared.Next(1, 20));
                 return new Option<int>.Some(n);
             },
-            maxDegreeOfParallelism: 10);
+            10);
 
         // Assert
         Assert.True(result.IsSome());
-        if (result is Option<IEnumerable<int>>.Some some)
-        {
-            Assert.Equal(numbers, some.Value);
-        }
+        if (result is Option<IEnumerable<int>>.Some some) Assert.Equal(numbers, some.Value);
     }
-
 
 
     [Fact]
@@ -236,7 +219,6 @@ public class AsyncCollectionExtensionsTests
         // Assert
         Assert.Empty(result);
     }
-
 
 
     [Fact]
@@ -278,7 +260,6 @@ public class AsyncCollectionExtensionsTests
         Assert.True(result.TryGetError(out var error));
         Assert.Equal("error1", error);
     }
-
 
 
     [Fact]
@@ -346,7 +327,6 @@ public class AsyncCollectionExtensionsTests
     }
 
 
-
     [Fact]
     public async Task TraverseParallelAsync_Result_AllSucceed_ReturnsOkWithAllValues()
     {
@@ -360,7 +340,7 @@ public class AsyncCollectionExtensionsTests
                 await Task.Delay(10);
                 return Result<int, string>.Ok(n * 2);
             },
-            maxDegreeOfParallelism: 5);
+            5);
 
         // Assert
         Assert.True(result.IsSuccess);
@@ -383,12 +363,11 @@ public class AsyncCollectionExtensionsTests
                     ? Result<int, string>.Err("error at 5")
                     : Result<int, string>.Ok(n);
             },
-            maxDegreeOfParallelism: 5);
+            5);
 
         // Assert
         Assert.True(result.IsFailure);
     }
-
 
 
     [Fact]
@@ -429,7 +408,6 @@ public class AsyncCollectionExtensionsTests
     }
 
 
-
     [Fact]
     public async Task CollectErrAsync_MixedResults_ReturnsOnlyErrors()
     {
@@ -465,7 +443,6 @@ public class AsyncCollectionExtensionsTests
         // Assert
         Assert.Empty(result);
     }
-
 
 
     [Fact]
@@ -509,7 +486,6 @@ public class AsyncCollectionExtensionsTests
     }
 
 
-
     [Fact]
     public async Task Integration_Option_AsyncUserLookup_WorksCorrectly()
     {
@@ -546,9 +522,9 @@ public class AsyncCollectionExtensionsTests
         }
 
         // Act
-        var result = await items.TraverseParallelAsync<int, int, string>(
+        var result = await items.TraverseParallelAsync(
             ProcessAsync,
-            maxDegreeOfParallelism: 5);
+            5);
 
         // Assert - Should fail on 10 or 20
         Assert.True(result.IsFailure);
@@ -574,7 +550,7 @@ public class AsyncCollectionExtensionsTests
 
         // Assert
         Assert.Equal(7, successes.Count); // 1,2,4,5,7,8,10 succeed
-        Assert.Equal(3, failures.Count);  // 3,6,9 fail
+        Assert.Equal(3, failures.Count); // 3,6,9 fail
     }
 
     [Fact]
@@ -593,9 +569,9 @@ public class AsyncCollectionExtensionsTests
         }
 
         // Act
-        var result = await urls.TraverseParallelAsync<string, string>(
+        var result = await urls.TraverseParallelAsync(
             FetchAsync,
-            maxDegreeOfParallelism: 10);
+            10);
 
         // Assert - Should fail because some URLs return None
         Assert.True(result.IsNone());
@@ -607,5 +583,4 @@ public class AsyncCollectionExtensionsTests
         // Assert - Should get partial results
         Assert.Equal(48, available.Count()); // 50 - 2 failures
     }
-
 }

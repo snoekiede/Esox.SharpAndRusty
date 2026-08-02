@@ -4,30 +4,30 @@ using Esox.SharpAndRusty.Types;
 namespace Esox.SharpAndRusty.Extensions;
 
 /// <summary>
-/// Provides LINQ query syntax support for the <see cref="Option{T}"/> type.
-/// Enables using <c>from</c>/<c>select</c> syntax with options.
+///     Provides LINQ query syntax support for the <see cref="Option{T}" /> type.
+///     Enables using <c>from</c>/<c>select</c> syntax with options.
 /// </summary>
 public static class OptionLinqExtensions
 {
     extension<T>(Option<T> option)
     {
         /// <summary>
-        /// Projects the value of an option into a new form. This method enables LINQ query syntax.
+        ///     Projects the value of an option into a new form. This method enables LINQ query syntax.
         /// </summary>
         /// <typeparam name="T">The type of the value in the option.</typeparam>
-        /// <typeparam name="TResult">The type of the value returned by <paramref name="selector"/>.</typeparam>
+        /// <typeparam name="TResult">The type of the value returned by <paramref name="selector" />.</typeparam>
         /// <param name="option">The option whose value to project.</param>
         /// <param name="selector">A transform function to apply to the contained value.</param>
         /// <returns>
-        /// An option whose value is the result of invoking the transform function on the value of the source option,
-        /// or <c>None</c> if the source option is <c>None</c>.
+        ///     An option whose value is the result of invoking the transform function on the value of the source option,
+        ///     or <c>None</c> if the source option is <c>None</c>.
         /// </returns>
         /// <remarks>
-        /// This method is equivalent to <see cref="OptionExtensions.Map{T, TResult}(Option{T}, Func{T, TResult})"/>.
-        /// It exists to enable LINQ query syntax (<c>select</c> keyword).
+        ///     This method is equivalent to <see cref="OptionExtensions.Map{T, TResult}(Option{T}, Func{T, TResult})" />.
+        ///     It exists to enable LINQ query syntax (<c>select</c> keyword).
         /// </remarks>
         /// <example>
-        /// <code>
+        ///     <code>
         /// var option = new Option&lt;int&gt;.Some(42);
         /// 
         /// // LINQ query syntax
@@ -52,25 +52,25 @@ public static class OptionLinqExtensions
         }
 
         /// <summary>
-        /// Projects the value of an option to another option and invokes a result selector function on the pair.
-        /// This method enables LINQ query syntax with multiple <c>from</c> clauses.
+        ///     Projects the value of an option to another option and invokes a result selector function on the pair.
+        ///     This method enables LINQ query syntax with multiple <c>from</c> clauses.
         /// </summary>
         /// <typeparam name="T">The type of the value in the source option.</typeparam>
-        /// <typeparam name="TCollection">The type of the intermediate value collected by <paramref name="collectionSelector"/>.</typeparam>
+        /// <typeparam name="TCollection">The type of the intermediate value collected by <paramref name="collectionSelector" />.</typeparam>
         /// <typeparam name="TResult">The type of the resulting value.</typeparam>
         /// <param name="option">The source option.</param>
         /// <param name="collectionSelector">A transform function to apply to the value of the source option.</param>
         /// <param name="resultSelector">A transform function to apply to the intermediate values.</param>
         /// <returns>
-        /// An option whose value is the result of invoking the collection selector and result selector,
-        /// or <c>None</c> if either the source option or the collection selector result is <c>None</c>.
+        ///     An option whose value is the result of invoking the collection selector and result selector,
+        ///     or <c>None</c> if either the source option or the collection selector result is <c>None</c>.
         /// </returns>
         /// <remarks>
-        /// This method is equivalent to <see cref="OptionExtensions.Bind{T, TResult}(Option{T}, Func{T, Option{TResult}})"/>
-        /// followed by a map operation. It exists to enable LINQ query syntax with multiple <c>from</c> clauses.
+        ///     This method is equivalent to <see cref="OptionExtensions.Bind{T, TResult}(Option{T}, Func{T, Option{TResult}})" />
+        ///     followed by a map operation. It exists to enable LINQ query syntax with multiple <c>from</c> clauses.
         /// </remarks>
         /// <example>
-        /// <code>
+        ///     <code>
         /// var userOption = new Option&lt;int&gt;.Some(42);
         /// 
         /// // LINQ query syntax
@@ -100,24 +100,24 @@ public static class OptionLinqExtensions
                 ? new Option<TResult>.Some(resultSelector(some.Value, collectionSome.Value))
                 : new Option<TResult>.None();
         }
-        
-        
+
+
         /// <summary>
-        /// Projects the value of an option to another option. This overload enables simple chaining with LINQ.
+        ///     Projects the value of an option to another option. This overload enables simple chaining with LINQ.
         /// </summary>
         /// <typeparam name="T">The type of the value in the source option.</typeparam>
         /// <typeparam name="TResult">The type of the value in the resulting option.</typeparam>
         /// <param name="option">The source option.</param>
         /// <param name="selector">A transform function to apply to the value of the source option.</param>
         /// <returns>
-        /// The option returned by <paramref name="selector"/>, or <c>None</c> if the source option is <c>None</c>.
+        ///     The option returned by <paramref name="selector" />, or <c>None</c> if the source option is <c>None</c>.
         /// </returns>
         /// <remarks>
-        /// This method is equivalent to <see cref="OptionExtensions.Bind{T, TResult}(Option{T}, Func{T, Option{TResult}})"/>.
-        /// It enables simpler LINQ expressions when you don't need the two-parameter result selector.
+        ///     This method is equivalent to <see cref="OptionExtensions.Bind{T, TResult}(Option{T}, Func{T, Option{TResult}})" />.
+        ///     It enables simpler LINQ expressions when you don't need the two-parameter result selector.
         /// </remarks>
         /// <example>
-        /// <code>
+        ///     <code>
         /// var userIdOption = new Option&lt;int&gt;.Some(42);
         /// 
         /// var result = from userId in userIdOption
@@ -126,7 +126,8 @@ public static class OptionLinqExtensions
         ///              select profile.Name;
         /// </code>
         /// </example>
-        [SuppressMessage("ReSharper", "UnusedMember.Global", Justification = "Will be used vy clients of this nuget package")]
+        [SuppressMessage("ReSharper", "UnusedMember.Global",
+            Justification = "Will be used vy clients of this nuget package")]
         public Option<TResult> SelectMany<TResult>(
             Func<T, Option<TResult>> selector)
         {
@@ -138,20 +139,21 @@ public static class OptionLinqExtensions
         }
 
         /// <summary>
-        /// Filters the option based on a predicate. This method enables LINQ query syntax filtering with the <c>where</c> keyword.
+        ///     Filters the option based on a predicate. This method enables LINQ query syntax filtering with the <c>where</c>
+        ///     keyword.
         /// </summary>
         /// <typeparam name="T">The type of the value in the option.</typeparam>
         /// <param name="option">The option to filter.</param>
         /// <param name="predicate">A function to test the contained value.</param>
         /// <returns>
-        /// The original option if it is <c>Some</c> and the predicate returns <c>true</c>; otherwise, <c>None</c>.
+        ///     The original option if it is <c>Some</c> and the predicate returns <c>true</c>; otherwise, <c>None</c>.
         /// </returns>
         /// <remarks>
-        /// This method is equivalent to <see cref="OptionExtensions.Filter{T}(Option{T}, Func{T, bool})"/>.
-        /// It exists to enable LINQ query syntax (<c>where</c> keyword).
+        ///     This method is equivalent to <see cref="OptionExtensions.Filter{T}(Option{T}, Func{T, bool})" />.
+        ///     It exists to enable LINQ query syntax (<c>where</c> keyword).
         /// </remarks>
         /// <example>
-        /// <code>
+        ///     <code>
         /// var option = new Option&lt;int&gt;.Some(42);
         /// 
         /// // LINQ query syntax
@@ -176,8 +178,4 @@ public static class OptionLinqExtensions
                 : new Option<T>.None();
         }
     }
-
-
-    
-
 }

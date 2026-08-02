@@ -32,11 +32,11 @@ public static class EntityFrameworkExecutionExtensions
             return Result<T, DbError>.Ok(result);
         }
         catch (Exception ex) when (ex is DbUpdateConcurrencyException
-                                    or DbUpdateException
-                                    or SqlException
-                                    or InvalidOperationException
-                                    or OperationCanceledException
-                                    or TimeoutException)
+                                       or DbUpdateException
+                                       or SqlException
+                                       or InvalidOperationException
+                                       or OperationCanceledException
+                                       or TimeoutException)
         {
             return Result<T, DbError>.Err(DbError.FromException(ex));
         }
@@ -57,4 +57,3 @@ public static class EntityFrameworkExecutionExtensions
             .ConfigureAwait(false);
     }
 }
-

@@ -76,7 +76,8 @@ public class ExtendedResultExtensionsTests
         Assert.False(errRan);
         Assert.True(ok.TryGetValue(out _));
 
-        okRan = false; errRan = false;
+        okRan = false;
+        errRan = false;
         var err = ExtendedResult<int, string>.Err("e")
             .Tap(_ => okRan = true, _ => errRan = true);
 
@@ -118,17 +119,17 @@ public class ExtendedResultExtensionsTests
         {
             ExtendedResult<int, string>.Ok(1),
             ExtendedResult<int, string>.Ok(2),
-            ExtendedResult<int, string>.Ok(3),
+            ExtendedResult<int, string>.Ok(3)
         }.Combine();
 
         Assert.True(allOk.TryGetValue(out var values));
-        Assert.Equal(new[] {1,2,3}, values);
+        Assert.Equal(new[] { 1, 2, 3 }, values);
 
         var withErr = new[]
         {
             ExtendedResult<int, string>.Ok(1),
             ExtendedResult<int, string>.Err("bad"),
-            ExtendedResult<int, string>.Ok(3),
+            ExtendedResult<int, string>.Ok(3)
         }.Combine();
 
         Assert.True(withErr.TryGetError(out var e));
@@ -143,21 +144,21 @@ public class ExtendedResultExtensionsTests
             ExtendedResult<int, string>.Ok(1),
             ExtendedResult<int, string>.Err("a"),
             ExtendedResult<int, string>.Ok(2),
-            ExtendedResult<int, string>.Err("b"),
+            ExtendedResult<int, string>.Err("b")
         };
 
         var (successes, failures) = items.Partition();
 
-        Assert.Equal(new[] {1,2}, successes);
-        Assert.Equal(new[] {"a","b"}, failures);
+        Assert.Equal(new[] { 1, 2 }, successes);
+        Assert.Equal(new[] { "a", "b" }, failures);
     }
 
     [Fact]
     public void Linq_Query_Composes()
     {
         var r = from x in ExtendedResult<int, string>.Ok(10)
-                from y in ExtendedResult<int, string>.Ok(20)
-                select x + y;
+            from y in ExtendedResult<int, string>.Ok(20)
+            select x + y;
 
         Assert.True(r.TryGetValue(out var v));
         Assert.Equal(30, v);
@@ -198,11 +199,11 @@ public class ExtendedResultExtensionsTests
         var combined = new[]
         {
             ExtendedResult<string?, string>.Ok(null),
-            ExtendedResult<string?, string>.Ok("x"),
+            ExtendedResult<string?, string>.Ok("x")
         }.Combine();
 
         Assert.True(combined.TryGetValue(out var values));
-        Assert.Equal(new[] { (string?)null, "x" }, values);
+        Assert.Equal(new[] { null, "x" }, values);
     }
 
     [Fact]
@@ -212,12 +213,12 @@ public class ExtendedResultExtensionsTests
         {
             ExtendedResult<string, string?>.Err(null),
             ExtendedResult<string, string?>.Err("a"),
-            ExtendedResult<string, string?>.Ok("x"),
+            ExtendedResult<string, string?>.Ok("x")
         };
 
         var (successes, failures) = items.Partition();
 
         Assert.Equal(new[] { "x" }, successes);
-        Assert.Equal(new[] { (string?)null, "a" }, failures);
+        Assert.Equal(new[] { null, "a" }, failures);
     }
 }

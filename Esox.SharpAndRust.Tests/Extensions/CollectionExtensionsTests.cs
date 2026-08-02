@@ -1,11 +1,10 @@
-using Esox.SharpAndRusty.Types;
 using Esox.SharpAndRusty.Extensions;
+using Esox.SharpAndRusty.Types;
 
 namespace Esox.SharpAndRust.Tests.Extensions;
 
 public class CollectionExtensionsTests
 {
-
     [Fact]
     public void Sequence_Option_AllSome_ReturnsSomeWithAllValues()
     {
@@ -22,10 +21,7 @@ public class CollectionExtensionsTests
 
         // Assert
         Assert.True(result.IsSome());
-        if (result is Option<IEnumerable<int>>.Some some)
-        {
-            Assert.Equal(new[] { 1, 2, 3 }, some.Value);
-        }
+        if (result is Option<IEnumerable<int>>.Some some) Assert.Equal(new[] { 1, 2, 3 }, some.Value);
     }
 
     [Fact]
@@ -50,17 +46,14 @@ public class CollectionExtensionsTests
     public void Sequence_Option_EmptyCollection_ReturnsSomeEmptyCollection()
     {
         // Arrange
-        Option<int>[] options = Array.Empty<Option<int>>();
+        var options = Array.Empty<Option<int>>();
 
         // Act
         var result = options.Sequence();
 
         // Assert
         Assert.True(result.IsSome());
-        if (result is Option<IEnumerable<int>>.Some some)
-        {
-            Assert.Empty(some.Value);
-        }
+        if (result is Option<IEnumerable<int>>.Some some) Assert.Empty(some.Value);
     }
 
     [Fact]
@@ -80,11 +73,8 @@ public class CollectionExtensionsTests
         // Assert
         Assert.True(result.IsSome());
         if (result is Option<IEnumerable<string>>.Some some)
-        {
             Assert.Equal(new[] { "first", "second", "third" }, some.Value);
-        }
     }
-
 
 
     [Fact]
@@ -101,10 +91,7 @@ public class CollectionExtensionsTests
 
         // Assert
         Assert.True(result.IsSome());
-        if (result is Option<IEnumerable<int>>.Some some)
-        {
-            Assert.Equal(new[] { 1, 2, 3 }, some.Value);
-        }
+        if (result is Option<IEnumerable<int>>.Some some) Assert.Equal(new[] { 1, 2, 3 }, some.Value);
     }
 
     [Fact]
@@ -134,10 +121,7 @@ public class CollectionExtensionsTests
 
         // Assert
         Assert.True(result.IsSome());
-        if (result is Option<IEnumerable<int>>.Some some)
-        {
-            Assert.Empty(some.Value);
-        }
+        if (result is Option<IEnumerable<int>>.Some some) Assert.Empty(some.Value);
     }
 
     [Fact]
@@ -155,7 +139,6 @@ public class CollectionExtensionsTests
         // Assert - Should fail because not all are even
         Assert.True(result.IsNone());
     }
-
 
 
     [Fact]
@@ -234,7 +217,6 @@ public class CollectionExtensionsTests
     }
 
 
-
     [Fact]
     public void PartitionOptions_MixedOptions_PartitionsCorrectly()
     {
@@ -293,7 +275,6 @@ public class CollectionExtensionsTests
         Assert.Empty(values);
         Assert.Equal(3, noneCount);
     }
-
 
 
     [Fact]
@@ -372,7 +353,6 @@ public class CollectionExtensionsTests
     }
 
 
-
     [Fact]
     public void Traverse_Result_AllSucceed_ReturnsOkWithAllValues()
     {
@@ -444,7 +424,6 @@ public class CollectionExtensionsTests
     }
 
 
-
     [Fact]
     public void CollectOk_MixedResults_ReturnsOnlyOkValues()
     {
@@ -502,7 +481,6 @@ public class CollectionExtensionsTests
     }
 
 
-
     [Fact]
     public void CollectErr_MixedResults_ReturnsOnlyErrors()
     {
@@ -558,7 +536,6 @@ public class CollectionExtensionsTests
         // Assert
         Assert.Equal(new[] { "error1", "error2", "error3" }, errors);
     }
-
 
 
     [Fact]
@@ -621,7 +598,6 @@ public class CollectionExtensionsTests
     }
 
 
-
     [Fact]
     public void Integration_Option_ValidateAllUsers_WorksCorrectly()
     {
@@ -629,10 +605,12 @@ public class CollectionExtensionsTests
         var userIds = new[] { 1, 2, 3, 4, 5 };
 
         // Simulate looking up users - 3 doesn't exist
-        Option<string> GetUser(int id) =>
-            id != 3
+        Option<string> GetUser(int id)
+        {
+            return id != 3
                 ? new Option<string>.Some($"User{id}")
                 : new Option<string>.None();
+        }
 
         // Act
         var result = userIds.Traverse(GetUser);
@@ -649,9 +627,9 @@ public class CollectionExtensionsTests
 
         // Act
         var traversed = inputs.Traverse<string, int, string>(s =>
-                int.TryParse(s, out var n)
-                    ? Result<int, string>.Ok(n)
-                    : Result<int, string>.Err($"Parse error: {s}"));
+            int.TryParse(s, out var n)
+                ? Result<int, string>.Ok(n)
+                : Result<int, string>.Err($"Parse error: {s}"));
 
         Result<IEnumerable<int>, string> result;
         if (traversed.TryGetValue(out var values))
@@ -699,22 +677,19 @@ public class CollectionExtensionsTests
 
         // Act - Square only even numbers
         var result = values.Traverse<int, int>(n => n % 2 == 0
-                ? new Option<int>.Some(n * n)
-                : new Option<int>.None());
+            ? new Option<int>.Some(n * n)
+            : new Option<int>.None());
 
         // Assert - Should fail because not all are even
         Assert.True(result.IsNone());
 
         // Act - Try with only even numbers
         var evenOnly = new[] { 2, 4, 6 };
-        var result2 = evenOnly.Traverse<int, int>(n => new Option<int>.Some(n * n));
+        var result2 = evenOnly.Traverse(n => new Option<int>.Some(n * n));
 
         // Assert
         Assert.True(result2.IsSome());
-        if (result2 is Option<IEnumerable<int>>.Some some)
-        {
-            Assert.Equal(new[] { 4, 16, 36 }, some.Value);
-        }
+        if (result2 is Option<IEnumerable<int>>.Some some) Assert.Equal(new[] { 4, 16, 36 }, some.Value);
     }
 
     [Fact]
@@ -739,5 +714,4 @@ public class CollectionExtensionsTests
         Assert.True(result.TryGetValue(out var descriptions));
         Assert.Equal(new[] { "Age: 25", "Age: 30", "Age: 35" }, descriptions);
     }
-
 }

@@ -3,29 +3,30 @@ using Esox.SharpAndRusty.Types;
 namespace Esox.SharpAndRusty.Extensions;
 
 /// <summary>
-/// Provides asynchronous collection extension methods for working with sequences of <see cref="Option{T}"/> and <see cref="Result{T, E}"/> types.
+///     Provides asynchronous collection extension methods for working with sequences of <see cref="Option{T}" /> and
+///     <see cref="Result{T, E}" /> types.
 /// </summary>
 public static class AsyncCollectionExtensions
 {
     extension<T>(IEnumerable<Task<Option<T>>> taskEnumerable)
     {
         /// <summary>
-        /// Asynchronously transforms a collection of option tasks into an option of a collection.
-        /// Returns <c>Some</c> containing all values if all options are <c>Some</c>; otherwise, returns <c>None</c>.
+        ///     Asynchronously transforms a collection of option tasks into an option of a collection.
+        ///     Returns <c>Some</c> containing all values if all options are <c>Some</c>; otherwise, returns <c>None</c>.
         /// </summary>
         /// <typeparam name="T">The type of values in the options.</typeparam>
         /// <param name="optionTasks">The collection of option tasks to sequence.</param>
         /// <param name="cancellationToken">A cancellation token to observe while waiting for tasks to complete.</param>
         /// <returns>
-        /// A task that represents the asynchronous operation. The task result contains:
-        /// <c>Some</c> with all values if all options are <c>Some</c>; otherwise, <c>None</c>.
+        ///     A task that represents the asynchronous operation. The task result contains:
+        ///     <c>Some</c> with all values if all options are <c>Some</c>; otherwise, <c>None</c>.
         /// </returns>
         /// <remarks>
-        /// This operation short-circuits on the first <c>None</c> encountered.
-        /// Tasks are awaited in order, and the operation stops at the first <c>None</c>.
+        ///     This operation short-circuits on the first <c>None</c> encountered.
+        ///     Tasks are awaited in order, and the operation stops at the first <c>None</c>.
         /// </remarks>
         /// <example>
-        /// <code>
+        ///     <code>
         /// var tasks = userIds.Select(async id => await GetUserAsync(id));
         /// var allUsers = await tasks.SequenceAsync();
         /// // Some([user1, user2, ...]) or None if any lookup fails
@@ -42,35 +43,31 @@ public static class AsyncCollectionExtensions
 
                 var option = await task.ConfigureAwait(false);
                 if (option is Option<T>.Some some)
-                {
                     results.Add(some.Value);
-                }
                 else
-                {
                     return new Option<IEnumerable<T>>.None();
-                }
             }
 
             return new Option<IEnumerable<T>>.Some(results);
         }
 
         /// <summary>
-        /// Asynchronously collects all <c>Some</c> values from a collection of option tasks,
-        /// discarding any <c>None</c> values.
+        ///     Asynchronously collects all <c>Some</c> values from a collection of option tasks,
+        ///     discarding any <c>None</c> values.
         /// </summary>
         /// <typeparam name="T">The type of values in the options.</typeparam>
         /// <param name="optionTasks">The collection of option tasks to collect from.</param>
         /// <param name="cancellationToken">A cancellation token to observe while waiting for tasks to complete.</param>
         /// <returns>
-        /// A task that represents the asynchronous operation. The task result contains
-        /// a collection with only the values from <c>Some</c> options.
+        ///     A task that represents the asynchronous operation. The task result contains
+        ///     a collection with only the values from <c>Some</c> options.
         /// </returns>
         /// <remarks>
-        /// This method never fails - it always returns a collection (which may be empty).
-        /// All tasks are awaited, and the operation continues even after encountering <c>None</c> values.
+        ///     This method never fails - it always returns a collection (which may be empty).
+        ///     All tasks are awaited, and the operation continues even after encountering <c>None</c> values.
         /// </remarks>
         /// <example>
-        /// <code>
+        ///     <code>
         /// var tasks = userIds.Select(async id => await TryGetUserAsync(id));
         /// var availableUsers = await tasks.CollectSomeAsync();
         /// // Returns all users that were found
@@ -86,10 +83,7 @@ public static class AsyncCollectionExtensions
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var option = await task.ConfigureAwait(false);
-                if (option is Option<T>.Some some)
-                {
-                    results.Add(some.Value);
-                }
+                if (option is Option<T>.Some some) results.Add(some.Value);
             }
 
             return results;
@@ -108,22 +102,18 @@ public static class AsyncCollectionExtensions
                 cancellationToken.ThrowIfCancellationRequested();
                 var option = await asyncSelector(item).ConfigureAwait(false);
                 if (option is Option<U>.Some some)
-                {
                     values.Add(some.Value);
-                }
                 else
-                {
                     return new Option<IEnumerable<U>>.None();
-                }
             }
 
             return new Option<IEnumerable<U>>.Some(values);
         }
 
         /// <summary>
-        /// Asynchronously maps each element of a collection through an async function that returns an option,
-        /// then sequences the results with parallel execution.
-        /// Returns <c>Some</c> containing all mapped values if all operations succeed; otherwise, returns <c>None</c>.
+        ///     Asynchronously maps each element of a collection through an async function that returns an option,
+        ///     then sequences the results with parallel execution.
+        ///     Returns <c>Some</c> containing all mapped values if all operations succeed; otherwise, returns <c>None</c>.
         /// </summary>
         /// <typeparam name="T">The type of elements in the source collection.</typeparam>
         /// <typeparam name="U">The type of values in the resulting options.</typeparam>
@@ -132,16 +122,16 @@ public static class AsyncCollectionExtensions
         /// <param name="maxDegreeOfParallelism">The maximum number of concurrent operations. Use -1 for unlimited.</param>
         /// <param name="cancellationToken">A cancellation token to observe while waiting for tasks to complete.</param>
         /// <returns>
-        /// A task that represents the asynchronous operation. The task result contains:
-        /// <c>Some</c> with all transformed values if all operations succeed; otherwise, <c>None</c>.
+        ///     A task that represents the asynchronous operation. The task result contains:
+        ///     <c>Some</c> with all transformed values if all operations succeed; otherwise, <c>None</c>.
         /// </returns>
         /// <remarks>
-        /// This operation processes elements in parallel for better performance with I/O-bound operations.
-        /// The order of results matches the order of the input collection.
-        /// Unlike the sequential version, this cannot short-circuit early, so all tasks will be started.
+        ///     This operation processes elements in parallel for better performance with I/O-bound operations.
+        ///     The order of results matches the order of the input collection.
+        ///     Unlike the sequential version, this cannot short-circuit early, so all tasks will be started.
         /// </remarks>
         /// <example>
-        /// <code>
+        ///     <code>
         /// var userIds = Enumerable.Range(1, 100);
         /// var result = await userIds.TraverseParallelAsync(
         ///     async id => await GetUserFromApiAsync(id),
@@ -175,23 +165,19 @@ public static class AsyncCollectionExtensions
             foreach (var option in results)
             {
                 if (option is Option<U>.Some some)
-                {
                     values.Add(some.Value);
-                }
                 else
-                {
                     return new Option<IEnumerable<U>>.None();
-                }
             }
 
             return new Option<IEnumerable<U>>.Some(values);
         }
 
         /// <summary>
-        /// Asynchronously maps each element of a collection through an async function that returns a result,
-        /// then sequences the results.
-        /// Returns <c>Ok</c> containing all mapped values if all operations succeed;
-        /// otherwise, returns <c>Err</c> with the first error encountered.
+        ///     Asynchronously maps each element of a collection through an async function that returns a result,
+        ///     then sequences the results.
+        ///     Returns <c>Ok</c> containing all mapped values if all operations succeed;
+        ///     otherwise, returns <c>Err</c> with the first error encountered.
         /// </summary>
         /// <typeparam name="T">The type of elements in the source collection.</typeparam>
         /// <typeparam name="U">The type of success values in the resulting results.</typeparam>
@@ -200,16 +186,16 @@ public static class AsyncCollectionExtensions
         /// <param name="asyncSelector">An async function that transforms each element into a result.</param>
         /// <param name="cancellationToken">A cancellation token to observe while waiting for tasks to complete.</param>
         /// <returns>
-        /// A task that represents the asynchronous operation. The task result contains:
-        /// <c>Ok</c> with all transformed values if all operations succeed;
-        /// otherwise, <c>Err</c> with the first error encountered.
+        ///     A task that represents the asynchronous operation. The task result contains:
+        ///     <c>Ok</c> with all transformed values if all operations succeed;
+        ///     otherwise, <c>Err</c> with the first error encountered.
         /// </returns>
         /// <remarks>
-        /// This operation short-circuits on the first <c>Err</c> returned by the selector.
-        /// Elements are processed sequentially to maintain order and enable short-circuiting.
+        ///     This operation short-circuits on the first <c>Err</c> returned by the selector.
+        ///     Elements are processed sequentially to maintain order and enable short-circuiting.
         /// </remarks>
         /// <example>
-        /// <code>
+        ///     <code>
         /// var strings = new[] { "1", "2", "3" };
         /// var result = await strings.TraverseAsync&lt;string, int, string&gt;(
         ///     async s => await ParseIntAsync(s));
@@ -228,23 +214,18 @@ public static class AsyncCollectionExtensions
 
                 var result = await asyncSelector(item).ConfigureAwait(false);
                 if (result.TryGetValue(out var value))
-                {
                     values.Add(value);
-                }
-                else if (result.TryGetError(out var error))
-                {
-                    return Result<IEnumerable<U>, E>.Err(error);
-                }
+                else if (result.TryGetError(out var error)) return Result<IEnumerable<U>, E>.Err(error);
             }
 
             return Result<IEnumerable<U>, E>.Ok(values);
         }
 
         /// <summary>
-        /// Asynchronously maps each element of a collection through an async function that returns a result,
-        /// then sequences the results with parallel execution.
-        /// Returns <c>Ok</c> containing all mapped values if all operations succeed;
-        /// otherwise, returns <c>Err</c> with the first error encountered.
+        ///     Asynchronously maps each element of a collection through an async function that returns a result,
+        ///     then sequences the results with parallel execution.
+        ///     Returns <c>Ok</c> containing all mapped values if all operations succeed;
+        ///     otherwise, returns <c>Err</c> with the first error encountered.
         /// </summary>
         /// <typeparam name="T">The type of elements in the source collection.</typeparam>
         /// <typeparam name="U">The type of success values in the resulting results.</typeparam>
@@ -254,17 +235,17 @@ public static class AsyncCollectionExtensions
         /// <param name="maxDegreeOfParallelism">The maximum number of concurrent operations. Use -1 for unlimited.</param>
         /// <param name="cancellationToken">A cancellation token to observe while waiting for tasks to complete.</param>
         /// <returns>
-        /// A task that represents the asynchronous operation. The task result contains:
-        /// <c>Ok</c> with all transformed values if all operations succeed;
-        /// otherwise, <c>Err</c> with the first error encountered.
+        ///     A task that represents the asynchronous operation. The task result contains:
+        ///     <c>Ok</c> with all transformed values if all operations succeed;
+        ///     otherwise, <c>Err</c> with the first error encountered.
         /// </returns>
         /// <remarks>
-        /// This operation processes elements in parallel for better performance with I/O-bound operations.
-        /// The order of results matches the order of the input collection.
-        /// Unlike the sequential version, this cannot short-circuit early, so all tasks will be started.
+        ///     This operation processes elements in parallel for better performance with I/O-bound operations.
+        ///     The order of results matches the order of the input collection.
+        ///     Unlike the sequential version, this cannot short-circuit early, so all tasks will be started.
         /// </remarks>
         /// <example>
-        /// <code>
+        ///     <code>
         /// var urls = GetUrls();
         /// var result = await urls.TraverseParallelAsync(
         ///     async url => await FetchDataAsync(url),
@@ -298,13 +279,8 @@ public static class AsyncCollectionExtensions
             foreach (var result in results)
             {
                 if (result.TryGetValue(out var value))
-                {
                     values.Add(value);
-                }
-                else if (result.TryGetError(out var error))
-                {
-                    return Result<IEnumerable<U>, E>.Err(error);
-                }
+                else if (result.TryGetError(out var error)) return Result<IEnumerable<U>, E>.Err(error);
             }
 
             return Result<IEnumerable<U>, E>.Ok(values);
@@ -315,23 +291,23 @@ public static class AsyncCollectionExtensions
     extension<T, E>(IEnumerable<Task<Result<T, E>>> resultTasks)
     {
         /// <summary>
-        /// Asynchronously collects all <c>Ok</c> values from a collection of result tasks,
-        /// discarding any <c>Err</c> values.
+        ///     Asynchronously collects all <c>Ok</c> values from a collection of result tasks,
+        ///     discarding any <c>Err</c> values.
         /// </summary>
         /// <typeparam name="T">The type of success values in the results.</typeparam>
         /// <typeparam name="E">The type of error values in the results.</typeparam>
         /// <param name="resultTasks">The collection of result tasks to collect from.</param>
         /// <param name="cancellationToken">A cancellation token to observe while waiting for tasks to complete.</param>
         /// <returns>
-        /// A task that represents the asynchronous operation. The task result contains
-        /// a collection with only the values from <c>Ok</c> results.
+        ///     A task that represents the asynchronous operation. The task result contains
+        ///     a collection with only the values from <c>Ok</c> results.
         /// </returns>
         /// <remarks>
-        /// This method never fails - it always returns a collection (which may be empty).
-        /// All tasks are awaited, and the operation continues even after encountering <c>Err</c> values.
+        ///     This method never fails - it always returns a collection (which may be empty).
+        ///     All tasks are awaited, and the operation continues even after encountering <c>Err</c> values.
         /// </remarks>
         /// <example>
-        /// <code>
+        ///     <code>
         /// var tasks = operations.Select(async op => await ExecuteAsync(op));
         /// var successes = await tasks.CollectOkAsync();
         /// ProcessResults(successes);
@@ -347,33 +323,31 @@ public static class AsyncCollectionExtensions
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var result = await task.ConfigureAwait(false);
-                if (result.TryGetValue(out var value))
-                {
-                    successes.Add(value);
-                }
+                if (result.TryGetValue(out var value)) successes.Add(value);
             }
 
             return successes;
         }
 
         /// <summary>
-        /// Asynchronously transforms a collection of result tasks into a result of a collection.
-        /// Returns <c>Ok</c> containing all values if all results are <c>Ok</c>; otherwise, returns <c>Err</c> with the first error.
+        ///     Asynchronously transforms a collection of result tasks into a result of a collection.
+        ///     Returns <c>Ok</c> containing all values if all results are <c>Ok</c>; otherwise, returns <c>Err</c> with the first
+        ///     error.
         /// </summary>
         /// <typeparam name="T">The type of success values in the results.</typeparam>
         /// <typeparam name="E">The type of error values in the results.</typeparam>
         /// <param name="resultTasks">The collection of result tasks to sequence.</param>
         /// <param name="cancellationToken">A cancellation token to observe while waiting for tasks to complete.</param>
         /// <returns>
-        /// A task that represents the asynchronous operation. The task result contains:
-        /// <c>Ok</c> with all values if all results are <c>Ok</c>; otherwise, <c>Err</c> with the first error encountered.
+        ///     A task that represents the asynchronous operation. The task result contains:
+        ///     <c>Ok</c> with all values if all results are <c>Ok</c>; otherwise, <c>Err</c> with the first error encountered.
         /// </returns>
         /// <remarks>
-        /// This operation short-circuits on the first <c>Err</c> encountered.
-        /// Tasks are awaited in order, and the operation stops at the first <c>Err</c>.
+        ///     This operation short-circuits on the first <c>Err</c> encountered.
+        ///     Tasks are awaited in order, and the operation stops at the first <c>Err</c>.
         /// </remarks>
         /// <example>
-        /// <code>
+        ///     <code>
         /// var tasks = new[] { 
         ///     Task.FromResult(Result&lt;int, string&gt;.Ok(1)),
         ///     Task.FromResult(Result&lt;int, string&gt;.Ok(2))
@@ -393,36 +367,31 @@ public static class AsyncCollectionExtensions
 
                 var result = await task.ConfigureAwait(false);
                 if (result.TryGetValue(out var value))
-                {
                     results.Add(value);
-                }
-                else if (result.TryGetError(out var error))
-                {
-                    return Result<IEnumerable<T>, E>.Err(error);
-                }
+                else if (result.TryGetError(out var error)) return Result<IEnumerable<T>, E>.Err(error);
             }
 
             return Result<IEnumerable<T>, E>.Ok(results);
         }
 
         /// <summary>
-        /// Asynchronously collects all <c>Err</c> values from a collection of result tasks,
-        /// discarding any <c>Ok</c> values.
+        ///     Asynchronously collects all <c>Err</c> values from a collection of result tasks,
+        ///     discarding any <c>Ok</c> values.
         /// </summary>
         /// <typeparam name="T">The type of success values in the results.</typeparam>
         /// <typeparam name="E">The type of error values in the results.</typeparam>
         /// <param name="resultTasks">The collection of result tasks to collect from.</param>
         /// <param name="cancellationToken">A cancellation token to observe while waiting for tasks to complete.</param>
         /// <returns>
-        /// A task that represents the asynchronous operation. The task result contains
-        /// a collection with only the errors from <c>Err</c> results.
+        ///     A task that represents the asynchronous operation. The task result contains
+        ///     a collection with only the errors from <c>Err</c> results.
         /// </returns>
         /// <remarks>
-        /// This method never fails - it always returns a collection (which may be empty).
-        /// All tasks are awaited, and the operation continues even after encountering <c>Ok</c> values.
+        ///     This method never fails - it always returns a collection (which may be empty).
+        ///     All tasks are awaited, and the operation continues even after encountering <c>Ok</c> values.
         /// </remarks>
         /// <example>
-        /// <code>
+        ///     <code>
         /// var tasks = operations.Select(async op => await ExecuteAsync(op));
         /// var allErrors = await tasks.CollectErrAsync();
         /// LogErrors(allErrors);
@@ -438,32 +407,29 @@ public static class AsyncCollectionExtensions
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var result = await task.ConfigureAwait(false);
-                if (result.TryGetError(out var error))
-                {
-                    errors.Add(error);
-                }
+                if (result.TryGetError(out var error)) errors.Add(error);
             }
 
             return errors;
         }
 
         /// <summary>
-        /// Asynchronously partitions a collection of result tasks into two collections:
-        /// one containing all <c>Ok</c> values, and one containing all <c>Err</c> values.
+        ///     Asynchronously partitions a collection of result tasks into two collections:
+        ///     one containing all <c>Ok</c> values, and one containing all <c>Err</c> values.
         /// </summary>
         /// <typeparam name="T">The type of success values in the results.</typeparam>
         /// <typeparam name="E">The type of error values in the results.</typeparam>
         /// <param name="resultTasks">The collection of result tasks to partition.</param>
         /// <param name="cancellationToken">A cancellation token to observe while waiting for tasks to complete.</param>
         /// <returns>
-        /// A task that represents the asynchronous operation. The task result contains
-        /// a tuple with a list of all values from <c>Ok</c> results and a list of all errors from <c>Err</c> results.
+        ///     A task that represents the asynchronous operation. The task result contains
+        ///     a tuple with a list of all values from <c>Ok</c> results and a list of all errors from <c>Err</c> results.
         /// </returns>
         /// <remarks>
-        /// All tasks are awaited, and both successes and failures are collected.
+        ///     All tasks are awaited, and both successes and failures are collected.
         /// </remarks>
         /// <example>
-        /// <code>
+        ///     <code>
         /// var tasks = operations.Select(async op => await ExecuteAsync(op));
         /// var (successes, failures) = await tasks.PartitionResultsAsync();
         /// 
@@ -485,13 +451,8 @@ public static class AsyncCollectionExtensions
 
                 var result = await task.ConfigureAwait(false);
                 if (result.TryGetValue(out var value))
-                {
                     successes.Add(value);
-                }
-                else if (result.TryGetError(out var error))
-                {
-                    failures.Add(error);
-                }
+                else if (result.TryGetError(out var error)) failures.Add(error);
             }
 
             return (successes, failures);

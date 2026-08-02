@@ -1,46 +1,16 @@
-using Esox.SharpAndRusty.Types;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using Esox.SharpAndRusty.Types;
 
 namespace Esox.SharpAndRusty.Extensions;
 
 /// <summary>
-/// Provides extension methods for working with <see cref="Validation{T, E}"/> types, including applicative operations.
+///     Provides extension methods for working with <see cref="Validation{T,E}" /> types, including applicative operations.
 /// </summary>
 public static class ValidationExtensions
 {
-    extension<T, TResult, E>(Validation<Func<T, TResult>, E> validationFunc)
-    {
-        /// <summary>
-        /// Applies a validation containing a function to a validation containing a value, accumulating errors.
-        /// This is the core applicative operation that enables error accumulation.
-        /// </summary>
-        [SuppressMessage("ReSharper", "UnusedMember.Global", Justification = "Will be used by clients of this nuget package")]
-        public Validation<TResult, E> Apply(
-            Validation<T, E> validation)
-        {
-            return (validationFunc, validation) switch
-            {
-                (Validation<Func<T, TResult>, E>.Success successFunc, Validation<T, E>.Success success) =>
-                    Validation<TResult, E>.Valid(successFunc.Value(success.Value)),
-
-                (Validation<Func<T, TResult>, E>.Failure failureFunc, Validation<T, E>.Failure failure) =>
-                    Validation<TResult, E>.Invalid(failureFunc.Errors.AddRange(failure.Errors)),
-
-                (Validation<Func<T, TResult>, E>.Failure failureFunc, _) =>
-                    Validation<TResult, E>.Invalid(failureFunc.Errors),
-
-                (_, Validation<T, E>.Failure failure) =>
-                    Validation<TResult, E>.Invalid(failure.Errors),
-
-                _ => throw new InvalidOperationException("Validation is in an invalid state.")
-            };
-        }    
-    }
-    
-
     /// <summary>
-    /// Combines two validations, accumulating all errors if either fails.
+    ///     Combines two validations, accumulating all errors if either fails.
     /// </summary>
     public static Validation<TResult, E> Apply<T1, T2, E, TResult>(
         Validation<T1, E> validation1,
@@ -68,7 +38,7 @@ public static class ValidationExtensions
     }
 
     /// <summary>
-    /// Combines three validations, accumulating all errors if any fail.
+    ///     Combines three validations, accumulating all errors if any fail.
     /// </summary>
     public static Validation<TResult, E> Apply<T1, T2, T3, E, TResult>(
         Validation<T1, E> validation1,
@@ -79,7 +49,7 @@ public static class ValidationExtensions
         if (combiner is null) throw new ArgumentNullException(nameof(combiner));
 
         var errors = ImmutableList<E>.Empty;
-        
+
         T1? v1 = default;
         var has1 = false;
         switch (validation1)
@@ -119,16 +89,13 @@ public static class ValidationExtensions
                 break;
         }
 
-        if (has1 && has2 && has3)
-        {
-            return Validation<TResult, E>.Valid(combiner(v1!, v2!, v3!));
-        }
+        if (has1 && has2 && has3) return Validation<TResult, E>.Valid(combiner(v1!, v2!, v3!));
 
         return Validation<TResult, E>.Invalid(errors);
     }
 
     /// <summary>
-    /// Combines four validations, accumulating all errors if any fail.
+    ///     Combines four validations, accumulating all errors if any fail.
     /// </summary>
     public static Validation<TResult, E> Apply<T1, T2, T3, T4, E, TResult>(
         Validation<T1, E> validation1,
@@ -174,18 +141,46 @@ public static class ValidationExtensions
         }
 
         if (values.Count == 4)
-        {
             return Validation<TResult, E>.Valid(
                 combiner((T1)values[0]!, (T2)values[1]!, (T3)values[2]!, (T4)values[3]!));
-        }
 
         return Validation<TResult, E>.Invalid(errors);
+    }
+
+    extension<T, TResult, E>(Validation<Func<T, TResult>, E> validationFunc)
+    {
+        /// <summary>
+        ///     Applies a validation containing a function to a validation containing a value, accumulating errors.
+        ///     This is the core applicative operation that enables error accumulation.
+        /// </summary>
+        [SuppressMessage("ReSharper", "UnusedMember.Global",
+            Justification = "Will be used by clients of this nuget package")]
+        public Validation<TResult, E> Apply(
+            Validation<T, E> validation)
+        {
+            return (validationFunc, validation) switch
+            {
+                (Validation<Func<T, TResult>, E>.Success successFunc, Validation<T, E>.Success success) =>
+                    Validation<TResult, E>.Valid(successFunc.Value(success.Value)),
+
+                (Validation<Func<T, TResult>, E>.Failure failureFunc, Validation<T, E>.Failure failure) =>
+                    Validation<TResult, E>.Invalid(failureFunc.Errors.AddRange(failure.Errors)),
+
+                (Validation<Func<T, TResult>, E>.Failure failureFunc, _) =>
+                    Validation<TResult, E>.Invalid(failureFunc.Errors),
+
+                (_, Validation<T, E>.Failure failure) =>
+                    Validation<TResult, E>.Invalid(failure.Errors),
+
+                _ => throw new InvalidOperationException("Validation is in an invalid state.")
+            };
+        }
     }
 
     extension<T, E>(Validation<T, E> validation)
     {
         /// <summary>
-        /// Chains validations sequentially. Unlike Apply, this stops at the first error (like Result.Bind).
+        ///     Chains validations sequentially. Unlike Apply, this stops at the first error (like Result.Bind).
         /// </summary>
         public Validation<TResult, E> Bind<TResult>(
             Func<T, Validation<TResult, E>> binder)
@@ -200,35 +195,29 @@ public static class ValidationExtensions
                 _ => throw new InvalidOperationException("Validation is in an invalid state.")
             };
         }
-        
+
         /// <summary>
-        /// Executes an action if the validation succeeded.
+        ///     Executes an action if the validation succeeded.
         /// </summary>
         public Validation<T, E> OnSuccess(
             Action<T> action)
         {
             if (action is null) throw new ArgumentNullException(nameof(action));
 
-            if (validation is Validation<T, E>.Success success)
-            {
-                action(success.Value);
-            }
+            if (validation is Validation<T, E>.Success success) action(success.Value);
 
             return validation;
         }
-        
+
         /// <summary>
-        /// Executes an action if the validation failed, receiving all errors.
+        ///     Executes an action if the validation failed, receiving all errors.
         /// </summary>
         public Validation<T, E> OnFailure(
             Action<ImmutableList<E>> action)
         {
             if (action is null) throw new ArgumentNullException(nameof(action));
 
-            if (validation is Validation<T, E>.Failure failure)
-            {
-                action(failure.Errors);
-            }
+            if (validation is Validation<T, E>.Failure failure) action(failure.Errors);
 
             return validation;
         }
@@ -238,24 +227,22 @@ public static class ValidationExtensions
     extension<T, E>(Result<T, E> result)
     {
         /// <summary>
-        /// Converts a Result to a Validation.
+        ///     Converts a Result to a Validation.
         /// </summary>
-        [SuppressMessage("ReSharper", "UnusedMember.Global", Justification = "Will be used vy clients of this nuget package")]
-        public Validation<T, E> ToValidation()
-        {
-            return result.TryGetValue(out var value)
+        [SuppressMessage("ReSharper", "UnusedMember.Global",
+            Justification = "Will be used vy clients of this nuget package")]
+        public Validation<T, E> ToValidation() =>
+            result.TryGetValue(out var value)
                 ? Validation<T, E>.Valid(value)
                 : result.TryGetError(out var error)
                     ? Validation<T, E>.Invalid(error)
                     : throw new InvalidOperationException("Result is in an invalid state.");
-        }
-        
     }
 
     extension<T, E>(IEnumerable<Validation<T, E>> validations)
     {
         /// <summary>
-        /// Sequences a collection of validations, accumulating all errors.
+        ///     Sequences a collection of validations, accumulating all errors.
         /// </summary>
         public Validation<IEnumerable<T>, E> Sequence()
         {
@@ -278,11 +265,6 @@ public static class ValidationExtensions
             return errors.IsEmpty
                 ? Validation<IEnumerable<T>, E>.Valid(values)
                 : Validation<IEnumerable<T>, E>.Invalid(errors);
-        }        
+        }
     }
-
-
-
-
-
 }

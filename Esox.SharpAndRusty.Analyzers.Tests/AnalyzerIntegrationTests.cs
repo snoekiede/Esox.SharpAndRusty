@@ -33,10 +33,7 @@ public class AnalyzerIntegrationTests
 
         while (dir is not null)
         {
-            if (File.Exists(Path.Combine(dir.FullName, "Esox.SharpAndRusty.slnx")))
-            {
-                return dir.FullName;
-            }
+            if (File.Exists(Path.Combine(dir.FullName, "Esox.SharpAndRusty.slnx"))) return dir.FullName;
 
             dir = dir.Parent;
         }
@@ -56,7 +53,8 @@ public class AnalyzerIntegrationTests
             CreateNoWindow = true
         };
 
-        using var process = Process.Start(psi) ?? throw new InvalidOperationException("Failed to start dotnet process.");
+        using var process =
+            Process.Start(psi) ?? throw new InvalidOperationException("Failed to start dotnet process.");
 
         var standardOutput = process.StandardOutput.ReadToEnd();
         var standardError = process.StandardError.ReadToEnd();
@@ -65,9 +63,9 @@ public class AnalyzerIntegrationTests
 
         var combinedOutput = standardOutput + Environment.NewLine + standardError;
 
-        Assert.True(process.ExitCode == 0, $"dotnet build failed with exit code {process.ExitCode}.{Environment.NewLine}{combinedOutput}");
+        Assert.True(process.ExitCode == 0,
+            $"dotnet build failed with exit code {process.ExitCode}.{Environment.NewLine}{combinedOutput}");
 
         return combinedOutput;
     }
 }
-
