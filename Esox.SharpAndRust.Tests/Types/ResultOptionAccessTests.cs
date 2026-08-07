@@ -1,7 +1,7 @@
 ﻿using Esox.SharpAndRusty.Extensions;
 using Esox.SharpAndRusty.Types;
 
-namespace Esox.SharpAndRust.Tests.Types;
+namespace Esox.SharpAndRusty.Tests.Types;
 
 public class ResultOptionAccessTests
 {

@@ -1,7 +1,7 @@
 using Esox.SharpAndRusty.Extensions;
 using Esox.SharpAndRusty.Types;
 
-namespace Esox.SharpAndRust.Tests.Extensions;
+namespace Esox.SharpAndRusty.Tests.Extensions;
 
 /// <summary>
 ///     Tests for enhanced collection extensions: Either, Validation, Utility, and Dictionary extensions.

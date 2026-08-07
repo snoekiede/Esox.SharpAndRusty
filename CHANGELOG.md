@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Fixed
+
+#### `Mutex<T>` — Disposal and async lock reliability
+
+- **`IsDisposed` property not updated on `Dispose()`**: The refactored `Dispose()` method used `Interlocked.Exchange` to set the internal `_disposed` int field atomically, but omitted setting the public `IsDisposed` bool property. The property now stays in sync, so `using` blocks and direct `.Dispose()` calls both correctly reflect the disposed state.
+- **`LockAsync` — waiter tracking and disposal race condition**: Added `_activeWaiters` counter (incremented before waiting, decremented in a `finally` block) so `Dispose()` can safely wait for in-flight async lockers to finish before tearing down the semaphore. This prevents the `SemaphoreSlim` from being disposed while tasks are still blocked on `WaitAsync`.
+- **`LockAsync` — cooperative disposal cancellation**: `LockAsync` now creates a linked `CancellationTokenSource` combining the caller's `CancellationToken` with an internal `_disposeCts` token. When `Dispose()` is called, it cancels `_disposeCts`, which unblocks any waiting `LockAsync` calls and returns a descriptive `InvalidOperation` error rather than throwing `ObjectDisposedException`.
+- **`LockAsync` — wrong second argument to `MutexGuard<T>`**: `new MutexGuard<T>(this, _value!)` incorrectly passed the protected value instead of the `SemaphoreSlim`; corrected to `new MutexGuard<T>(this, _semaphore)`.
+- **`LockAsync` — malformed `Interlocked.Decrement` call**: The drain-check expression `Interlocked.Decrement(ref _activeWaiters == 0 && ...)` embedded a boolean condition inside the `ref` argument (CS1510). Corrected to `Interlocked.Decrement(ref _activeWaiters) == 0 && Volatile.Read(ref _disposed) == 1`.
+
+---
+
 ## [1.5.0] - 2025
 
 ### Added

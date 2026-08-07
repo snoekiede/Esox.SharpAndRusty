@@ -2,7 +2,7 @@ using System.Diagnostics;
 using Esox.SharpAndRusty.Sync;
 using Esox.SharpAndRusty.Types;
 
-namespace Esox.SharpAndRust.Tests.Async;
+namespace Esox.SharpAndRusty.Tests.Async;
 
 public class MutexTests
 {
@@ -687,8 +687,8 @@ public class MutexTests
     }
 
 
-    [Fact(Skip = "Known issue: LockAsync hangs indefinitely when mutex is disposed while waiting. " +
-                 "This is a SemaphoreSlim disposal behavior limitation. Same issue as LockAsyncTimeout_DisposedDuringWait_ReturnsError.")]
+    //[Fact(Skip = "Known issue: LockAsync hangs indefinitely when mutex is disposed while waiting. " +
+    //             "This is a SemaphoreSlim disposal behavior limitation. Same issue as LockAsyncTimeout_DisposedDuringWait_ReturnsError.")]
     public async Task LockAsync_DisposedDuringWait_ReturnsError()
     {
         // Arrange
@@ -764,8 +764,8 @@ public class MutexTests
         }
     }
 
-    [Fact(Skip = "Known issue: LockAsyncTimeout hangs indefinitely when mutex is disposed while waiting. " +
-                 "This is a SemaphoreSlim disposal behavior limitation.")]
+    //[Fact(Skip = "Known issue: LockAsyncTimeout hangs indefinitely when mutex is disposed while waiting. " +
+    //             "This is a SemaphoreSlim disposal behavior limitation.")]
     public async Task LockAsyncTimeout_DisposedDuringWait_ReturnsError()
     {
         // Arrange

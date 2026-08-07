@@ -2,7 +2,7 @@ using System.Text.Json;
 using Esox.SharpAndRusty.Extensions;
 using Esox.SharpAndRusty.Types;
 
-namespace Esox.SharpAndRust.Tests.Extensions;
+namespace Esox.SharpAndRusty.Tests.Extensions;
 
 public class TryExtensionsTests
 {

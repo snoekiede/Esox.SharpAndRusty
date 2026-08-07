@@ -29,7 +29,7 @@ This library is provided "as is" without warranty of any kind, either express or
 - ✅ **Cancellation Support**: All async methods support `CancellationToken` for graceful operation cancellation
 - ✅ **.NET 10 Compatible**: Built for the latest .NET platform with C# 14
 - ✨ **Roslyn Analyzer**: Enforces proper Result/Option handling at compile-time (like Rust's `#[must_use]`)
-- 🧪 **Experimental: Mutex<T>**: Rust-inspired mutual exclusion primitive with Result-based locking (works in both sync and async contexts)
+- 🧪 **Experimental: Mutex<T>**: Rust-inspired mutual exclusion primitive with Result-based locking, safe async disposal, and cooperative cancellation (works in both sync and async contexts)
 - 🧪 **Experimental: RwLock<T>**: Rust-inspired reader-writer lock for shared data access (works in both sync and async contexts)
 
 ## Documentation
