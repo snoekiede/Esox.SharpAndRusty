@@ -44,11 +44,6 @@ public sealed class Mutex<T> : IDisposable
     /// </summary>
     public void Dispose()
     {
-        //if (!IsDisposed)
-        //{
-        //    _semaphore.Dispose();
-        //    IsDisposed = true;
-        //}
         if (Interlocked.Exchange(ref _disposed, 1) == 1)
         {
             return;
