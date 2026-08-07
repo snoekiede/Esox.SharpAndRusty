@@ -53,7 +53,8 @@ public sealed class Mutex<T> : IDisposable
         {
             return;
         }
-        
+
+        IsDisposed = true;
         _disposeCts.Cancel();
 
         if (Volatile.Read(ref _activeWaiters) == 0)
