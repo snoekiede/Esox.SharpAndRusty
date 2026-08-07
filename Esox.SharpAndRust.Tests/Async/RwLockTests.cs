@@ -1,7 +1,7 @@
 using Esox.SharpAndRusty.Sync;
 using Esox.SharpAndRusty.Types;
 
-namespace Esox.SharpAndRust.Tests.Async;
+namespace Esox.SharpAndRusty.Tests.Async;
 
 public class RwLockTests
 {

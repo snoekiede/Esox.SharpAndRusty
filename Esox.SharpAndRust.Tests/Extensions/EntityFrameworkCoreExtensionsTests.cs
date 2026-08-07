@@ -3,7 +3,7 @@ using Esox.SharpAndRusty.EntityFrameworkCore.Types;
 using Esox.SharpAndRusty.Types;
 using Microsoft.EntityFrameworkCore;
 
-namespace Esox.SharpAndRust.Tests.Extensions;
+namespace Esox.SharpAndRusty.Tests.Extensions;
 
 public class EntityFrameworkCoreExtensionsTests
 {
