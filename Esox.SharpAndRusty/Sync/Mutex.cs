@@ -17,7 +17,11 @@ namespace Esox.SharpAndRusty.Sync;
 public sealed class Mutex<T> : IDisposable
 {
     private readonly SemaphoreSlim _semaphore;
+    private readonly CancellationTokenSource _disposeCts = new();
     private T _value;
+    private int _disposed; // 0 = alive, 1 = disposed
+    private int _activeWaiters;
+    private readonly TaskCompletionSource _drained = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     /// <summary>
     ///     Creates a new mutex in an unlocked state ready for use.
@@ -40,11 +44,27 @@ public sealed class Mutex<T> : IDisposable
     /// </summary>
     public void Dispose()
     {
-        if (!IsDisposed)
+        //if (!IsDisposed)
+        //{
+        //    _semaphore.Dispose();
+        //    IsDisposed = true;
+        //}
+        if (Interlocked.Exchange(ref _disposed, 1) == 1)
         {
-            _semaphore.Dispose();
-            IsDisposed = true;
+            return;
         }
+        
+        _disposeCts.Cancel();
+
+        if (Volatile.Read(ref _activeWaiters) == 0)
+        {
+            _drained.TrySetResult();
+        }
+
+        _drained.Task.Wait(TimeSpan.FromSeconds(5));
+        
+        _semaphore.Dispose();
+        _disposeCts.Dispose();
     }
 
     /// <summary>
@@ -233,38 +253,74 @@ public sealed class Mutex<T> : IDisposable
     /// }
     /// </code>
     /// </example>
-    public async Task<Result<MutexGuard<T>, Error>> LockAsync(CancellationToken cancellationToken = default)
+    public async Task<Result<MutexGuard<T>, Error>> LockAsync(CancellationToken ct = default)
     {
-        if (IsDisposed)
-            return Result<MutexGuard<T>, Error>.Err(
-                Error.New("Cannot lock disposed mutex", ErrorKind.InvalidOperation)
-            );
+
+        if (Volatile.Read(ref _disposed) == 1)
+        {
+            return Result<MutexGuard<T>, Error>.Err(Error.New("Mutex has already been disposed",
+                ErrorKind.InvalidOperation));
+        }
+
+        Interlocked.Increment(ref _activeWaiters);
 
         try
         {
-            await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
-            return Result<MutexGuard<T>, Error>.Ok(
-                new MutexGuard<T>(this, _semaphore)
-            );
+            using var linked = CancellationTokenSource.CreateLinkedTokenSource(ct, _disposeCts.Token);
+            try
+            {
+                await _semaphore.WaitAsync(linked.Token).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (_disposeCts.IsCancellationRequested)
+            {
+                return Result<MutexGuard<T>, Error>.Err(Error.New("Mutex was disposed while waiting for lock",
+                    ErrorKind.InvalidOperation));
+            }
+            catch (OperationCanceledException)
+            {
+                return Result<MutexGuard<T>, Error>.Err(Error.New("Lock acquisition was cancelled",
+                    ErrorKind.Interrupted));
+            }
+
+            return Result<MutexGuard<T>, Error>.Ok(new MutexGuard<T>(this, _semaphore));
         }
-        catch (OperationCanceledException)
+        finally
         {
-            return Result<MutexGuard<T>, Error>.Err(
-                Error.New("Mutex lock was cancelled", ErrorKind.Interrupted)
-            );
+            if (Interlocked.Decrement(ref _activeWaiters) == 0 && Volatile.Read(ref _disposed) == 1)
+            {
+                _drained.TrySetResult();
+            }
         }
-        catch (ObjectDisposedException)
-        {
-            return Result<MutexGuard<T>, Error>.Err(
-                Error.New("Mutex was disposed during lock acquisition", ErrorKind.InvalidOperation)
-            );
-        }
-        catch (Exception ex)
-        {
-            return Result<MutexGuard<T>, Error>.Err(
-                Error.FromException(ex).WithContext("Failed to acquire mutex lock asynchronously")
-            );
-        }
+        //if (IsDisposed)
+        //    return Result<MutexGuard<T>, Error>.Err(
+        //        Error.New("Cannot lock disposed mutex", ErrorKind.InvalidOperation)
+        //    );
+
+        //try
+        //{
+        //    await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+        //    return Result<MutexGuard<T>, Error>.Ok(
+        //        new MutexGuard<T>(this, _semaphore)
+        //    );
+        //}
+        //catch (OperationCanceledException)
+        //{
+        //    return Result<MutexGuard<T>, Error>.Err(
+        //        Error.New("Mutex lock was cancelled", ErrorKind.Interrupted)
+        //    );
+        //}
+        //catch (ObjectDisposedException)
+        //{
+        //    return Result<MutexGuard<T>, Error>.Err(
+        //        Error.New("Mutex was disposed during lock acquisition", ErrorKind.InvalidOperation)
+        //    );
+        //}
+        //catch (Exception ex)
+        //{
+        //    return Result<MutexGuard<T>, Error>.Err(
+        //        Error.FromException(ex).WithContext("Failed to acquire mutex lock asynchronously")
+        //    );
+        //}
     }
 
     /// <summary>
