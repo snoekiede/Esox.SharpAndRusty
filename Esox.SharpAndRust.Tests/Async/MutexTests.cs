@@ -240,7 +240,7 @@ public class MutexTests
         // Arrange
         var mutex = new Mutex<int>(42);
         var cts = new CancellationTokenSource();
-        cts.Cancel();
+        await cts.CancelAsync();
 
         // Act
         var result = await mutex.LockAsync(cts.Token);
@@ -310,7 +310,7 @@ public class MutexTests
         // Arrange
         var mutex = new Mutex<int>(42);
         var cts = new CancellationTokenSource();
-        cts.Cancel();
+        await cts.CancelAsync();
         var timeout = TimeSpan.FromSeconds(10);
 
         // Act
@@ -662,7 +662,7 @@ public class MutexTests
     {
         // Arrange
         var mutex = new Mutex<int>(0);
-        var syncResult = mutex.Lock();
+        var syncResult = await mutex.LockAsync();
 
         // Act & Assert - async attempt should wait
         var asyncTask = Task.Run(async () =>
@@ -680,15 +680,13 @@ public class MutexTests
         await asyncTask;
 
         // Verify
-        var finalResult = mutex.Lock();
+        var finalResult = await mutex.LockAsync();
         if (finalResult.TryGetValue(out var finalGuard))
             using (finalGuard)
                 Assert.Equal(100, finalGuard.Value);
     }
 
-
-    //[Fact(Skip = "Known issue: LockAsync hangs indefinitely when mutex is disposed while waiting. " +
-    //             "This is a SemaphoreSlim disposal behavior limitation. Same issue as LockAsyncTimeout_DisposedDuringWait_ReturnsError.")]
+    [Fact]
     public async Task LockAsync_DisposedDuringWait_ReturnsError()
     {
         // Arrange
@@ -724,7 +722,7 @@ public class MutexTests
         var tasks = new List<Task<Result<MutexGuard<int>, Error>>>();
 
         // Hold the lock
-        var initialGuard = await mutex.LockAsync();
+        var initialGuard = await mutex.LockAsync(cts.Token);
 
         // Act - queue multiple async lock attempts with cancellation support
         for (var i = 0; i < 5; i++)
@@ -748,9 +746,9 @@ public class MutexTests
         // If timeout occurred, cancel remaining tasks
         if (completedTask == timeoutTask)
         {
-            cts.Cancel();
+            await cts.CancelAsync();
             // Give tasks a moment to handle cancellation
-            await Task.WhenAny(allTasksTask, Task.Delay(1000));
+            await Task.WhenAny(allTasksTask, Task.Delay(1000,cts.Token));
         }
 
         // Assert - tasks should either fail with error or be cancelled
@@ -764,8 +762,7 @@ public class MutexTests
         }
     }
 
-    //[Fact(Skip = "Known issue: LockAsyncTimeout hangs indefinitely when mutex is disposed while waiting. " +
-    //             "This is a SemaphoreSlim disposal behavior limitation.")]
+    [Fact]
     public async Task LockAsyncTimeout_DisposedDuringWait_ReturnsError()
     {
         // Arrange

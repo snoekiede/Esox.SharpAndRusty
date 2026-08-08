@@ -114,7 +114,7 @@ public class EntityFrameworkCoreExtensionsTests
 
     private sealed class TestUser
     {
-        public int Id { get; set; }
-        public string Email { get; set; } = string.Empty;
+        public int Id { get; init; }
+        public string Email { get; init; } = string.Empty;
     }
 }

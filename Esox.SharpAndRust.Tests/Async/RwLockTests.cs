@@ -852,4 +852,219 @@ public class RwLockTests
         Assert.True(writeResult2.IsSuccess);
         if (writeResult2.TryGetValue(out var writeGuard)) writeGuard.Dispose();
     }
+
+    #region Stress and disposal-race tests
+
+    /// <summary>
+    /// Races concurrent Read/Write/TryRead/TryWrite calls against a Dispose() call across many
+    /// iterations. Success means: no unhandled exceptions, no hangs, and IsDisposed is true once
+    /// Dispose() returns.
+    /// </summary>
+    [Fact]
+    public void Stress_ConcurrentReadWriteRacingDispose_NoHangsOrUnhandledExceptions()
+    {
+        const int iterations = 50;
+
+        for (var i = 0; i < iterations; i++)
+        {
+            var rwlock = new RwLock<int>(0);
+            var errors = new System.Collections.Concurrent.ConcurrentBag<Exception>();
+
+            // Spin up several reader and writer threads that loop until the lock is disposed.
+            var threads = new List<Thread>();
+
+            void WorkerBody(Action work)
+            {
+                try
+                {
+                    while (!rwlock.IsDisposed)
+                    {
+                        work();
+                        Thread.SpinWait(5);
+                    }
+                }
+                catch (ObjectDisposedException)
+                {
+                    // Expected: worker read IsDisposed==false, then Dispose() ran concurrently.
+                    // This is the documented "blocked-on-entry during Dispose" race; not a bug.
+                }
+                catch (Exception ex)
+                {
+                    errors.Add(ex);
+                }
+            }
+
+            threads.Add(new Thread(() => WorkerBody(() =>
+            {
+                var r = rwlock.TryRead();
+                if (r.TryGetValue(out var g)) g.Dispose();
+            })));
+
+            threads.Add(new Thread(() => WorkerBody(() =>
+            {
+                var r = rwlock.TryReadTimeout(TimeSpan.FromMilliseconds(1));
+                if (r.TryGetValue(out var g)) g.Dispose();
+            })));
+
+            threads.Add(new Thread(() => WorkerBody(() =>
+            {
+                var r = rwlock.TryWrite();
+                if (r.TryGetValue(out var g)) g.Dispose();
+            })));
+
+            threads.Add(new Thread(() => WorkerBody(() =>
+            {
+                var r = rwlock.TryWriteTimeout(TimeSpan.FromMilliseconds(1));
+                if (r.TryGetValue(out var g)) g.Dispose();
+            })));
+
+            foreach (var t in threads) t.Start();
+
+            // Let workers run briefly, then dispose.
+            Thread.Sleep(10);
+            rwlock.Dispose();
+
+            foreach (var t in threads) t.Join(TimeSpan.FromSeconds(5));
+
+            Assert.True(rwlock.IsDisposed);
+            Assert.Empty(errors);
+            // All threads must have exited within the Join timeout.
+            Assert.All(threads, t => Assert.False(t.IsAlive));
+        }
+    }
+
+    /// <summary>
+    /// Verifies that Dispose() waits for a live guard to be released before tearing down: a guard
+    /// is acquired on thread A, Dispose() is called on thread B, and the guard is released after a
+    /// short delay. Dispose() must not complete (and must not throw) before the guard is released.
+    /// </summary>
+    [Fact]
+    public void Dispose_WaitsForLiveGuardToDrain_BeforeDisposingInnerLock()
+    {
+        var rwlock = new RwLock<int>(42);
+        var guardAcquired = new ManualResetEventSlim(false);
+        var disposeCompleted = new ManualResetEventSlim(false);
+        WriteGuard<int>? capturedGuard = null;
+
+        var holder = new Thread(() =>
+        {
+            var result = rwlock.Write();
+            if (result.TryGetValue(out capturedGuard))
+            {
+                guardAcquired.Set();
+                // Hold the guard for 150 ms to give the disposer time to reach Dispose()
+                Thread.Sleep(150);
+                capturedGuard.Dispose();
+            }
+        });
+
+        var disposer = new Thread(() =>
+        {
+            guardAcquired.Wait();
+            rwlock.Dispose();
+            disposeCompleted.Set();
+        });
+
+        holder.Start();
+        disposer.Start();
+
+        // Dispose() should complete only after the guard is released (150 ms delay), so we
+        // allow a generous 3-second window.
+        var completed = disposeCompleted.Wait(TimeSpan.FromSeconds(3));
+
+        holder.Join(TimeSpan.FromSeconds(3));
+        disposer.Join(TimeSpan.FromSeconds(3));
+
+        Assert.True(completed, "Dispose() did not complete within the timeout.");
+        Assert.True(rwlock.IsDisposed);
+    }
+
+    /// <summary>
+    /// IntoInner() from thread B while thread A holds a WriteGuard must fail (timeout), not crash.
+    /// </summary>
+    [Fact]
+    public void IntoInner_CrossThread_WhileWriteGuardHeld_ReturnsError()
+    {
+        var rwlock = new RwLock<int>(99);
+        var guardReady = new ManualResetEventSlim(false);
+        var intoInnerDone = new ManualResetEventSlim(false);
+        Result<int, Error>? intoInnerResult = null;
+
+        // Thread A holds the write guard indefinitely until IntoInner completes.
+        var holder = new Thread(() =>
+        {
+            var result = rwlock.Write();
+            if (result.TryGetValue(out var guard))
+            {
+                guardReady.Set();
+                intoInnerDone.Wait(); // Wait until the cross-thread call finishes
+                guard.Dispose();
+            }
+        });
+
+        // Thread B attempts IntoInner() while thread A holds the write guard.
+        var caller = new Thread(() =>
+        {
+            guardReady.Wait();
+            // IntoInner will attempt TryEnterWriteLock with a 5-second timeout; since thread A
+            // holds the lock it should time out and return an error.
+            // Use a short timeout indirectly by having thread A release after IntoInner returns.
+            // We manipulate the test so the guard is held during the full IntoInner call.
+            intoInnerResult = rwlock.IntoInner();
+            intoInnerDone.Set();
+        });
+
+        holder.Start();
+        caller.Start();
+
+        // IntoInner has a 5 s internal timeout; give it 7 s total.
+        caller.Join(TimeSpan.FromSeconds(7));
+        holder.Join(TimeSpan.FromSeconds(2));
+
+        Assert.NotNull(intoInnerResult);
+        Assert.True(intoInnerResult!.Value.IsFailure,
+            "IntoInner() should have returned an error because a WriteGuard was held on another thread.");
+    }
+
+    /// <summary>
+    /// IntoInner() from thread B after thread A has released its WriteGuard must succeed.
+    /// </summary>
+    [Fact]
+    public void IntoInner_CrossThread_AfterWriteGuardReleased_ReturnsValue()
+    {
+        var rwlock = new RwLock<int>(77);
+        var guardReleased = new ManualResetEventSlim(false);
+        Result<int, Error>? intoInnerResult = null;
+
+        var holder = new Thread(() =>
+        {
+            var result = rwlock.Write();
+            if (result.TryGetValue(out var guard))
+            {
+                guard.Value = 77;
+                guard.Dispose(); // release before signalling
+                guardReleased.Set();
+            }
+        });
+
+        var caller = new Thread(() =>
+        {
+            guardReleased.Wait();
+            intoInnerResult = rwlock.IntoInner();
+        });
+
+        holder.Start();
+        caller.Start();
+
+        holder.Join(TimeSpan.FromSeconds(3));
+        caller.Join(TimeSpan.FromSeconds(3));
+
+        Assert.NotNull(intoInnerResult);
+        Assert.True(intoInnerResult!.Value.IsSuccess);
+        Assert.True(intoInnerResult!.Value.TryGetValue(out var value));
+        Assert.Equal(77, value);
+        Assert.True(rwlock.IsDisposed);
+    }
+
+    #endregion
 }

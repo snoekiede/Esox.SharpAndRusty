@@ -19,6 +19,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`LockAsync` — wrong second argument to `MutexGuard<T>`**: `new MutexGuard<T>(this, _value!)` incorrectly passed the protected value instead of the `SemaphoreSlim`; corrected to `new MutexGuard<T>(this, _semaphore)`.
 - **`LockAsync` — malformed `Interlocked.Decrement` call**: The drain-check expression `Interlocked.Decrement(ref _activeWaiters == 0 && ...)` embedded a boolean condition inside the `ref` argument (CS1510). Corrected to `Interlocked.Decrement(ref _activeWaiters) == 0 && Volatile.Read(ref _disposed) == 1`.
 
+#### `RwLock<T>` — Production hardening
+
+- **Live-guard tracking and drain-wait in `Dispose()`**: Added an `_activeGuards` counter incremented atomically each time a lock method successfully returns a guard, and decremented by each guard's `Dispose()` via a back-reference callback. `RwLock<T>.Dispose()` now spin-waits up to 5 seconds for `_activeGuards` to reach zero before calling `_lock.Dispose()`. This closes the real-world race of "dispose while another thread still holds a live guard", which previously could cause `ObjectDisposedException` inside the guard's `Dispose()` and leave the inner lock in an inconsistent state.
+- **`IntoInner()` — accurate cross-thread semantics**: `IntoInner()` already used `TryEnterWriteLock` (correct approach), but its documentation falsely implied Rust-like ownership safety. XML doc updated to accurately describe the write-lock strategy, the 5-second timeout, and cross-thread usage: it is safe to call from another thread provided all guards have been released; if a guard is held indefinitely the call returns an error without disposing the lock.
+- **Documentation — removed false async claim**: Class-level XML doc and both `README.md` files no longer claim `RwLock<T>` works in async contexts. Guards must never be held across an `await`; doing so blocks a thread-pool thread and can deadlock.
+- **Documentation — disposal limitation made explicit**: Class-level XML doc and both `README.md` files now clearly document the `ReaderWriterLockSlim` disposal constraint (unsupported by .NET when threads are engaged), distinguish the "live guard" case (now handled) from the "blocked on entry" case (unresolvable without cancellable waits), and give actionable recommendations.
+
+### Tests Added
+
+- **`Stress_ConcurrentReadWriteRacingDispose_NoHangsOrUnhandledExceptions`**: 50-iteration stress test spinning concurrent `TryRead`, `TryReadTimeout`, `TryWrite`, and `TryWriteTimeout` threads against a `Dispose()` call, asserting no unhandled exceptions, no hangs, and correct `IsDisposed` state.
+- **`Dispose_WaitsForLiveGuardToDrain_BeforeDisposingInnerLock`**: Acquires a write guard on thread A, calls `Dispose()` on thread B, releases the guard after 150 ms; asserts `Dispose()` waits and completes cleanly only after the guard is released.
+- **`IntoInner_CrossThread_WhileWriteGuardHeld_ReturnsError`**: Holds a `WriteGuard` on thread A, calls `IntoInner()` from thread B; asserts it returns an error (timeout) rather than crashing.
+- **`IntoInner_CrossThread_AfterWriteGuardReleased_ReturnsValue`**: Releases the `WriteGuard` on thread A before thread B calls `IntoInner()`; asserts `IntoInner()` succeeds and the lock is disposed.
+
 ---
 
 ## [1.5.0] - 2025

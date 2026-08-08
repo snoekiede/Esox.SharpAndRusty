@@ -47,7 +47,7 @@ public class AsyncCollectionExtensionsTests
     {
         // Arrange
         var cts = new CancellationTokenSource();
-        cts.Cancel();
+        await cts.CancelAsync();
 
         var tasks = new[]
         {

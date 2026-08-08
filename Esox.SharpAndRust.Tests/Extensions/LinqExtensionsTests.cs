@@ -202,9 +202,9 @@ public class LinqExtensionsTests
 
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() =>
-            option.SelectMany(
+            option.SelectMany<int, int, int>(
                 x => new Option<int>.Some(x),
-                (Func<int, int, int>)null!));
+                null!));
     }
 
     [Fact]
