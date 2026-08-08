@@ -1050,6 +1050,7 @@ if (writeResult.TryGetValue(out var writeGuard))
 - `Write()` - Acquire exclusive write lock
 - `TryWrite()` - Non-blocking write attempt
 - `TryWriteTimeout(TimeSpan)` - Write with timeout
+- `IntoInner()` - Consume the lock and extract the protected value; safe to call from any thread once all guards are released; returns `Result<T, Error>` rather than throwing
 
 **⚠️ Experimental Notice:**
 
@@ -1066,6 +1067,8 @@ real-world usage patterns. While fully tested, we recommend:
 `RwLock<T>` uses `ReaderWriterLockSlim` internally. Microsoft's documentation explicitly states that disposing a `ReaderWriterLockSlim` while other threads are engaged with it is unsupported. If a thread is blocked inside `Read()` or `Write()` (waiting for the lock to become available) at the exact moment `Dispose()` is called on another thread, the outcome is not guaranteed — it is likely to be an `ObjectDisposedException` on the waiting thread, but cannot be relied upon.
 
 `RwLock<T>.Dispose()` does wait (up to 5 seconds) for all **live guards** — locks that have been successfully acquired and not yet released — to drain before disposing the inner lock. This closes the common race of "dispose while another thread still holds a live guard". It is only the narrower "blocked trying to acquire at the exact moment of disposal" case that is subject to the above caveat.
+
+`IntoInner()` attempts to acquire an exclusive write lock (waiting up to 5 seconds) before extracting the value. All failure paths — `ObjectDisposedException` if another thread disposed the lock concurrently, `LockRecursionException` if the caller already holds a read lock on the same thread, and a timeout if guards remain held — are returned as `Result<T, Error>` rather than thrown. The lock is **not** disposed on any failure path.
 
 **Recommendation:** Ensure all work that may acquire the lock has finished before calling `Dispose()` — for example at application shutdown or after draining a work queue.
 

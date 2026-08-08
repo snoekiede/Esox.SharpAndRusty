@@ -49,7 +49,7 @@ public class AsyncOptionExtensionsTests
         // Arrange
         var option = new Option<int>.Some(42);
         var cts = new CancellationTokenSource();
-        cts.Cancel();
+        await cts.CancelAsync();
 
         // Act & Assert
         await Assert.ThrowsAsync<OperationCanceledException>(async () =>

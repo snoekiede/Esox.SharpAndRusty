@@ -572,7 +572,7 @@ public class ErrorExtensionsTests
         }, cts.Token);
 
         // Cancel after initial delay
-        await Task.Delay(100);
+        await Task.Delay(100,cts.Token);
         await cts.CancelAsync();
 
         var result = await resultTask;

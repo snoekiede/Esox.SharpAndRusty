@@ -183,7 +183,7 @@ public class TryExtensionsTests
     {
         // Arrange
         var cts = new CancellationTokenSource();
-        cts.Cancel();
+        await cts.CancelAsync();
 
         // Act
         var result = await TryExtensions.TryAsync(async () =>
@@ -408,7 +408,7 @@ public class TryExtensionsTests
     {
         // Arrange
         var cts = new CancellationTokenSource();
-        cts.Cancel();
+        await cts.CancelAsync();
 
         // Act
         var result = await TryExtensions.TryOptionAsync(async () =>
