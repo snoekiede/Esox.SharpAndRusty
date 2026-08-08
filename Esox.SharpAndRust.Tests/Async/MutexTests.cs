@@ -686,9 +686,7 @@ public class MutexTests
                 Assert.Equal(100, finalGuard.Value);
     }
 
-
-    //[Fact(Skip = "Known issue: LockAsync hangs indefinitely when mutex is disposed while waiting. " +
-    //             "This is a SemaphoreSlim disposal behavior limitation. Same issue as LockAsyncTimeout_DisposedDuringWait_ReturnsError.")]
+    [Fact]
     public async Task LockAsync_DisposedDuringWait_ReturnsError()
     {
         // Arrange
@@ -764,8 +762,7 @@ public class MutexTests
         }
     }
 
-    //[Fact(Skip = "Known issue: LockAsyncTimeout hangs indefinitely when mutex is disposed while waiting. " +
-    //             "This is a SemaphoreSlim disposal behavior limitation.")]
+    [Fact]
     public async Task LockAsyncTimeout_DisposedDuringWait_ReturnsError()
     {
         // Arrange

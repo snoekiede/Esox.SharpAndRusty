@@ -7,7 +7,6 @@ namespace Esox.SharpAndRusty.Sync;
 ///     A reader-writer lock for protecting shared data, inspired by Rust's std::sync::RwLock.
 ///     This type allows multiple concurrent readers or a single writer, providing interior mutability
 ///     with shared/exclusive access semantics and integrates with Result/Error types.
-///     Works in both synchronous and asynchronous contexts.
 /// </summary>
 /// <typeparam name="T">The type of the value protected by the RwLock.</typeparam>
 /// <remarks>
@@ -15,11 +14,37 @@ namespace Esox.SharpAndRusty.Sync;
 ///     runtime locks and returns Result types to handle lock acquisition failures gracefully.
 ///     The RwLock uses ReaderWriterLockSlim internally for efficient reader/writer semantics.
 ///     Multiple readers can access the data concurrently, but writers have exclusive access.
+///
+///     <para>
+///         <b>Synchronous only.</b> There is no async API. Guards (<see cref="ReadGuard{T}"/> and
+///         <see cref="WriteGuard{T}"/>) must never be held across an <c>await</c>. Doing so keeps
+///         the underlying OS-level read/write lock held while the thread-pool thread is returned,
+///         which blocks any writer (or further readers, once a writer is waiting) and will deadlock
+///         once the continuation tries to re-enter the lock on a different thread.
+///     </para>
+///
+///     <para>
+///         <b>Known disposal limitation.</b> If a thread is blocked inside
+///         <see cref="Read"/> or <see cref="Write"/> (i.e. it is waiting for the lock to become
+///         available) at the exact moment <see cref="Dispose"/> is called on another thread,
+///         the behaviour is unspecified by <see cref="ReaderWriterLockSlim"/> itself — Microsoft's
+///         documentation explicitly states that disposing the lock while other threads are engaged
+///         with it is unsupported. In practice this is likely to surface as an
+///         <see cref="ObjectDisposedException"/>, which the callers' catch blocks handle, but it is
+///         not guaranteed. The common and safe pattern is to ensure all work that may acquire this
+///         lock has completed before calling <see cref="Dispose"/> — for example at application
+///         shutdown or after draining a work queue. <see cref="Dispose"/> does wait for all
+///         <i>live guards</i> (successfully acquired locks that have not yet been released) to drain
+///         before tearing down the inner lock, closing the ordinary race of "dispose while a guard
+///         is still held"; it is only the narrower "dispose while a thread is blocked trying to
+///         acquire" case that cannot be handled safely with this primitive.
+///     </para>
 /// </remarks>
 public sealed class RwLock<T> : IDisposable
 {
     private readonly ReaderWriterLockSlim _lock;
-    private volatile bool _disposed;
+    private int _disposed;
+    private int _activeGuards; // count of live (successfully acquired, not yet released) guards
     private T _value;
 
     /// <summary>
@@ -34,13 +59,13 @@ public sealed class RwLock<T> : IDisposable
     {
         _value = value;
         _lock = new ReaderWriterLockSlim(recursionPolicy);
-        _disposed = false;
+        _disposed = 0;
     }
 
     /// <summary>
     ///     Gets whether this RwLock has been disposed.
     /// </summary>
-    public bool IsDisposed => _disposed;
+    public bool IsDisposed => Volatile.Read(ref _disposed) == 1;
 
     /// <summary>
     ///     Gets whether the read lock is held by the current thread.
@@ -48,7 +73,7 @@ public sealed class RwLock<T> : IDisposable
     /// </summary>
     [SuppressMessage("ReSharper", "UnusedMember.Global",
         Justification = "Will be used vy clients of this nuget package")]
-    public bool IsReadLockHeld => !_disposed && _lock.IsReadLockHeld;
+    public bool IsReadLockHeld => Volatile.Read(ref _disposed) == 0 && _lock.IsReadLockHeld;
 
     /// <summary>
     ///     Gets whether the write lock is held by the current thread.
@@ -56,7 +81,7 @@ public sealed class RwLock<T> : IDisposable
     /// </summary>
     [SuppressMessage("ReSharper", "UnusedMember.Global",
         Justification = "Will be used vy clients of this nuget package")]
-    public bool IsWriteLockHeld => !_disposed && _lock.IsWriteLockHeld;
+    public bool IsWriteLockHeld => Volatile.Read(ref _disposed) == 0 && _lock.IsWriteLockHeld;
 
     /// <summary>
     ///     Gets the total number of unique threads that have entered read mode.
@@ -64,17 +89,47 @@ public sealed class RwLock<T> : IDisposable
     /// </summary>
     [SuppressMessage("ReSharper", "UnusedMember.Global",
         Justification = "Will be used vy clients of this nuget package")]
-    public int CurrentReadCount => !_disposed ? _lock.CurrentReadCount : 0;
+    public int CurrentReadCount => Volatile.Read(ref _disposed) == 0 ? _lock.CurrentReadCount : 0;
 
     /// <summary>
     ///     Releases all resources used by the RwLock.
     /// </summary>
+    /// <remarks>
+    ///     Waits up to 5 seconds for all currently-held guards to be released before disposing
+    ///     the inner <see cref="ReaderWriterLockSlim"/>. This closes the common race of
+    ///     "dispose while another thread still holds a live guard". It does <i>not</i> handle
+    ///     the narrower case where a thread is blocked <i>trying to acquire</i> the lock at the
+    ///     moment of disposal — see the class-level remarks for the full explanation.
+    /// </remarks>
     public void Dispose()
     {
-        if (!_disposed)
+        if (Interlocked.Exchange(ref _disposed, 1) == 1)
+        {
+            return;
+        }
+
+        // Drain live guards before tearing down the inner lock. We spin rather than block so
+        // that guard Dispose() calls (which call DecrementActiveGuards) can complete on any
+        // thread without needing to acquire any further synchronisation primitive from us.
+        var deadline = Environment.TickCount64 + 5_000;
+        while (Volatile.Read(ref _activeGuards) > 0 && Environment.TickCount64 < deadline)
+        {
+            Thread.SpinWait(20);
+        }
+
+        try
         {
             _lock.Dispose();
-            _disposed = true;
+        }
+        catch (SynchronizationLockException)
+        {
+            // ReaderWriterLockSlim.Dispose() throws SynchronizationLockException if a thread is
+            // inside EnterReadLock/EnterWriteLock/TryEnterReadLock/TryEnterWriteLock at the exact
+            // moment we dispose. This is the documented "blocked-on-entry during Dispose" limitation
+            // described in the class remarks. The drain-wait above covers live guards; this catch
+            // covers the narrower race that we cannot eliminate without a cancellable wait primitive.
+            // Those threads will receive an ObjectDisposedException from the inner lock, which all
+            // public lock methods already handle via their catch blocks.
         }
     }
 
@@ -105,9 +160,11 @@ public sealed class RwLock<T> : IDisposable
         try
         {
             _lock.EnterReadLock();
+            Interlocked.Increment(ref _activeGuards);
 
-            if (_disposed)
+            if (Volatile.Read(ref _disposed) == 1)
             {
+                Interlocked.Decrement(ref _activeGuards);
                 _lock.ExitReadLock();
                 return Result<ReadGuard<T>, Error>.Err(
                     Error.New("Cannot read from disposed RwLock", ErrorKind.InvalidOperation)
@@ -163,8 +220,11 @@ public sealed class RwLock<T> : IDisposable
         {
             if (_lock.TryEnterReadLock(0))
             {
-                if (_disposed)
+                Interlocked.Increment(ref _activeGuards);
+
+                if (Volatile.Read(ref _disposed) == 1)
                 {
+                    Interlocked.Decrement(ref _activeGuards);
                     _lock.ExitReadLock();
                     return Result<ReadGuard<T>, Error>.Err(
                         Error.New("Cannot read from disposed RwLock", ErrorKind.InvalidOperation)
@@ -230,8 +290,11 @@ public sealed class RwLock<T> : IDisposable
         {
             if (_lock.TryEnterReadLock(timeout))
             {
-                if (_disposed)
+                Interlocked.Increment(ref _activeGuards);
+
+                if (Volatile.Read(ref _disposed) == 1)
                 {
+                    Interlocked.Decrement(ref _activeGuards);
                     _lock.ExitReadLock();
                     return Result<ReadGuard<T>, Error>.Err(
                         Error.New("Cannot read from disposed RwLock", ErrorKind.InvalidOperation)
@@ -298,9 +361,11 @@ public sealed class RwLock<T> : IDisposable
         try
         {
             _lock.EnterWriteLock();
+            Interlocked.Increment(ref _activeGuards);
 
-            if (_disposed)
+            if (Volatile.Read(ref _disposed) == 1)
             {
+                Interlocked.Decrement(ref _activeGuards);
                 _lock.ExitWriteLock();
                 return Result<WriteGuard<T>, Error>.Err(
                     Error.New("Cannot write to disposed RwLock", ErrorKind.InvalidOperation)
@@ -356,8 +421,11 @@ public sealed class RwLock<T> : IDisposable
         {
             if (_lock.TryEnterWriteLock(0))
             {
-                if (_disposed)
+                Interlocked.Increment(ref _activeGuards);
+
+                if (Volatile.Read(ref _disposed) == 1)
                 {
+                    Interlocked.Decrement(ref _activeGuards);
                     _lock.ExitWriteLock();
                     return Result<WriteGuard<T>, Error>.Err(
                         Error.New("Cannot write to disposed RwLock", ErrorKind.InvalidOperation)
@@ -423,8 +491,11 @@ public sealed class RwLock<T> : IDisposable
         {
             if (_lock.TryEnterWriteLock(timeout))
             {
-                if (_disposed)
+                Interlocked.Increment(ref _activeGuards);
+
+                if (Volatile.Read(ref _disposed) == 1)
                 {
+                    Interlocked.Decrement(ref _activeGuards);
                     _lock.ExitWriteLock();
                     return Result<WriteGuard<T>, Error>.Err(
                         Error.New("Cannot write to disposed RwLock", ErrorKind.InvalidOperation)
@@ -466,15 +537,25 @@ public sealed class RwLock<T> : IDisposable
 
     /// <summary>
     ///     Consumes the RwLock, returning the underlying data.
-    ///     This is safe because we take ownership of the lock, ensuring no other references exist.
     /// </summary>
     /// <returns>
-    ///     A Result containing the underlying value on success, or an Error if the lock is disposed or has active guards.
+    ///     A Result containing the underlying value on success, or an Error if the lock is already
+    ///     disposed or if exclusive access cannot be obtained within 5 seconds.
     /// </returns>
     /// <remarks>
-    ///     Similar to Rust's into_inner(), this method takes ownership and returns the inner value.
-    ///     After calling this method, the RwLock is disposed and cannot be used again.
-    ///     This method will fail if any guards are currently held, as that would violate ownership semantics.
+    ///     Inspired by Rust's <c>into_inner()</c>. Unlike Rust, C# has no ownership model, so this
+    ///     method cannot statically guarantee that the caller is the sole owner. Instead it attempts
+    ///     to acquire an exclusive write lock (waiting up to 5 seconds) to ensure no reader or
+    ///     writer guard is currently active on any thread. If the write lock is granted the value is
+    ///     extracted, the lock is released, and the RwLock is disposed.
+    ///
+    ///     <para>
+    ///         <b>Cross-thread safety:</b> it is correct to call this method from a different thread
+    ///         to the one that originally created the RwLock, provided all live guards have been
+    ///         disposed first — the write-lock attempt will succeed once the last guard is released.
+    ///         If a guard is held indefinitely on another thread the 5-second timeout will expire
+    ///         and an error is returned; the RwLock is <i>not</i> disposed in that case.
+    ///     </para>
     /// </remarks>
     /// <example>
     ///     <code>
@@ -488,22 +569,39 @@ public sealed class RwLock<T> : IDisposable
     /// </example>
     public Result<T, Error> IntoInner()
     {
-        if (_disposed)
+        if (IsDisposed)
             return Result<T, Error>.Err(
-                Error.New("Cannot extract value from disposed RwLock", ErrorKind.InvalidOperation)
-            );
+                Error.New("Cannot extract value from disposed RwLock", ErrorKind.InvalidOperation));
 
-        if (_lock.IsReadLockHeld || _lock.IsWriteLockHeld || _lock.CurrentReadCount > 0)
+        try
+        {
+            if (!_lock.TryEnterWriteLock(TimeSpan.FromSeconds(5)))
+                return Result<T, Error>.Err(
+                    Error.New("Cannot extract value while locks are held elsewhere", ErrorKind.InvalidOperation));
+        }
+        catch (LockRecursionException ex)
+        {
             return Result<T, Error>.Err(
-                Error.New("Cannot extract value while locks are held", ErrorKind.InvalidOperation)
-                    .WithMetadata("currentReadCount", _lock.CurrentReadCount)
-                    .WithMetadata("isReadLockHeld", _lock.IsReadLockHeld)
-                    .WithMetadata("isWriteLockHeld", _lock.IsWriteLockHeld)
-            );
+                Error.FromException(ex)
+                    .WithContext("Cannot call IntoInner while a read lock is held on the same thread")
+                    .WithKind(ErrorKind.InvalidOperation));
+        }
+        catch (ObjectDisposedException)
+        {
+            return Result<T, Error>.Err(
+                Error.New("RwLock was disposed during IntoInner write lock acquisition", ErrorKind.InvalidOperation));
+        }
 
-        var value = _value;
-        Dispose();
-        return Result<T, Error>.Ok(value);
+        try
+        {
+            var value = _value;
+            return Result<T, Error>.Ok(value);
+        }
+        finally
+        {
+            _lock.ExitWriteLock();
+            Dispose();
+        }
     }
 
     // Internal method for the write guard to update the value
@@ -514,6 +612,10 @@ public sealed class RwLock<T> : IDisposable
 
     // Internal method for guards to get the current value
     internal T GetValue() => _value;
+
+    // Called by ReadGuard and WriteGuard when they are disposed to signal that a live guard has
+    // been released. Dispose() waits for this count to reach zero before tearing down the inner lock.
+    internal void DecrementActiveGuards() => Interlocked.Decrement(ref _activeGuards);
 }
 
 /// <summary>
@@ -530,11 +632,13 @@ public sealed class RwLock<T> : IDisposable
 public sealed class ReadGuard<T> : IDisposable
 {
     private readonly ReaderWriterLockSlim _lock;
+    private readonly RwLock<T> _rwlock;
     private readonly T _value;
     private bool _disposed;
 
     internal ReadGuard(RwLock<T> rwlock, ReaderWriterLockSlim lockSlim)
     {
+        _rwlock = rwlock;
         _value = rwlock.GetValue();
         _lock = lockSlim;
         _disposed = false;
@@ -585,6 +689,8 @@ public sealed class ReadGuard<T> : IDisposable
                 // RwLock was disposed while we held the guard
                 // This is acceptable - the lock cleanup will handle it
             }
+
+            _rwlock.DecrementActiveGuards();
         }
     }
 
@@ -708,6 +814,8 @@ public sealed class WriteGuard<T> : IDisposable
                 // RwLock was disposed while we held the guard
                 // This is acceptable - the lock cleanup will handle it
             }
+
+            _rwlock.DecrementActiveGuards();
         }
     }
 

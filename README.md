@@ -30,7 +30,7 @@ This library is provided "as is" without warranty of any kind, either express or
 - ✅ **.NET 10 Compatible**: Built for the latest .NET platform with C# 14
 - ✨ **Roslyn Analyzer**: Enforces proper Result/Option handling at compile-time (like Rust's `#[must_use]`)
 - 🧪 **Experimental: Mutex<T>**: Rust-inspired mutual exclusion primitive with Result-based locking, safe async disposal, and cooperative cancellation (works in both sync and async contexts)
-- 🧪 **Experimental: RwLock<T>**: Rust-inspired reader-writer lock for shared data access (works in both sync and async contexts)
+- 🧪 **Experimental: RwLock<T>**: Rust-inspired reader-writer lock for shared data access (synchronous only — **guards must not be held across an `await`**)
 
 ## Documentation
 
@@ -1031,7 +1031,7 @@ The library includes comprehensive test coverage with **360+ unit tests** coveri
 
 **Status:** Experimental - API may change in future versions
 
-Rust-inspired synchronization primitives for protecting shared data, suitable for both synchronous and asynchronous contexts:
+Rust-inspired synchronization primitives for protecting shared data. `Mutex<T>` supports both synchronous and asynchronous contexts. `RwLock<T>` is **synchronous only**.
 
 #### Mutex<T> - Mutual Exclusion
 
@@ -1094,8 +1094,9 @@ if (writeResult.TryGetValue(out var writeGuard))
 - ✅ **RAII Lock Management** - Automatic lock release via `IDisposable`
 - ✅ **Multiple Lock Strategies** - Blocking, try-lock, and timeout variants
 - ✅ **Type-Safe** - Compile-time guarantees for protected data access
-- ✅ **Sync & Async Support** - Works in both synchronous and asynchronous contexts
+- ✅ **Mutex<T> Async Support** - `Mutex<T>` works in both synchronous and asynchronous contexts
 - ✅ **Reader-Writer Optimization** - `RwLock<T>` allows concurrent readers
+- ⚠️ **RwLock<T> is synchronous only** — it has no async API. **Guards must never be held across an `await`**; doing so will block the thread pool and can cause deadlocks.
 
 **Mutex<T> Methods:**
 - `Lock()` - Blocking lock acquisition (sync)
@@ -1126,6 +1127,14 @@ The `Mutex<T>` and `RwLock<T>` APIs are currently experimental and may undergo c
 When `Mutex<T>.Dispose()` is called while tasks are waiting on `LockAsync()` or `LockAsyncTimeout()`, those waiting tasks will hang indefinitely. This is a fundamental limitation of `SemaphoreSlim` disposal behavior in .NET.
 
 **Recommendation:** Always ensure all async lock operations complete before disposing the mutex. Avoid disposing mutexes that may have waiting async operations.
+
+**⚠️ Known Limitation - RwLock<T> Disposal while a thread is blocked on entry:**
+
+`RwLock<T>` uses `ReaderWriterLockSlim` internally. Microsoft's documentation explicitly states that disposing a `ReaderWriterLockSlim` while other threads are engaged with it is unsupported. If a thread is blocked inside `Read()` or `Write()` (waiting for the lock to become available) at the exact moment `Dispose()` is called on another thread, the outcome is not guaranteed — it is likely to be an `ObjectDisposedException` on the waiting thread, but cannot be relied upon.
+
+`RwLock<T>.Dispose()` does wait (up to 5 seconds) for all **live guards** — locks that have been successfully acquired and not yet released — to drain before disposing the inner lock. This closes the common race of "dispose while another thread still holds a live guard". It is only the narrower "blocked trying to acquire at the exact moment of disposal" case that is subject to the above caveat.
+
+**Recommendation:** Ensure all work that may acquire the lock has finished before calling `Dispose()` — for example at application shutdown or after draining a work queue.
 
 For complete synchronization primitives documentation, see the [Advanced Features Guide](Esox.SharpAndRusty/ADVANCED_FEATURES.md).
 
