@@ -529,19 +529,24 @@ public class MutexTests
     public async Task Mutex_ConcurrentTryLock_OnlyOneSucceeds()
     {
         // Arrange
+        const int threadCount = 10;
         var mutex = new Mutex<int>(0);
         var successCount = 0;
 
-        // Act
-        var tasks = Enumerable.Range(0, 10).Select(_ => Task.Run(() =>
+        // Use a Barrier so all threads call TryLock at the same instant,
+        // while the winner is still holding the lock.
+        using var barrier = new Barrier(threadCount);
+
+        var tasks = Enumerable.Range(0, threadCount).Select(_ => Task.Run(() =>
         {
+            barrier.SignalAndWait(); // synchronise all threads before attempting
             var result = mutex.TryLock();
             if (result.IsSuccess)
             {
                 Interlocked.Increment(ref successCount);
                 if (result.TryGetValue(out var guard))
                 {
-                    Thread.Sleep(100); // Hold lock
+                    Thread.Sleep(100); // hold lock long enough for stragglers
                     guard.Dispose();
                 }
             }
@@ -549,7 +554,7 @@ public class MutexTests
 
         await Task.WhenAll(tasks);
 
-        // Assert - only one task should have acquired the lock
+        // Assert - exactly one task should have acquired the lock
         Assert.Equal(1, successCount);
     }
 
