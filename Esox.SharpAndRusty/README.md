@@ -947,12 +947,18 @@ The library includes comprehensive test coverage with **339 unit tests** coverin
     - Circular reference detection
     - Full error chain formatting
     - Equality and hash code
-- **🧪 Experimental Mutex<T>** (36 tests)
+- **🧪 Experimental Mutex<T>** (48 tests)
     - Lock acquisition and release
     - Try-lock and timeout variants
-    - Async locking with cancellation
+    - Async locking with cancellation and cooperative cancellation on disposal
     - Concurrency stress tests
     - RAII guard management
+- **🧪 Experimental RwLock<T>** (42 tests)
+    - Read/write guard acquisition and release
+    - Try-lock and timeout variants
+    - Live-guard drain-wait on disposal
+    - Cross-thread `IntoInner()` (guard-held and guard-released)
+    - Concurrent read/write-vs-dispose stress test
 - Exception handling (Try/TryAsync)
 - Side effects (Inspect/InspectErr)
 - Value extraction methods

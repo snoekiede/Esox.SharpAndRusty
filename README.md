@@ -1012,12 +1012,18 @@ The library includes comprehensive test coverage with **360+ unit tests** coveri
   - Circular reference detection
   - Full error chain formatting
   - Equality and hash code
-- **🧪 Experimental Mutex<T>** (36 tests)
+- **🧪 Experimental Mutex<T>** (48 tests)
   - Lock acquisition and release
   - Try-lock and timeout variants
-  - Async locking with cancellation
+  - Async locking with cancellation and cooperative cancellation on disposal
   - Concurrency stress tests
   - RAII guard management
+- **🧪 Experimental RwLock<T>** (42 tests)
+  - Read/write guard acquisition and release
+  - Try-lock and timeout variants
+  - Live-guard drain-wait on disposal
+  - Cross-thread `IntoInner()` (guard-held and guard-released)
+  - Concurrent read/write-vs-dispose stress test
 - Exception handling (Try/TryAsync)
 - Side effects (Inspect/InspectErr)
 - Value extraction methods
@@ -1123,11 +1129,9 @@ The `Mutex<T>` and `RwLock<T>` APIs are currently experimental and may undergo c
 - Testing thoroughly in your specific use cases
 - Being prepared for potential API changes in minor version updates
 
-**⚠️ Known Limitation - Mutex<T> Disposal:**
+**✅ Resolved — Mutex<T> Disposal:**
 
-When `Mutex<T>.Dispose()` is called while tasks are waiting on `LockAsync()` or `LockAsyncTimeout()`, those waiting tasks will hang indefinitely. This is a fundamental limitation of `SemaphoreSlim` disposal behavior in .NET.
-
-**Recommendation:** Always ensure all async lock operations complete before disposing the mutex. Avoid disposing mutexes that may have waiting async operations.
+`Mutex<T>.Dispose()` safely handles pending `LockAsync()` and `LockAsyncTimeout()` calls: waiting tasks receive a `Result.Err` rather than hanging, via a disposal-linked `CancellationToken` and waiter-count tracking. This behaviour is covered by the `LockAsync_DisposedDuringWait_ReturnsError` and `LockAsyncTimeout_DisposedDuringWait_ReturnsError` regression tests.
 
 **⚠️ Known Limitation - RwLock<T> Disposal while a thread is blocked on entry:**
 
