@@ -57,7 +57,7 @@ public class EitherTests
 
         // Assert
         Assert.False(success);
-        Assert.Equal(default, value);
+        Assert.Equal(0, value);
     }
 
     [Fact]
@@ -85,7 +85,7 @@ public class EitherTests
 
         // Assert
         Assert.False(success);
-        Assert.Equal(default, value);
+        Assert.Equal(null, value);
     }
 
 

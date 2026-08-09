@@ -732,10 +732,10 @@ public class MutexTests
         // Act - queue multiple async lock attempts with cancellation support
         for (var i = 0; i < 5; i++)
         {
-            tasks.Add(Task.Run(async () => await mutex.LockAsync(cts.Token)));
+            tasks.Add(Task.Run(() => mutex.LockAsync(cts.Token),cts.Token));
         }
 
-        await Task.Delay(100); // Let them all start waiting
+        await Task.Delay(100,cts.Token); // Let them all start waiting
 
         // Dispose mutex while tasks are waiting
         mutex.Dispose();
@@ -744,7 +744,7 @@ public class MutexTests
         if (initialGuard.TryGetValue(out var g)) g.Dispose();
 
         // Wait for tasks with timeout to prevent hanging
-        var timeoutTask = Task.Delay(5000); // 5 second timeout
+        var timeoutTask = Task.Delay(5000,cts.Token); // 5 second timeout
         var allTasksTask = Task.WhenAll(tasks);
         var completedTask = await Task.WhenAny(allTasksTask, timeoutTask);
 
@@ -803,9 +803,9 @@ public class MutexTests
         var timeout = TimeSpan.FromSeconds(10);
 
         // Act - start timeout lock, then cancel
-        var lockTask = Task.Run(async () => await mutex.LockAsyncTimeout(timeout, cts.Token));
-        await Task.Delay(50);
-        cts.Cancel();
+        var lockTask = Task.Run(() => mutex.LockAsyncTimeout(timeout, cts.Token),cts.Token);
+        await Task.Delay(50,cts.Token);
+        await cts.CancelAsync();
 
         var result = await lockTask;
 
@@ -870,7 +870,7 @@ public class MutexTests
         // Arrange
         var mutex = new Mutex<int>(42);
         var cts = new CancellationTokenSource();
-        cts.Cancel(); // Cancel before calling
+        await cts.CancelAsync(); // Cancel before calling
 
         // Act
         var stopwatch = Stopwatch.StartNew();
@@ -889,7 +889,7 @@ public class MutexTests
         // Arrange
         var mutex = new Mutex<int>(42);
         var cts = new CancellationTokenSource();
-        cts.Cancel(); // Cancel before calling
+        await cts.CancelAsync(); // Cancel before calling
         var timeout = TimeSpan.FromSeconds(10);
 
         // Act
@@ -974,24 +974,27 @@ public class MutexTests
         // Arrange
         var mutex = new Mutex<int>(0);
         var successCount = 0;
-        var timeout = TimeSpan.FromSeconds(5);
+        const int taskCount = 10;
+        const int holdMs = 50;
+        // Timeout must cover worst-case: all tasks queued serially (taskCount * holdMs) plus a generous buffer.
+        var timeout = TimeSpan.FromMilliseconds(taskCount * holdMs * 4);
 
-        // Act - multiple tasks racing for the lock
-        var tasks = Enumerable.Range(0, 10).Select(i => Task.Run(async () =>
+        // Act - materialize tasks immediately so all are scheduled before any can time out.
+        var tasks = Enumerable.Range(0, taskCount).Select(i => Task.Run(async () =>
         {
             var result = await mutex.LockAsyncTimeout(timeout);
             if (result.IsSuccess && result.TryGetValue(out var guard))
             {
                 Interlocked.Increment(ref successCount);
-                await Task.Delay(50); // Hold briefly
+                await Task.Delay(holdMs);
                 guard.Value = i;
                 guard.Dispose();
             }
-        }));
+        })).ToList();
 
         await Task.WhenAll(tasks);
 
-        // Assert - eventually all should succeed sequentially
-        Assert.Equal(10, successCount);
+        // Assert - all tasks should eventually acquire the lock and succeed sequentially
+        Assert.Equal(taskCount, successCount);
     }
 }

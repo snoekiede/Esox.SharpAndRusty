@@ -72,7 +72,7 @@ public class ValidationTests
 
         // Assert
         Assert.False(success);
-        Assert.Equal(default, value);
+        Assert.Equal(0, value);
     }
 
     [Fact]

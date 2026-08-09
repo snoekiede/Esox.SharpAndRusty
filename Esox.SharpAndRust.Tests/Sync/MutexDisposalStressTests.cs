@@ -3,7 +3,7 @@ using Esox.SharpAndRusty.Sync;
 using Esox.SharpAndRusty.Types;
 using Xunit;
 
-namespace Esox.SharpAndRust.Tests.Sync;
+namespace Esox.SharpAndRusty.Tests.Sync;
 
 public class MutexDisposalStressTests
 {
