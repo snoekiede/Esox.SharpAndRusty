@@ -7,7 +7,12 @@ namespace Esox.SharpAndRusty.Sync;
 ///     This type provides interior mutability with exclusive access semantics and integrates with Result/Error types.
 ///     Works in both synchronous and asynchronous contexts.
 /// </summary>
-/// <typeparam name="T">The type of the value protected by the mutex.</typeparam>
+/// <typeparam name="T">
+///     The type of the value protected by the mutex. For full safety prefer immutable or value
+///     types. If <typeparamref name="T"/> is a mutable reference type, callers must not retain
+///     and mutate the object after the guard is disposed — such mutations occur outside the lock
+///     and are not protected.
+/// </typeparam>
 /// <remarks>
 ///     Unlike Rust's Mutex which relies on compile-time borrow checking, this C# implementation uses
 ///     runtime locks and returns Result types to handle lock acquisition failures gracefully.
@@ -31,13 +36,12 @@ public sealed class Mutex<T> : IDisposable
     {
         _value = value;
         _semaphore = new SemaphoreSlim(1, 1);
-        IsDisposed = false;
     }
 
     /// <summary>
     ///     Gets whether this mutex has been disposed.
     /// </summary>
-    public bool IsDisposed { get; private set; }
+    public bool IsDisposed => Volatile.Read(ref _disposed) == 1;
 
     /// <summary>
     ///     Releases all resources used by the mutex.
@@ -49,7 +53,6 @@ public sealed class Mutex<T> : IDisposable
             return;
         }
 
-        IsDisposed = true;
         _disposeCts.Cancel();
 
         if (Volatile.Read(ref _activeWaiters) == 0)
@@ -57,8 +60,19 @@ public sealed class Mutex<T> : IDisposable
             _drained.TrySetResult();
         }
 
-        _drained.Task.Wait(TimeSpan.FromSeconds(5));
-        
+        if (!_drained.Task.Wait(TimeSpan.FromSeconds(5)))
+        {
+            // Waiters did not exit within the grace period. This is a programming error —
+            // callers of Lock(), TryLockTimeout(), LockAsync(), or LockAsyncTimeout() are
+            // still blocked, which means the mutex is being disposed while it has active
+            // waiters. Disposal proceeds regardless so resources are always freed; however
+            // those still-blocked callers will receive an ObjectDisposedException from the
+            // semaphore rather than the clean InvalidOperation result they would normally get.
+            System.Diagnostics.Debug.Fail(
+                "Mutex<T>.Dispose() timed out waiting for active lock waiters to exit. " +
+                "Ensure all callers have completed before disposing the mutex.");
+        }
+
         _semaphore.Dispose();
         _disposeCts.Dispose();
     }

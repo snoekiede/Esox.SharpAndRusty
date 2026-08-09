@@ -9,29 +9,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+---
+
+## [1.6.4] - 2025
+
 ### Fixed
 
-#### `Mutex<T>` — Disposal and async lock reliability
+#### `Mutex<T>` — Correctness and production hardening
 
-- **`IsDisposed` property not updated on `Dispose()`**: The refactored `Dispose()` method used `Interlocked.Exchange` to set the internal `_disposed` int field atomically, but omitted setting the public `IsDisposed` bool property. The property now stays in sync, so `using` blocks and direct `.Dispose()` calls both correctly reflect the disposed state.
-- **`LockAsync` — waiter tracking and disposal race condition**: Added `_activeWaiters` counter (incremented before waiting, decremented in a `finally` block) so `Dispose()` can safely wait for in-flight async lockers to finish before tearing down the semaphore. This prevents the `SemaphoreSlim` from being disposed while tasks are still blocked on `WaitAsync`.
-- **`LockAsync` — cooperative disposal cancellation**: `LockAsync` now creates a linked `CancellationTokenSource` combining the caller's `CancellationToken` with an internal `_disposeCts` token. When `Dispose()` is called, it cancels `_disposeCts`, which unblocks any waiting `LockAsync` calls and returns a descriptive `InvalidOperation` error rather than throwing `ObjectDisposedException`.
+- **`IsDisposed` stale shadow removed**: `IsDisposed` was a plain `bool` auto-property written without memory ordering guarantees, creating a stale-read hazard for callers on other threads. The property is now a computed expression backed by `Volatile.Read(ref _disposed)` — the same field `Dispose()` sets atomically via `Interlocked.Exchange` — ensuring every caller sees the current disposed state.
+- **`Lock()` and `TryLockTimeout()` excluded from drain protocol**: Only the async paths (`LockAsync`, `LockAsyncTimeout`) participated in the `_activeWaiters` drain that `Dispose()` waits on. Sync callers blocked inside `_semaphore.Wait()` were invisible to the drain, so `Dispose()` could call `_semaphore.Dispose()` while a sync thread was still mid-wait, producing a raw `ObjectDisposedException` instead of a clean `InvalidOperation` result. Both sync methods now increment `_activeWaiters` before blocking, decrement in a `finally`, and pass `_disposeCts.Token` to `_semaphore.Wait()` so disposal cancels them cooperatively.
+- **`Dispose()` drain timeout silently ignored**: `_drained.Task.Wait(TimeSpan.FromSeconds(5))` discarded its return value, so a timeout would proceed to `_semaphore.Dispose()` with live waiters still inside it. The return value is now checked; a timeout fires `Debug.Fail` in development builds and still completes cleanup (resources are always freed) so that `Dispose()` never throws.
+- **`IsDisposed` property not updated on `Dispose()` (earlier fix)**: The refactored `Dispose()` used `Interlocked.Exchange` on `_disposed` but omitted setting `IsDisposed`. Now resolved by the stale-shadow fix above.
 - **`LockAsync` — wrong second argument to `MutexGuard<T>`**: `new MutexGuard<T>(this, _value!)` incorrectly passed the protected value instead of the `SemaphoreSlim`; corrected to `new MutexGuard<T>(this, _semaphore)`.
-- **`LockAsync` — malformed `Interlocked.Decrement` call**: The drain-check expression `Interlocked.Decrement(ref _activeWaiters == 0 && ...)` embedded a boolean condition inside the `ref` argument (CS1510). Corrected to `Interlocked.Decrement(ref _activeWaiters) == 0 && Volatile.Read(ref _disposed) == 1`.
+- **`LockAsync` — malformed `Interlocked.Decrement` call**: The drain-check expression embedded a boolean condition inside the `ref` argument (CS1510). Corrected to `Interlocked.Decrement(ref _activeWaiters) == 0 && Volatile.Read(ref _disposed) == 1`.
 
 #### `RwLock<T>` — Production hardening
 
-- **Live-guard tracking and drain-wait in `Dispose()`**: Added an `_activeGuards` counter incremented atomically each time a lock method successfully returns a guard, and decremented by each guard's `Dispose()` via a back-reference callback. `RwLock<T>.Dispose()` now spin-waits up to 5 seconds for `_activeGuards` to reach zero before calling `_lock.Dispose()`. This closes the real-world race of "dispose while another thread still holds a live guard", which previously could cause `ObjectDisposedException` inside the guard's `Dispose()` and leave the inner lock in an inconsistent state.
-- **`IntoInner()` — accurate cross-thread semantics**: `IntoInner()` already used `TryEnterWriteLock` (correct approach), but its documentation falsely implied Rust-like ownership safety. XML doc updated to accurately describe the write-lock strategy, the 5-second timeout, and cross-thread usage: it is safe to call from another thread provided all guards have been released; if a guard is held indefinitely the call returns an error without disposing the lock.
-- **Documentation — removed false async claim**: Class-level XML doc and both `README.md` files no longer claim `RwLock<T>` works in async contexts. Guards must never be held across an `await`; doing so blocks a thread-pool thread and can deadlock.
-- **Documentation — disposal limitation made explicit**: Class-level XML doc and both `README.md` files now clearly document the `ReaderWriterLockSlim` disposal constraint (unsupported by .NET when threads are engaged), distinguish the "live guard" case (now handled) from the "blocked on entry" case (unresolvable without cancellable waits), and give actionable recommendations.
+- **`Dispose()` drain loop starved guard holders on loaded machines**: The spin loop used `Thread.SpinWait(20)` — a pure CPU-bound NOP sequence that never yields the OS scheduler timeslice. On a loaded machine or single-core CI runner, the disposer thread monopolized the CPU, starving the guard-holder thread and preventing it from calling `guard.Dispose()`. Replaced with `SpinWait.SpinOnce()` which escalates from CPU spinning to `Thread.Yield()` then `Thread.Sleep(1)`, ensuring the holder thread gets CPU time.
+- **Live-guard tracking and drain-wait in `Dispose()`**: Added an `_activeGuards` counter incremented atomically on successful lock acquisition and decremented by each guard's `Dispose()`. `RwLock<T>.Dispose()` now waits for `_activeGuards` to reach zero before calling `_lock.Dispose()`, closing the race of "dispose while a guard is still held".
+- **`IntoInner()` — accurate cross-thread semantics**: XML doc updated to accurately describe the write-lock strategy, the 5-second timeout, and cross-thread usage.
+- **Documentation — removed false async claim**: Class-level XML doc and both `README.md` files no longer claim `RwLock<T>` works in async contexts.
+- **Documentation — disposal limitation made explicit**: Documented the `ReaderWriterLockSlim` constraint that disposing while threads are blocked trying to acquire is unsupported, distinguishing it from the now-handled "live guard" case.
+
+#### Both types
+
+- **Mutable reference-type safety warning added**: `<typeparam>` XML doc on both `Mutex<T>` and `RwLock<T>` now warns that if `T` is a mutable reference type, mutations through a retained reference after the guard is disposed occur outside the lock and are not protected.
 
 ### Tests Added
 
-- **`Stress_ConcurrentReadWriteRacingDispose_NoHangsOrUnhandledExceptions`**: 50-iteration stress test spinning concurrent `TryRead`, `TryReadTimeout`, `TryWrite`, and `TryWriteTimeout` threads against a `Dispose()` call, asserting no unhandled exceptions, no hangs, and correct `IsDisposed` state.
-- **`Dispose_WaitsForLiveGuardToDrain_BeforeDisposingInnerLock`**: Acquires a write guard on thread A, calls `Dispose()` on thread B, releases the guard after 150 ms; asserts `Dispose()` waits and completes cleanly only after the guard is released.
-- **`IntoInner_CrossThread_WhileWriteGuardHeld_ReturnsError`**: Holds a `WriteGuard` on thread A, calls `IntoInner()` from thread B; asserts it returns an error (timeout) rather than crashing.
-- **`IntoInner_CrossThread_AfterWriteGuardReleased_ReturnsValue`**: Releases the `WriteGuard` on thread A before thread B calls `IntoInner()`; asserts `IntoInner()` succeeds and the lock is disposed.
+#### `Mutex<T>`
+
+- **`Lock_DisposedDuringWait_ReturnsInvalidOperationError`**: Verifies that a thread blocked inside `Lock()` receives a clean `InvalidOperation` result when `Dispose()` is called concurrently, rather than an unhandled `ObjectDisposedException`.
+- **`TryLockTimeout_DisposedDuringWait_ReturnsInvalidOperationError`**: Same guarantee for `TryLockTimeout()`.
+- **`Dispose_WaitsForSyncLockCallerToExit_BeforeReturning`**: Verifies the drain guarantee for sync callers: `Dispose()` does not return until the thread inside `Lock()` has fully unwound.
+- **`LockAsyncTimeout_MultipleTasksRacing_OnlyOneAcquiresFirst`**: Stabilized with eager task materialization (`.ToList()`) and a timeout derived from actual hold time (`taskCount × holdMs × 4`) to prevent spurious CI failures.
+
+#### `RwLock<T>`
+
+- **`Dispose_WaitsForLiveGuardToDrain_BeforeDisposingInnerLock`**: Acquires a write guard on thread A, calls `Dispose()` on thread B, releases the guard after 150 ms; asserts `Dispose()` completes only after the guard is released.
+- **`Stress_ConcurrentReadWriteRacingDispose_NoHangsOrUnhandledExceptions`**: 50-iteration stress test with concurrent readers and writers racing a `Dispose()` call.
+- **`IntoInner_CrossThread_WhileWriteGuardHeld_ReturnsError`**: Holds a `WriteGuard` on thread A, calls `IntoInner()` from thread B; asserts timeout error rather than crash.
+- **`IntoInner_CrossThread_AfterWriteGuardReleased_ReturnsValue`**: Asserts `IntoInner()` succeeds once all guards are released.
 
 ---
 
