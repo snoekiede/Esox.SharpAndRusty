@@ -997,4 +997,119 @@ public class MutexTests
         // Assert - all tasks should eventually acquire the lock and succeed sequentially
         Assert.Equal(taskCount, successCount);
     }
+
+    [Fact]
+    public void Lock_DisposedDuringWait_ReturnsInvalidOperationError()
+    {
+        // Arrange
+        var mutex = new Mutex<int>(42);
+        var guard1 = mutex.Lock();
+        Result<MutexGuard<int>, Error>? result = null;
+        var waitStarted = new ManualResetEventSlim(false);
+
+        // Act - block a thread inside Lock(), then dispose from this thread
+        var waiter = new Thread(() =>
+        {
+            waitStarted.Set();
+            result = mutex.Lock();
+        });
+        waiter.Start();
+
+        waitStarted.Wait();
+        Thread.Sleep(30); // Let the waiter reach _semaphore.Wait()
+        mutex.Dispose();
+        waiter.Join(TimeSpan.FromSeconds(5));
+
+        // Assert - should receive a clean error, not an exception
+        Assert.NotNull(result);
+        Assert.True(result!.Value.IsFailure);
+        if (result.Value.TryGetError(out var error))
+        {
+            Assert.Equal(ErrorKind.InvalidOperation, error.Kind);
+            Assert.Contains("disposed", error.Message, StringComparison.OrdinalIgnoreCase);
+        }
+
+        // Cleanup
+        if (guard1.TryGetValue(out var g1)) g1.Dispose();
+    }
+
+    [Fact]
+    public void TryLockTimeout_DisposedDuringWait_ReturnsInvalidOperationError()
+    {
+        // Arrange
+        var mutex = new Mutex<int>(42);
+        var guard1 = mutex.Lock();
+        Result<MutexGuard<int>, Error>? result = null;
+        var waitStarted = new ManualResetEventSlim(false);
+        var timeout = TimeSpan.FromSeconds(10);
+
+        // Act - block a thread inside TryLockTimeout(), then dispose from this thread
+        var waiter = new Thread(() =>
+        {
+            waitStarted.Set();
+            result = mutex.TryLockTimeout(timeout);
+        });
+        waiter.Start();
+
+        waitStarted.Wait();
+        Thread.Sleep(30); // Let the waiter reach _semaphore.Wait()
+        mutex.Dispose();
+        waiter.Join(TimeSpan.FromSeconds(5));
+
+        // Assert - should receive a clean error, not an exception
+        Assert.NotNull(result);
+        Assert.True(result!.Value.IsFailure);
+        if (result.Value.TryGetError(out var error))
+        {
+            Assert.Equal(ErrorKind.InvalidOperation, error.Kind);
+            Assert.Contains("disposed", error.Message, StringComparison.OrdinalIgnoreCase);
+        }
+
+        // Cleanup
+        if (guard1.TryGetValue(out var g1)) g1.Dispose();
+    }
+
+    [Fact]
+    public void Dispose_WaitsForSyncLockCallerToExit_BeforeReturning()
+    {
+        // Arrange
+        var mutex = new Mutex<int>(42);
+        var guard1 = mutex.Lock();
+        var waiterExited = false;
+        var disposeCompleted = new ManualResetEventSlim(false);
+        var waitStarted = new ManualResetEventSlim(false);
+
+        // A thread blocked inside Lock() — it will unblock once guard1 is released or dispose fires.
+        var waiter = new Thread(() =>
+        {
+            waitStarted.Set();
+            mutex.Lock(); // will be cancelled by Dispose()
+            Volatile.Write(ref waiterExited, true);
+        });
+
+        var disposer = new Thread(() =>
+        {
+            waitStarted.Wait();
+            Thread.Sleep(30); // Let waiter reach _semaphore.Wait()
+            mutex.Dispose();
+            disposeCompleted.Set();
+        });
+
+        waiter.Start();
+        disposer.Start();
+
+        // Allow up to 3 seconds for Dispose() to complete
+        var completed = disposeCompleted.Wait(TimeSpan.FromSeconds(3));
+
+        // Assert - Dispose() completed and the waiter thread had already exited the lock call
+        Assert.True(completed, "Dispose() did not complete within the timeout.");
+        Assert.True(Volatile.Read(ref waiterExited),
+            "Dispose() returned before the sync Lock() caller had fully exited.");
+
+        waiter.Join(TimeSpan.FromSeconds(3));
+        disposer.Join(TimeSpan.FromSeconds(3));
+
+        // Cleanup
+        if (guard1.TryGetValue(out var g1)) g1.Dispose();
+    }
 }
