@@ -188,7 +188,7 @@ public class TryExtensionsTests
         // Act
         var result = await TryExtensions.TryAsync(async () =>
         {
-            await Task.Delay(1000);
+            await Task.Delay(1000, cts.Token);
             return 42;
         }, cts.Token);
 
@@ -413,7 +413,7 @@ public class TryExtensionsTests
         // Act
         var result = await TryExtensions.TryOptionAsync(async () =>
         {
-            await Task.Delay(1000);
+            await Task.Delay(1000, cts.Token);
             return "Hello";
         }, cts.Token);
 

@@ -55,7 +55,7 @@ public class AsyncOptionExtensionsTests
         await Assert.ThrowsAsync<OperationCanceledException>(async () =>
             await option.MapAsync(async x =>
             {
-                await Task.Delay(10);
+                await Task.Delay(10, cts.Token);
                 return x.ToString();
             }, cts.Token));
     }

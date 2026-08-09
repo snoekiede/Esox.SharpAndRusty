@@ -546,7 +546,7 @@ public class OptionTests
     public void Some_WithDefaultValue_StoresDefault()
     {
         // Arrange & Act
-        var option = new Option<int>.Some(default);
+        var option = new Option<int>.Some(0);
 
         // Assert
         Assert.Equal(0, option.Value);

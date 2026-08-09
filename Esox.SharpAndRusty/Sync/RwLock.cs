@@ -8,7 +8,12 @@ namespace Esox.SharpAndRusty.Sync;
 ///     This type allows multiple concurrent readers or a single writer, providing interior mutability
 ///     with shared/exclusive access semantics and integrates with Result/Error types.
 /// </summary>
-/// <typeparam name="T">The type of the value protected by the RwLock.</typeparam>
+/// <typeparam name="T">
+///     The type of the value protected by the RwLock. For full safety prefer immutable or value
+///     types. If <typeparamref name="T"/> is a mutable reference type, callers must not retain
+///     and mutate the object after the guard is disposed — such mutations occur outside the lock
+///     and are not protected.
+/// </typeparam>
 /// <remarks>
 ///     Unlike Rust's RwLock which relies on compile-time borrow checking, this C# implementation uses
 ///     runtime locks and returns Result types to handle lock acquisition failures gracefully.
@@ -108,13 +113,14 @@ public sealed class RwLock<T> : IDisposable
             return;
         }
 
-        // Drain live guards before tearing down the inner lock. We spin rather than block so
-        // that guard Dispose() calls (which call DecrementActiveGuards) can complete on any
-        // thread without needing to acquire any further synchronisation primitive from us.
+        // Drain live guards before tearing down the inner lock. SpinWait escalates from pure
+        // CPU spinning to Thread.Yield() / Thread.Sleep() automatically, ensuring the holder
+        // thread gets CPU time to call guard.Dispose() even on a loaded or single-core machine.
         var deadline = Environment.TickCount64 + 5_000;
+        var spinner = new SpinWait();
         while (Volatile.Read(ref _activeGuards) > 0 && Environment.TickCount64 < deadline)
         {
-            Thread.SpinWait(20);
+            spinner.SpinOnce();
         }
 
         try

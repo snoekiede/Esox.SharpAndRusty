@@ -15,7 +15,7 @@ public static class ParseExtensions
     /// <param name="input">The input string to parse.</param>
     /// <param name="value">When this method returns, contains the parsed value if successful; otherwise, default.</param>
     /// <returns><c>true</c> when parsing succeeds; otherwise <c>false</c>.</returns>
-    public delegate bool TryParseDelegate<T>(string? input, [MaybeNullWhen(false)] out T? value);
+    public delegate bool TryParseDelegate<T>(string? input, out T? value);
 
     extension(string? input)
     {
