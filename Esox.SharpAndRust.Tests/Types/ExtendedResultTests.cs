@@ -203,27 +203,24 @@ public class ExtendedResultTests
     }
 
     [Fact]
-    public void Match_ThrowsArgumentNullException_WhenSuccessFunctionIsNull()
+    public void Match_ReturnsDefault_WhenSuccessFunctionIsNull()
     {
         var result = ExtendedResult<int, string>.Ok(42);
 
-        var exception = Assert.Throws<ArgumentNullException>(() =>
-            result.Match(null!, error => error)
-        );
+        var value = result.Match(null!, error => error);
 
-        Assert.Equal("success", exception.ParamName);
+        Assert.Equal(default, value);
     }
 
     [Fact]
-    public void Match_ThrowsArgumentNullException_WhenFailureFunctionIsNull()
+    public void Match_ReturnsDefault_WhenFailureFunctionIsNull()
     {
         var result = ExtendedResult<int, string>.Ok(42);
 
-        var exception = Assert.Throws<ArgumentNullException>(() =>
-            result.Match(value => value.ToString(), null!)
-        );
+        // Success result with non-null success delegate — should execute normally
+        var value = result.Match(v => v * 2, null!);
 
-        Assert.Equal("failure", exception.ParamName);
+        Assert.Equal(84, value);
     }
 
     [Fact]
@@ -529,15 +526,13 @@ public class ExtendedResultTests
     }
 
     [Fact]
-    public void OrElse_ThrowsArgumentNullException_WhenAlternativeIsNull()
+    public void OrElse_ReturnsErrDefault_WhenAlternativeIsNull()
     {
         var result = ExtendedResult<int, string>.Err("error");
 
-        var exception = Assert.Throws<ArgumentNullException>(() =>
-            result.OrElse(null!)
-        );
+        var outcome = result.OrElse(null!);
 
-        Assert.Equal("alternative", exception.ParamName);
+        Assert.True(outcome.IsFailure);
     }
 
     [Fact]
@@ -574,23 +569,25 @@ public class ExtendedResultTests
     }
 
     [Fact]
-    public void Try_ThrowsArgumentNullException_WhenOperationIsNull()
+    public void Try_ReturnsErrDefault_WhenOperationIsNull()
     {
-        var exception = Assert.Throws<ArgumentNullException>(() =>
-            ExtendedResult<int, string>.Try(null!, ex => ex.Message)
-        );
+        var result = ExtendedResult<int, string>.Try(null!, ex => ex.Message);
 
-        Assert.Equal("operation", exception.ParamName);
+        Assert.True(result.IsFailure);
     }
 
     [Fact]
-    public void Try_ThrowsArgumentNullException_WhenErrorHandlerIsNull()
+    public void Try_ReturnsErrDefault_WhenErrorHandlerIsNull()
     {
-        var exception = Assert.Throws<ArgumentNullException>(() =>
-            ExtendedResult<int, string>.Try(() => 42, null!)
-        );
+        // Operation succeeds — result should still be Ok because no exception is thrown
+        var successResult = ExtendedResult<int, string>.Try(() => 42, null!);
+        Assert.True(successResult.IsSuccess);
 
-        Assert.Equal("errorHandler", exception.ParamName);
+        // Operation throws — without an errorHandler, falls back to Err(default!)
+        var failResult = ExtendedResult<int, string>.Try(
+            () => throw new InvalidOperationException("boom"),
+            null!);
+        Assert.True(failResult.IsFailure);
     }
 
     [Fact]

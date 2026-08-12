@@ -14,14 +14,16 @@ This library is provided "as is" without warranty of any kind, either express or
 - ✅ **Option Type**: Rust-inspired `Option<T>` for representing optional values without null references
 - ✅ **Rust-Inspired API**: Familiar patterns for developers coming from Rust or functional programming
 - ✅ **Rich Error Type**: Rust-inspired `Error` type with context chaining, metadata, and error categorization
-- ✅ **Zero Overhead**: Implemented as a `readonly struct` for optimal performance
+- ✅ **Zero Overhead**: `Result<T,E>` implemented as a `readonly struct` for optimal performance
+- ✅ **ExtendedResult<T,TE>**: Record-based alternative to `Result<T,E>` with exhaustive pattern matching via sealed `Success`/`Failure` subtypes
 - ✅ **Functional Composition**: Chain operations with `Map`, `Bind`, `MapError`, and `OrElse`
 - ✅ **Pattern Matching**: Use the `Match` method for elegant success/failure handling
 - ✅ **Full Equality Support**: Implements `IEquatable<T>` with proper `==`, `!=`, and `GetHashCode()`
 - ✅ **Implicit Conversions**: Concise result and option creation with `Result<int, string> r = 42;` and `Option<int> o = 42;`
 - ✅ **Safe Value Extraction**: `ValueOption`, `ErrorOption`, `TryGetValue`, `UnwrapOr`, `UnwrapOrElse`, `Expect`, and `Contains` methods
 - ✅ **Out-Free Parsing**: `"123".TryParse<int>()` and delegate-based `TryParse` helpers that return `Result<T, Error>`
-- ✅ **Exception Handling Helpers**: Built-in `Try` and `TryAsync` for wrapping operations
+- ✅ **No-Throw Core API**: `Result<T,E>` and `ExtendedResult<T,TE>` never throw on null delegates — null-safe methods return `default` or no-op, consistent with the library's exception-free philosophy
+- ✅ **Exception Handling Helpers**: Built-in `Try` and `TryAsync` for wrapping operations that may throw
 - ✅ **Inspection Methods**: Execute side effects with `Inspect`, `InspectErr`, and `Tap`
 - ✅ **LINQ Query Syntax**: Full support for C# LINQ query comprehension with `from`, `select`, and more
 - ✅ **Collection Operations**: `Combine` and `Partition` for batch processing
@@ -693,6 +695,179 @@ var detailedError = error.CaptureStackTrace(includeFileInfo: true);    // Detail
 See [ERROR_TYPE.md](../ERROR_TYPE.md) for comprehensive Error type documentation.
 See [ERROR_TYPE_PRODUCTION_IMPROVEMENTS.md](../ERROR_TYPE_PRODUCTION_IMPROVEMENTS.md) for detailed production optimization information.
 
+---
+
+## ExtendedResult&lt;T, TE&gt;
+
+`ExtendedResult<T, TE>` is the record-based sibling of `Result<T, E>`. It uses the sealed `Success`/`Failure` subtype hierarchy, which allows C# exhaustive pattern matching (`switch` expressions with no `_ =>` fallback) and gives you value-equality for free via records.
+
+Use `ExtendedResult` when you want:
+- Native C# switch-expression exhaustiveness over the `Success`/`Failure` subtypes
+- Reference-type semantics (heap-allocated, suitable for large payloads)
+- Structural equality without boilerplate
+
+Use `Result<T,E>` when you want:
+- Stack-allocation (`readonly struct`) with minimal allocation pressure
+- Integration with `ValueOption()` / `ErrorOption()`
+
+### Creating an ExtendedResult
+
+```csharp
+using Esox.SharpAndRusty.Types;
+
+// Explicit factory methods
+var ok  = ExtendedResult<int, string>.Ok(42);
+var err = ExtendedResult<int, string>.Err("Something went wrong");
+
+// Implicit conversions (same ergonomics as Result<T,E>)
+ExtendedResult<int, string> quick    = 42;                     // Ok(42)
+ExtendedResult<int, string> quickErr = "Something went wrong"; // Err(...)
+
+// Real-world example
+ExtendedResult<User, string> FindUser(int id) =>
+    id > 0
+        ? ExtendedResult<User, string>.Ok(new User { Id = id })
+        : ExtendedResult<User, string>.Err($"Invalid id: {id}");
+```
+
+### Pattern Matching
+
+Because `Success` and `Failure` are sealed records you can match exhaustively without a catch-all arm:
+
+```csharp
+var result = FindUser(42);
+
+// Switch expression — exhaustive, no _ required
+var message = result switch
+{
+    ExtendedResult<User, string>.Success(var user) => $"Hello, {user.Name}",
+    ExtendedResult<User, string>.Failure(var error) => $"Error: {error}"
+};
+
+// Match helper (functional style)
+var display = result.Match(
+    success: user  => $"Found: {user.Name}",
+    failure: error => $"Not found: {error}"
+);
+
+// if-pattern for single-branch handling
+if (result is ExtendedResult<User, string>.Success(var found))
+{
+    Console.WriteLine($"Processing {found.Name}");
+}
+```
+
+### Functional Composition
+
+```csharp
+// Map — transform the success value
+ExtendedResult<int, string> lengthResult =
+    ExtendedResult<string, string>.Ok("hello")
+        .Map(s => s.Length);
+// Success(5)
+
+// Bind (via extensions) — chain operations that can fail
+ExtendedResult<int, string> parsed =
+    ExtendedResult<string, string>.Ok("42")
+        .Bind(s => int.TryParse(s, out var n)
+            ? ExtendedResult<int, string>.Ok(n)
+            : ExtendedResult<int, string>.Err($"Cannot parse '{s}'"));
+// Success(42)
+
+// OrElse — recover from failure
+var result = ExtendedResult<int, string>.Err("cache miss")
+    .OrElse(_ => ExtendedResult<int, string>.Ok(0));
+// Success(0)
+
+// Chain multiple fallbacks
+var chained = ExtendedResult<int, string>.Err("first")
+    .OrElse(_ => ExtendedResult<int, string>.Err("second"))
+    .OrElse(_ => ExtendedResult<int, string>.Ok(99));
+// Success(99)
+```
+
+### Value Extraction
+
+```csharp
+var result = ExtendedResult<int, string>.Ok(42);
+
+// Safe extraction with TryGetValue / TryGetError
+if (result.TryGetValue(out var value))
+    Console.WriteLine($"Value: {value}");   // Value: 42
+
+if (result.TryGetError(out var error))
+    Console.WriteLine($"Error: {error}");   // (never reached for Ok)
+
+// Unwrap with fallback
+int v1 = result.UnwrapOr(-1);                             // 42
+int v2 = result.UnwrapOrElse(err => err.Length);          // 42 (factory ignored)
+
+var failed = ExtendedResult<int, string>.Err("oops");
+int v3 = failed.UnwrapOr(-1);                             // -1
+int v4 = failed.UnwrapOrElse(err => err.Length);          // 4 ("oops".Length)
+```
+
+### Side Effects with Inspect
+
+```csharp
+var result = FindUser(42)
+    .Inspect(user  => logger.Info($"Found: {user.Name}"))
+    .InspectErr(err => logger.Warn($"Lookup failed: {err}"));
+// Returns the original result unchanged
+```
+
+### Exception Wrapping with Try / TryAsync
+
+`ExtendedResult` provides the same `Try` and `TryAsync` helpers as `Result<T,E>`, consistent with the library's no-throw philosophy: a null operation returns `Err(default)` and exceptions are converted by the handler rather than propagated.
+
+```csharp
+// Synchronous
+var result = ExtendedResult<int, string>.Try(
+    operation:    () => int.Parse("42"),
+    errorHandler: ex => $"Parse failed: {ex.Message}"
+);
+// Success(42)
+
+// Asynchronous
+var asyncResult = await ExtendedResult<User, string>.TryAsync(
+    operation:    async () => await httpClient.GetUserAsync(userId),
+    errorHandler: ex => $"HTTP error: {ex.Message}"
+);
+
+// Null-safe: null operation returns Err(default) without throwing
+var safe = ExtendedResult<int, string>.Try(null!, ex => ex.Message);
+// Failure(null)
+```
+
+### Equality (Record Semantics)
+
+Because `ExtendedResult<T,TE>` is an abstract record, equality is structural by default:
+
+```csharp
+var a = ExtendedResult<int, string>.Ok(42);
+var b = ExtendedResult<int, string>.Ok(42);
+Console.WriteLine(a == b);      // True — value equality via record
+
+var c = ExtendedResult<int, string>.Err("error");
+var d = ExtendedResult<int, string>.Err("error");
+Console.WriteLine(c == d);      // True
+
+Console.WriteLine(a == c);      // False — Success ≠ Failure
+```
+
+### Choosing Between Result and ExtendedResult
+
+| | `Result<T, E>` | `ExtendedResult<T, TE>` |
+|---|---|---|
+| **Allocation** | Stack (`readonly struct`) | Heap (record class) |
+| **Pattern matching** | `IsSuccess` / `IsFailure` flags | Exhaustive `Success`/`Failure` subtypes |
+| **Equality** | `IEquatable<T>` | Record structural equality |
+| **LINQ / Map / Bind** | Full extension method support | Full extension method support |
+| **Implicit conversions** | ✅ | ✅ |
+| **Best for** | Hot paths, value types, structs | Domain models, large payloads, switch exhaustiveness |
+
+---
+
 ## API Reference
 
 ### `Option<T>` Type
@@ -870,6 +1045,41 @@ var failed = Result<int, string>.Err("Error");
 var willThrow = failed.Unwrap(); // Throws InvalidOperationException
 ```
 
+### `ExtendedResult<T, TE>` Type
+
+Record-based result type with sealed `Success`/`Failure` subtypes for exhaustive pattern matching.
+
+#### Properties
+- `bool IsSuccess` - Returns `true` if the result is a `Success`
+- `bool IsFailure` - Returns `true` if the result is a `Failure`
+
+#### Static Factory Methods
+- `ExtendedResult<T, TE> Ok(T value)` - Creates a `Success` result
+- `ExtendedResult<T, TE> Err(TE error)` - Creates a `Failure` result
+- `ExtendedResult<T, TE> Try(Func<T> operation, Func<Exception, TE> errorHandler)` - Wraps an operation; null operation returns `Err(default)`
+- `Task<ExtendedResult<T, TE>> TryAsync(Func<Task<T>> operation, Func<Exception, TE> errorHandler)` - Async version of `Try`
+
+#### Implicit Conversions
+- `implicit operator ExtendedResult<T, TE>(T value)` - Converts a value to `Success`
+- `implicit operator ExtendedResult<T, TE>(TE error)` - Converts an error to `Failure`
+- **Note**: When `T` and `TE` are the same type, use explicit `Ok()` / `Err()` to resolve ambiguity.
+
+#### Instance Methods
+- `TR Match<TR>(Func<T, TR> success, Func<TE, TR> failure)` - Pattern match on the result; null delegate returns `default`
+- `bool TryGetValue(out T value)` - Try to get the success value
+- `bool TryGetError(out TE error)` - Try to get the error value
+- `T UnwrapOr(T defaultValue)` - Get value or return default
+- `T UnwrapOrElse(Func<TE, T> defaultFactory)` - Get value or compute default; null factory returns `default`
+- `ExtendedResult<T, TE> OrElse(Func<TE, ExtendedResult<T, TE>> alternative)` - Provide alternative on failure; null returns `Err(default)`
+- `ExtendedResult<T, TE> Inspect(Action<T> action)` - Execute action on success value; null action is a no-op
+- `ExtendedResult<T, TE> InspectErr(Action<TE> action)` - Execute action on error value; null action is a no-op
+
+#### Equality (Record Semantics)
+`ExtendedResult<T,TE>` is an `abstract record`, so equality is structural:
+- `Success` values are equal when their `Value` fields are equal
+- `Failure` values are equal when their `Error` fields are equal
+- `Success` is never equal to `Failure`
+
 ### `Error` Type
 
 A rich error type inspired by Rust's error handling patterns with **production-grade optimizations**.
@@ -982,7 +1192,7 @@ dotnet test
 dotnet test -p:ContinuousIntegrationBuild=true
 ```
 
-The library includes comprehensive test coverage with **360+ unit tests** covering:
+The library includes comprehensive test coverage with **440+ unit tests** covering:
 - **Result<T, E>** (260 tests)
   - Basic creation and inspection
   - Pattern matching
@@ -993,6 +1203,14 @@ The library includes comprehensive test coverage with **360+ unit tests** coveri
   - Collection operations (Combine, Partition)
   - Full async support (MapAsync, BindAsync, TapAsync, OrElseAsync, CombineAsync)
   - Cancellation token support (all async methods with cancellation scenarios)
+- **ExtendedResult<T, TE>** (82 tests)
+  - Basic creation (`Ok`, `Err`, implicit conversions)
+  - Pattern matching via `Match` and `Success`/`Failure` subtypes
+  - Equality and hash code (record structural equality)
+  - `TryGetValue` / `TryGetError` / `UnwrapOr` / `UnwrapOrElse`
+  - `OrElse` / `Inspect` / `InspectErr`
+  - `Try` / `TryAsync` including null-operation and null-handler fallbacks
+  - No-throw null-safety for all delegate parameters
 - **Option<T>** (50 tests)
   - Creation and value access
   - Pattern matching with switch expressions

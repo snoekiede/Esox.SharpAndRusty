@@ -9,6 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+#### `Result<T, E>` and `ExtendedResult<T, TE>` — No-throw core API
+
+- **`Match` null-delegate safety**: Passing a `null` delegate no longer throws `NullReferenceException`; the matched arm returns `default` for `TR` instead.
+- **`UnwrapOrElse` null-factory safety**: A `null` factory returns `default` for `T` instead of throwing.
+- **`OrElse` null-alternative safety**: A `null` alternative returns `Err(default!)` instead of throwing.
+- **`Inspect` / `InspectErr` null-action safety**: A `null` action is a silent no-op; the original result is returned unchanged.
+- **`Try` null-operation safety**: Passing a `null` operation delegate returns `Err(default!)` immediately instead of throwing `NullReferenceException`.
+- **`TryAsync` null-operation safety**: Same guarantee for the async variant.
+- These changes align both types with the library's exception-free philosophy: the core API surface never throws for library-level conditions. Callers can opt in to exceptions via the `Unwrap()` extension method, which retains its existing throw-on-failure contract.
+
+### Documentation
+
+- **README.md**: Added a dedicated `ExtendedResult<T, TE>` section with creation, pattern matching, functional composition, value extraction, side effects, `Try`/`TryAsync`, equality, and a `Result` vs `ExtendedResult` comparison table — mirroring the depth of the existing `Result<T, E>` documentation.
+- **README.md**: Added `ExtendedResult` to the features bullet list with a note on the no-throw contract.
+- **README.md**: Updated test-count summary from 360+ to 440+ to reflect the 82 `ExtendedResultTests`.
+- **README.md**: Added `ExtendedResult<T, TE>` type reference to the API Reference section.
+
 ---
 
 ## [1.6.4] - 2025
