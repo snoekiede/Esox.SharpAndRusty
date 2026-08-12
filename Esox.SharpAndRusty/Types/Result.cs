@@ -44,18 +44,17 @@ public readonly struct Result<T, E> : IEquatable<Result<T, E>>
 
     /// <summary>
     ///     Matches the result and executes the appropriate function based on whether it's a success or failure.
+    ///     If the delegate for the matching branch is null, returns <c>default</c> for
+    ///     <typeparamref name="R"/> rather than throwing.
     /// </summary>
     /// <typeparam name="R">The return type of the match operation.</typeparam>
     /// <param name="success">Function to execute if the result is successful.</param>
     /// <param name="failure">Function to execute if the result is a failure.</param>
-    /// <returns>The result of executing either the success or failure function.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when success or failure function is null.</exception>
+    /// <returns>The result of executing either the success or failure function, or <c>default</c> if the relevant delegate is null.</returns>
     public R Match<R>(Func<T, R> success, Func<E, R> failure)
     {
-        ArgumentNullException.ThrowIfNull(success);
-        ArgumentNullException.ThrowIfNull(failure);
-
-        return IsSuccess ? success(_value) : failure(_error);
+        if (IsSuccess) return success is not null ? success(_value) : default!;
+        return failure is not null ? failure(_error) : default!;
     }
 
     /// <summary>
@@ -125,26 +124,28 @@ public readonly struct Result<T, E> : IEquatable<Result<T, E>>
 
     /// <summary>
     ///     Returns the success value if the result is successful; otherwise, computes and returns a default value.
+    ///     If <paramref name="defaultFactory"/> is null, returns <c>default</c> for <typeparamref name="T"/>
+    ///     rather than throwing.
     /// </summary>
     /// <param name="defaultFactory">A function that produces a default value.</param>
     /// <returns>The success value or the computed default value.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when defaultFactory is null.</exception>
     public T UnwrapOrElse(Func<E, T> defaultFactory)
     {
-        ArgumentNullException.ThrowIfNull(defaultFactory);
-        return IsSuccess ? _value : defaultFactory(_error);
+        if (IsSuccess) return _value;
+        return defaultFactory is not null ? defaultFactory(_error) : default!;
     }
 
     /// <summary>
     ///     Returns this result if it is successful; otherwise, returns the result produced by the alternative function.
+    ///     If <paramref name="alternative"/> is null and this result is a failure, returns <c>Err(default)</c>
+    ///     rather than throwing.
     /// </summary>
     /// <param name="alternative">A function that produces an alternative result based on the error.</param>
     /// <returns>This result if successful; otherwise, the alternative result.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when alternative is null.</exception>
     public Result<T, E> OrElse(Func<E, Result<T, E>> alternative)
     {
-        if (alternative is null) throw new ArgumentNullException(nameof(alternative));
-        return IsSuccess ? this : alternative(_error);
+        if (IsSuccess) return this;
+        return alternative is not null ? alternative(_error) : Err(default!);
     }
 
     /// <summary>
@@ -152,26 +153,29 @@ public readonly struct Result<T, E> : IEquatable<Result<T, E>>
     ///     Useful for side effects without transforming the result.
     /// </summary>
     /// <param name="action">The action to execute.</param>
+    /// <summary>
+    ///     Executes the specified action with the success value if the result is successful.
+    ///     Useful for side effects without transforming the result.
+    ///     If <paramref name="action"/> is null the call is a no-op and this result is returned unchanged.
+    /// </summary>
+    /// <param name="action">The action to execute.</param>
     /// <returns>This result unchanged.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when action is null.</exception>
     public Result<T, E> Inspect(Action<T> action)
     {
-        if (action is null) throw new ArgumentNullException(nameof(action));
-        if (IsSuccess) action(_value);
+        if (action is not null && IsSuccess) action(_value);
         return this;
     }
 
     /// <summary>
     ///     Executes the specified action with the error value if the result is a failure.
     ///     Useful for side effects without transforming the result.
+    ///     If <paramref name="action"/> is null the call is a no-op and this result is returned unchanged.
     /// </summary>
     /// <param name="action">The action to execute.</param>
     /// <returns>This result unchanged.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when action is null.</exception>
     public Result<T, E> InspectErr(Action<E> action)
     {
-        if (action is null) throw new ArgumentNullException(nameof(action));
-        if (IsFailure) action(_error);
+        if (action is not null && IsFailure) action(_error);
         return this;
     }
 
@@ -235,15 +239,15 @@ public readonly struct Result<T, E> : IEquatable<Result<T, E>>
     /// <summary>
     ///     Executes an asynchronous operation and wraps the result in a Result type.
     ///     If the operation throws an exception, it is caught and converted to an error using the error handler.
+    ///     A null <paramref name="operation"/> returns <c>Err(default)</c> immediately.
+    ///     A null <paramref name="errorHandler"/> causes exceptions to be converted to <c>Err(default)</c>.
     /// </summary>
     /// <param name="operation">The asynchronous operation to execute.</param>
     /// <param name="errorHandler">A function that converts an exception to an error value.</param>
     /// <returns>A task representing the asynchronous operation, containing the result.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when operation or errorHandler is null.</exception>
     public static async Task<Result<T, E>> TryAsync(Func<Task<T>> operation, Func<Exception, E> errorHandler)
     {
-        if (operation is null) throw new ArgumentNullException(nameof(operation));
-        if (errorHandler is null) throw new ArgumentNullException(nameof(errorHandler));
+        if (operation is null) return Err(default!);
 
         try
         {
@@ -252,22 +256,22 @@ public readonly struct Result<T, E> : IEquatable<Result<T, E>>
         }
         catch (Exception ex)
         {
-            return Err(errorHandler(ex));
+            return Err(errorHandler is not null ? errorHandler(ex) : default!);
         }
     }
 
     /// <summary>
     ///     Executes a synchronous operation and wraps the result in a Result type.
     ///     If the operation throws an exception, it is caught and converted to an error using the error handler.
+    ///     A null <paramref name="operation"/> returns <c>Err(default)</c> immediately.
+    ///     A null <paramref name="errorHandler"/> causes exceptions to be converted to <c>Err(default)</c>.
     /// </summary>
     /// <param name="operation">The operation to execute.</param>
     /// <param name="errorHandler">A function that converts an exception to an error value.</param>
     /// <returns>The result of the operation.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when operation or errorHandler is null.</exception>
     public static Result<T, E> Try(Func<T> operation, Func<Exception, E> errorHandler)
     {
-        if (operation is null) throw new ArgumentNullException(nameof(operation));
-        if (errorHandler is null) throw new ArgumentNullException(nameof(errorHandler));
+        if (operation is null) return Err(default!);
 
         try
         {
@@ -276,7 +280,7 @@ public readonly struct Result<T, E> : IEquatable<Result<T, E>>
         }
         catch (Exception ex)
         {
-            return Err(errorHandler(ex));
+            return Err(errorHandler is not null ? errorHandler(ex) : default!);
         }
     }
 }
