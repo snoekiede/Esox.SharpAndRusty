@@ -11,7 +11,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.6.4] - 2025
+## [1.6.7] - 2026
+
+### Added
+
+#### `Result<T, E>` — Void `Match` overload
+
+- **`void Match(Action<T> success, Action<E> failure)`**: New overload alongside the existing `R Match<R>(Func<T,R>, Func<E,R>)`. Dispatches to `success` or `failure` for side effects only (logging, metrics, UI updates) without requiring a return value. Throws `ArgumentNullException` when either action is `null`, consistent with the returning overload.
+
+#### `ExtendedResult<T, TE>` — Void `Match` overload
+
+- **`void Match(Action<T> success, Action<TE> failure)`**: Same side-effect-only dispatch for `ExtendedResult<T, TE>`. Throws `ArgumentNullException` when either action is `null`.
+
+### Tests Added
+
+#### `Result<T, E>` — 9 new tests for `Match(Action<T>, Action<E>)`
+
+- `MatchAction_Success_InvokesSuccessAction` — success branch action receives the value
+- `MatchAction_Failure_InvokesFailureAction` — failure branch action receives the error
+- `MatchAction_Success_DoesNotInvokeFailureAction` — failure action is never called for a success result
+- `MatchAction_Failure_DoesNotInvokeSuccessAction` — success action is never called for a failure result
+- `MatchAction_NullSuccessAction_ThrowsArgumentNullException` — null success → `ArgumentNullException("success")`
+- `MatchAction_NullFailureAction_ThrowsArgumentNullException` — null failure → `ArgumentNullException("failure")`
+- `MatchAction_Success_AllowsSideEffectsOnSuccessValue` — list mutation side effect on success
+- `MatchAction_Failure_AllowsSideEffectsOnErrorValue` — list mutation side effect on failure
+- `MatchAction_ReturnsVoid_CanBeUsedForSideEffectsOnly` — void overload used without capturing a return value
+
+#### `ExtendedResult<T, TE>` — 11 new tests for `Match(Action<T>, Action<TE>)`
+
+- Same 9 tests as above, plus:
+- `MatchAction_WithComplexTypes_Success` — dispatches correctly with `Person`/`ValidationError` record types on success
+- `MatchAction_WithComplexTypes_Failure` — dispatches correctly with `Person`/`ValidationError` record types on failure
+
+### Documentation
+
+- **README.md**: Added void `Match` example to the Pattern Matching usage section for `Result<T,E>`.
+- **README.md**: Added a dedicated "Void Match — side-effect-only pattern dispatch" subsection in the `ExtendedResult<T,TE>` usage area, showing both types side-by-side.
+- **README.md**: Updated both API reference entries (`Result<T,E>` and `ExtendedResult<T,TE>`) to document the void `Match` overload alongside the returning one.
+- **README.md**: Updated test-count summary from 440+ to 460+ (Result: 260→269, ExtendedResult: 82→93).
+
+---
+
+## [1.6.4] - 2026
 
 ### Fixed
 

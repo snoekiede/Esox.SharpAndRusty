@@ -75,6 +75,24 @@ public abstract record ExtendedResult<T, TE>
             _ => throw new InvalidOperationException("Unrecognized ExtendedResult type.")
         };
     }
+    
+    public void Match(Action<T> success, Action<TE> failure)
+    {
+        ArgumentNullException.ThrowIfNull(success);
+        ArgumentNullException.ThrowIfNull(failure);
+
+        switch (this)
+        {
+            case Success s:
+                success(s.Value);
+                break;
+            case Failure f:
+                failure(f.Error);
+                break;
+            default:
+                throw new InvalidOperationException("Unrecognized ExtendedResult type.");
+        }
+    }
 
     /// <summary>
     ///     Attempts to get the error value from the result.

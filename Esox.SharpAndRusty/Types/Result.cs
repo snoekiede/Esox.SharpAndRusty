@@ -57,6 +57,20 @@ public readonly struct Result<T, E> : IEquatable<Result<T, E>>
 
         return IsSuccess ? success(_value) : failure(_error);
     }
+    /// <summary>
+    ///    Matches the result and executes the appropriate action based on whether it's a success or failure.   
+    /// </summary>
+    /// <param name="success">Action to execute if the result is successful.</param>
+    /// <param name="failure">Action to execute if the result is a failure.</param>
+    public void Match(Action<T> success,Action<E> failure)
+    {
+        ArgumentNullException.ThrowIfNull(success);
+        ArgumentNullException.ThrowIfNull(failure);
+        if (IsSuccess)
+            success(_value);
+        else
+            failure(_error);
+    }
 
     /// <summary>
     ///     Attempts to get the success value from the result.

@@ -645,6 +645,157 @@ public class ResultTests
     }
 
 
+    // -----------------------------------------------------------------------
+    // Match(Action<T>, Action<E>) — void overload
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void MatchAction_Success_InvokesSuccessAction()
+    {
+        // Arrange
+        var result = Result<int, string>.Ok(42);
+        var captured = 0;
+
+        // Act
+        result.Match(
+            value => captured = value,
+            _ => captured = -1
+        );
+
+        // Assert
+        Assert.Equal(42, captured);
+    }
+
+    [Fact]
+    public void MatchAction_Failure_InvokesFailureAction()
+    {
+        // Arrange
+        var result = Result<int, string>.Err("boom");
+        var captured = string.Empty;
+
+        // Act
+        result.Match(
+            _ => captured = "should not run",
+            error => captured = error
+        );
+
+        // Assert
+        Assert.Equal("boom", captured);
+    }
+
+    [Fact]
+    public void MatchAction_Success_DoesNotInvokeFailureAction()
+    {
+        // Arrange
+        var result = Result<int, string>.Ok(1);
+        var failureCalled = false;
+
+        // Act
+        result.Match(
+            _ => { },
+            _ => failureCalled = true
+        );
+
+        // Assert
+        Assert.False(failureCalled);
+    }
+
+    [Fact]
+    public void MatchAction_Failure_DoesNotInvokeSuccessAction()
+    {
+        // Arrange
+        var result = Result<int, string>.Err("error");
+        var successCalled = false;
+
+        // Act
+        result.Match(
+            _ => successCalled = true,
+            _ => { }
+        );
+
+        // Assert
+        Assert.False(successCalled);
+    }
+
+    [Fact]
+    public void MatchAction_NullSuccessAction_ThrowsArgumentNullException()
+    {
+        // Arrange
+        var result = Result<int, string>.Ok(42);
+
+        // Act & Assert
+        var ex = Assert.Throws<ArgumentNullException>(() =>
+            result.Match(null!, _ => { })
+        );
+        Assert.Equal("success", ex.ParamName);
+    }
+
+    [Fact]
+    public void MatchAction_NullFailureAction_ThrowsArgumentNullException()
+    {
+        // Arrange
+        var result = Result<int, string>.Ok(42);
+
+        // Act & Assert
+        var ex = Assert.Throws<ArgumentNullException>(() =>
+            result.Match(_ => { }, null!)
+        );
+        Assert.Equal("failure", ex.ParamName);
+    }
+
+    [Fact]
+    public void MatchAction_Success_AllowsSideEffectsOnSuccessValue()
+    {
+        // Arrange
+        var result = Result<int, string>.Ok(10);
+        var sideEffects = new List<int>();
+
+        // Act
+        result.Match(
+            value => sideEffects.Add(value * 3),
+            _ => sideEffects.Add(-1)
+        );
+
+        // Assert
+        Assert.Single(sideEffects);
+        Assert.Equal(30, sideEffects[0]);
+    }
+
+    [Fact]
+    public void MatchAction_Failure_AllowsSideEffectsOnErrorValue()
+    {
+        // Arrange
+        var result = Result<int, string>.Err("not found");
+        var log = new List<string>();
+
+        // Act
+        result.Match(
+            _ => log.Add("ok"),
+            error => log.Add($"logged: {error}")
+        );
+
+        // Assert
+        Assert.Single(log);
+        Assert.Equal("logged: not found", log[0]);
+    }
+
+    [Fact]
+    public void MatchAction_ReturnsVoid_CanBeUsedForSideEffectsOnly()
+    {
+        // Arrange
+        var result = Result<string, int>.Ok("hello");
+        var seen = string.Empty;
+
+        // Act — no return value, just side effects
+        result.Match(
+            v => seen = v.ToUpperInvariant(),
+            _ => seen = "error"
+        );
+
+        // Assert
+        Assert.Equal("HELLO", seen);
+    }
+
     private class Person
     {
         public string Name { get; init; } = string.Empty;

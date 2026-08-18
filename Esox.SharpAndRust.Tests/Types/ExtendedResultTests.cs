@@ -1057,6 +1057,161 @@ public class ExtendedResultTests
     }
 
 
+    // -----------------------------------------------------------------------
+    // Match(Action<T>, Action<TE>) — void overload
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void MatchAction_Success_InvokesSuccessAction()
+    {
+        var result = ExtendedResult<int, string>.Ok(42);
+        var captured = 0;
+
+        result.Match(
+            value => captured = value,
+            _ => captured = -1
+        );
+
+        Assert.Equal(42, captured);
+    }
+
+    [Fact]
+    public void MatchAction_Failure_InvokesFailureAction()
+    {
+        var result = ExtendedResult<int, string>.Err("boom");
+        var captured = string.Empty;
+
+        result.Match(
+            _ => captured = "should not run",
+            error => captured = error
+        );
+
+        Assert.Equal("boom", captured);
+    }
+
+    [Fact]
+    public void MatchAction_Success_DoesNotInvokeFailureAction()
+    {
+        var result = ExtendedResult<int, string>.Ok(1);
+        var failureCalled = false;
+
+        result.Match(
+            _ => { },
+            _ => failureCalled = true
+        );
+
+        Assert.False(failureCalled);
+    }
+
+    [Fact]
+    public void MatchAction_Failure_DoesNotInvokeSuccessAction()
+    {
+        var result = ExtendedResult<int, string>.Err("error");
+        var successCalled = false;
+
+        result.Match(
+            _ => successCalled = true,
+            _ => { }
+        );
+
+        Assert.False(successCalled);
+    }
+
+    [Fact]
+    public void MatchAction_NullSuccessAction_ThrowsArgumentNullException()
+    {
+        var result = ExtendedResult<int, string>.Ok(42);
+
+        var ex = Assert.Throws<ArgumentNullException>(() =>
+            result.Match(null!, _ => { })
+        );
+        Assert.Equal("success", ex.ParamName);
+    }
+
+    [Fact]
+    public void MatchAction_NullFailureAction_ThrowsArgumentNullException()
+    {
+        var result = ExtendedResult<int, string>.Ok(42);
+
+        var ex = Assert.Throws<ArgumentNullException>(() =>
+            result.Match(_ => { }, null!)
+        );
+        Assert.Equal("failure", ex.ParamName);
+    }
+
+    [Fact]
+    public void MatchAction_Success_AllowsSideEffectsOnSuccessValue()
+    {
+        var result = ExtendedResult<int, string>.Ok(10);
+        var sideEffects = new List<int>();
+
+        result.Match(
+            value => sideEffects.Add(value * 3),
+            _ => sideEffects.Add(-1)
+        );
+
+        Assert.Single(sideEffects);
+        Assert.Equal(30, sideEffects[0]);
+    }
+
+    [Fact]
+    public void MatchAction_Failure_AllowsSideEffectsOnErrorValue()
+    {
+        var result = ExtendedResult<int, string>.Err("not found");
+        var log = new List<string>();
+
+        result.Match(
+            _ => log.Add("ok"),
+            error => log.Add($"logged: {error}")
+        );
+
+        Assert.Single(log);
+        Assert.Equal("logged: not found", log[0]);
+    }
+
+    [Fact]
+    public void MatchAction_WithComplexTypes_Success()
+    {
+        var result = ExtendedResult<Person, ValidationError>.Ok(new Person("Alice", 30));
+        var seen = string.Empty;
+
+        result.Match(
+            person => seen = $"{person.Name}/{person.Age}",
+            error => seen = $"err:{error.Message}"
+        );
+
+        Assert.Equal("Alice/30", seen);
+    }
+
+    [Fact]
+    public void MatchAction_WithComplexTypes_Failure()
+    {
+        var result = ExtendedResult<Person, ValidationError>.Err(new ValidationError("bad age"));
+        var seen = string.Empty;
+
+        result.Match(
+            _ => seen = "person",
+            error => seen = error.Message
+        );
+
+        Assert.Equal("bad age", seen);
+    }
+
+    [Fact]
+    public void MatchAction_ReturnsVoid_CanBeUsedForSideEffectsOnly()
+    {
+        var result = ExtendedResult<string, int>.Ok("hello");
+        var seen = string.Empty;
+
+        // no return value — purely for side effects
+        result.Match(
+            v => seen = v.ToUpperInvariant(),
+            _ => seen = "error"
+        );
+
+        Assert.Equal("HELLO", seen);
+    }
+
     // Helper types for testing
     private record Person(string Name, int Age);
 

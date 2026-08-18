@@ -409,6 +409,15 @@ public int GetLengthOrZero(Result<string, int> result)
         failure: errorCode => 0
     );
 }
+
+// Void overload — use when you only need side effects, not a return value
+public void LogResult(Result<User, string> result)
+{
+    result.Match(
+        success: user  => logger.Info($"Authenticated: {user.Name}"),
+        failure: error => logger.Warn($"Auth failed: {error}")
+    );
+}
 ```
 
 ### Functional Composition with Map
@@ -812,6 +821,28 @@ var result = ExtendedResult<User, string>.Ok(new User { Id = 1 })
 // Returns the original result unchanged
 ```
 
+### Void Match — side-effect-only pattern dispatch
+
+Both `Result<T,E>` and `ExtendedResult<T,TE>` provide a **`void Match(Action<T>, Action<E>)`** overload for when you need to branch on success/failure purely for side effects (logging, metrics, UI updates) without producing a return value:
+
+```csharp
+// Result<T,E> — void overload
+Result<int, string> result = ParseInput(raw);
+result.Match(
+    value => metrics.RecordSuccess(value),
+    error => metrics.RecordFailure(error)
+);
+
+// ExtendedResult<T,TE> — void overload (same ergonomics)
+ExtendedResult<Order, string> orderResult = PlaceOrder(cart);
+orderResult.Match(
+    order => { Console.WriteLine($"Order {order.Id} confirmed."); SendConfirmationEmail(order); },
+    error => { Console.WriteLine($"Order failed: {error}"); NotifySupport(error); }
+);
+
+// Both overloads throw ArgumentNullException when either action is null
+```
+
 ### Exception wrapping with Try / TryAsync
 
 ```csharp
@@ -919,7 +950,8 @@ var validValues = options
 - **Note**: When `T` and `E` are the same type, the compiler reports an ambiguous conversion. Use explicit `Ok()` / `Err()` in that case.
 
 #### Instance Methods
-- `R Match<R>(Func<T, R> success, Func<E, R> failure)` - Pattern match on the result
+- `R Match<R>(Func<T, R> success, Func<E, R> failure)` - Pattern match on the result, returning a value
+- `void Match(Action<T> success, Action<E> failure)` - Pattern match for side effects only; throws `ArgumentNullException` for null actions
 - `Option<T> ValueOption()` - Get success value as `Option<T>` (out-free)
 - `Option<E> ErrorOption()` - Get error value as `Option<E>` (out-free)
 - `bool TryGetValue(out T value)` - Try to get the success value
@@ -957,7 +989,8 @@ Record-based result type. `Success` and `Failure` are sealed records, enabling e
 - **Note**: When `T` and `TE` are the same type, use explicit `Ok()` / `Err()` to avoid a CS0457 ambiguous conversion error.
 
 #### Instance Methods
-- `TR Match<TR>(Func<T, TR> success, Func<TE, TR> failure)` - Functional pattern match; throws `ArgumentNullException` for null delegates
+- `TR Match<TR>(Func<T, TR> success, Func<TE, TR> failure)` - Functional pattern match, returning a value; throws `ArgumentNullException` for null delegates
+- `void Match(Action<T> success, Action<TE> failure)` - Pattern match for side effects only; throws `ArgumentNullException` for null actions
 - `bool TryGetValue(out T value)` - Try to get the success value
 - `bool TryGetError(out TE error)` - Try to get the error value
 - `T UnwrapOr(T defaultValue)` - Get value or return default
@@ -1177,10 +1210,10 @@ dotnet test
 dotnet test -p:ContinuousIntegrationBuild=true
 ```
 
-The library includes comprehensive test coverage with **440+ unit tests** covering:
-- **Result<T, E>** (260 tests)
+The library includes comprehensive test coverage with **460+ unit tests** covering:
+- **Result<T, E>** (269 tests)
   - Basic creation and inspection
-  - Pattern matching
+  - Pattern matching (returning and void overloads)
   - Equality and hash code
   - Map and Bind operations
   - LINQ query syntax integration (SelectMany, Select, from/select)
@@ -1188,13 +1221,14 @@ The library includes comprehensive test coverage with **440+ unit tests** coveri
   - Collection operations (Combine, Partition)
   - Full async support (MapAsync, BindAsync, TapAsync, OrElseAsync, CombineAsync)
   - Cancellation token support (all async methods with cancellation scenarios)
-- **ExtendedResult<T, TE>** (82 tests)
+- **ExtendedResult<T, TE>** (93 tests)
   - Creation via `Ok`, `Err`, and implicit conversions
-  - Exhaustive pattern matching via `Success`/`Failure` subtypes
+  - Exhaustive pattern matching via `Success`/`Failure` subtypes (returning and void overloads)
   - Equality and hash code (record structural equality)
   - `TryGetValue` / `TryGetError` / `UnwrapOr` / `UnwrapOrElse`
   - `OrElse` / `Inspect` / `InspectErr`
   - `Try` / `TryAsync` including exception-capture and null-argument handling
+  - Void `Match(Action, Action)` — side-effect branching with null-safety
 - **Option<T>** (50 tests)
   - Creation and value access
   - Pattern matching with switch expressions
