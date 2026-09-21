@@ -349,7 +349,7 @@ public class ValidationTests
         // Assert
         Assert.True(result.IsSuccess);
         Assert.True(result.TryGetValue(out var user));
-        Assert.Equal("John", user.Name);
+        Assert.Equal("John", user!.Name);
         Assert.Equal("john@example.com", user.Email);
         Assert.Equal(30, user.Age);
     }
@@ -570,7 +570,7 @@ public class ValidationTests
         // Assert
         Assert.True(validation.IsSuccess);
         Assert.True(validation.TryGetValue(out var user));
-        Assert.Equal("John Doe", user.Name);
+        Assert.Equal("John Doe", user!.Name);
     }
 
     [Fact]

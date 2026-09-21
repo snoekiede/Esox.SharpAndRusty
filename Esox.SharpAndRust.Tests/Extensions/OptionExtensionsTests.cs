@@ -1156,13 +1156,8 @@ public class OptionExtensionsTests
         Option<int> option = new Option<int>.Some(42);
 
         // Act & Assert
-        Assert.Throws<InvalidOperationException>(() =>
-            option.Map(x =>
-            {
-                throw new InvalidOperationException("Mapper failed");
-                return x;
-            })
-        );
+        Func<int, int> mapper = _ => throw new InvalidOperationException("Mapper failed");
+        Assert.Throws<InvalidOperationException>(() => option.Map(mapper));
     }
 
     [Fact]
@@ -1172,13 +1167,8 @@ public class OptionExtensionsTests
         Option<int> option = new Option<int>.Some(42);
 
         // Act & Assert
-        Assert.Throws<InvalidOperationException>(() =>
-            option.Bind(x =>
-            {
-                throw new InvalidOperationException("Binder failed");
-                return new Option<int>.Some(x);
-            })
-        );
+        Func<int, Option<int>> binder = _ => throw new InvalidOperationException("Binder failed");
+        Assert.Throws<InvalidOperationException>(() => option.Bind(binder));
     }
 
     [Fact]

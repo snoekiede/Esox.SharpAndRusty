@@ -280,7 +280,7 @@ public class CollectionExtensionsEnhancedTests
 
         // Assert
         Assert.True(result.IsSuccess);
-        if (result.TryGetValue(out var values)) Assert.Empty(values);
+        if (result.TryGetValue(out var values)) Assert.Empty(values!);
     }
 
     [Fact]

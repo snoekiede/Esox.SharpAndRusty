@@ -524,11 +524,7 @@ public class ResultTests
     public void Try_ReturnsErrorForFailedOperation()
     {
         // Arrange
-        var operation = () =>
-        {
-            throw new InvalidOperationException("Test error");
-            return 42;
-        };
+        Func<int> operation = () => throw new InvalidOperationException("Test error");
 
         // Act
         var result = Result<int, string>.Try(operation, ex => ex.Message);

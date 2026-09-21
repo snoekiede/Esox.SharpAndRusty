@@ -85,7 +85,7 @@ public class EitherTests
 
         // Assert
         Assert.False(success);
-        Assert.Equal(null, value);
+        Assert.Null(value);
     }
 
 

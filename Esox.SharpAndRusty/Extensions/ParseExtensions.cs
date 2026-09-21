@@ -65,7 +65,7 @@ public static class ParseExtensions
                         .WithMetadata("parser", parserName ?? "TryParse")
                         .WithMetadata("targetType", typeof(T).Name));
 
-            if (tryParse(input, out var value)) return Result<T, Error>.Ok(value);
+            if (tryParse(input, out var value)) return Result<T, Error>.Ok(value!);
 
             return Result<T, Error>.Err(
                 Error.New($"Could not parse '{input}' as {typeof(T).Name}.", ErrorKind.ParseError)

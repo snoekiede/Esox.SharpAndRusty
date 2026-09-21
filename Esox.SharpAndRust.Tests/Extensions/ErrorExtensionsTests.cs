@@ -411,8 +411,8 @@ public class ErrorExtensionsTests
 
         // Assert
         Assert.True(withMetadata.TryGetError(out var error));
-        Assert.True(error!.TryGetMetadata("dict", out Dictionary<string, string> retrieved));
-        Assert.Equal("value", retrieved["key"]);
+        Assert.True(error!.TryGetMetadata("dict", out Dictionary<string, string>? retrieved));
+        Assert.Equal("value", retrieved!["key"]);
     }
 
     [Fact]

@@ -525,7 +525,7 @@ public class ErrorTests
         var error = Error.New("Test");
 
         Assert.True(error.Equals(error));
-        Assert.True(error == error);
+        Assert.True(ReferenceEquals(error, error));
     }
 
 

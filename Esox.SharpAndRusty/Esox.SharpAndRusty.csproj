@@ -5,8 +5,8 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <LangVersion>14.0</LangVersion>
-        <SignAssembly>True</SignAssembly>
-        <AssemblyOriginatorKeyFile>C:\temp\Esox.SharpAndRusty.snk</AssemblyOriginatorKeyFile>
+        <SignAssembly Condition="'$(SignAssembly)' == ''">false</SignAssembly>
+        <AssemblyOriginatorKeyFile Condition="'$(EsoxSigningKeyFile)' != ''">$(EsoxSigningKeyFile)</AssemblyOriginatorKeyFile>
         <RepositoryUrl>https://github.com/snoekiede/Esox.SharpAndRusty</RepositoryUrl>
         <Company>Esox Solutions</Company>
         <Authors>Iede Snoek</Authors>
@@ -38,6 +38,10 @@
         <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.103" PrivateAssets="All"/>
         <PackageReference Include="Microsoft.Build.Tasks.Git" Version="10.0.111" PrivateAssets="All"/>
     </ItemGroup>
+
+    <Target Name="ValidateAssemblySigning" BeforeTargets="CoreCompile" Condition="'$(SignAssembly)' == 'true' and !Exists('$(AssemblyOriginatorKeyFile)')">
+        <Error Text="Assembly signing is enabled, but the signing key was not found. Set EsoxSigningKeyFile to the secure .snk path." />
+    </Target>
 
 
     <ItemGroup>
