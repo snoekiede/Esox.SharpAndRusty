@@ -562,12 +562,13 @@ public class ErrorExtensionsTests
     {
         // Arrange
         using var cts = new CancellationTokenSource();
+        var operationStarted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         // Act
-        var resultTask = StartCancellableTryAsync(cts.Token);
+        var resultTask = StartCancellableTryAsync(cts.Token, operationStarted);
 
-        // Cancel after initial delay
-        await Task.Delay(100, cts.Token);
+        // Cancel only after the operation has started its cancellable work
+        await operationStarted.Task;
         await cts.CancelAsync();
 
         var result = await resultTask;
@@ -606,11 +607,13 @@ public class ErrorExtensionsTests
         Assert.NotEqual(default, timestamp);
     }
 
-    private static Task<Result<int, Error>> StartCancellableTryAsync(CancellationToken cancellationToken)
+    private static Task<Result<int, Error>> StartCancellableTryAsync(
+        CancellationToken cancellationToken,
+        TaskCompletionSource<bool> operationStarted)
     {
         return ErrorExtensions.TryAsync(async () =>
         {
-            await Task.Delay(50, cancellationToken);
+            operationStarted.SetResult(true);
             await Task.Delay(1000, cancellationToken);
             return 42;
         }, cancellationToken);
