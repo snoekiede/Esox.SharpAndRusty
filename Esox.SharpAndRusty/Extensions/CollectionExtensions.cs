@@ -14,7 +14,6 @@ public static class CollectionExtensions
         ///     Returns true if all options in the collection are <c>Some</c>.
         /// </summary>
         /// <typeparam name="T">The type of values in the options.</typeparam>
-        /// <param name="options">The collection of options to check.</param>
         /// <returns>true if all options are <c>Some</c>; otherwise, false.</returns>
         /// <remarks>
         ///     This method short-circuits on the first <c>None</c> found.
@@ -46,7 +45,6 @@ public static class CollectionExtensions
         ///     Returns <c>Some</c> containing all values if all options are <c>Some</c>; otherwise, returns <c>None</c>.
         /// </summary>
         /// <typeparam name="T">The type of values in the options.</typeparam>
-        /// <param name="options">The collection of options to sequence.</param>
         /// <returns>
         ///     <c>Some</c> containing a list of all values if all options are <c>Some</c>;
         ///     otherwise, <c>None</c> if any option is <c>None</c>.
@@ -94,7 +92,6 @@ public static class CollectionExtensions
         ///     Collects all <c>Some</c> values from a collection of options, discarding any <c>None</c> values.
         /// </summary>
         /// <typeparam name="T">The type of values in the options.</typeparam>
-        /// <param name="options">The collection of options to collect from.</param>
         /// <returns>A collection containing only the values from <c>Some</c> options.</returns>
         /// <remarks>
         ///     This method never fails - it always returns a collection (which may be empty if all options are <c>None</c>).
@@ -124,7 +121,6 @@ public static class CollectionExtensions
         ///     and one containing the count of <c>None</c> values.
         /// </summary>
         /// <typeparam name="T">The type of values in the options.</typeparam>
-        /// <param name="options">The collection of options to partition.</param>
         /// <returns>
         ///     A tuple containing:
         ///     - A list of all values from <c>Some</c> options
@@ -163,7 +159,6 @@ public static class CollectionExtensions
         ///     Returns the first <c>Some</c> option from a collection, or <c>None</c> if all options are <c>None</c>.
         /// </summary>
         /// <typeparam name="T">The type of values in the options.</typeparam>
-        /// <param name="options">The collection of options to search.</param>
         /// <returns>The first <c>Some</c> option if found; otherwise, <c>None</c>.</returns>
         /// <remarks>
         ///     This method short-circuits on the first <c>Some</c> found.
@@ -193,7 +188,6 @@ public static class CollectionExtensions
         ///     Returns true if any option in the collection is <c>Some</c>.
         /// </summary>
         /// <typeparam name="T">The type of values in the options.</typeparam>
-        /// <param name="options">The collection of options to check.</param>
         /// <returns>true if at least one option is <c>Some</c>; otherwise, false.</returns>
         /// <remarks>This method short-circuits on the first <c>Some</c> found.</remarks>
         /// <example>
@@ -229,7 +223,6 @@ public static class CollectionExtensions
         /// <typeparam name="T">The type of elements in the source collection.</typeparam>
         /// <typeparam name="U">The type of success values in the resulting results.</typeparam>
         /// <typeparam name="E">The type of error values in the resulting results.</typeparam>
-        /// <param name="source">The source collection to traverse.</param>
         /// <param name="selector">A function that transforms each element into a result.</param>
         /// <returns>
         ///     <c>Ok</c> containing a list of all transformed values if all operations succeed;
@@ -282,7 +275,6 @@ public static class CollectionExtensions
         /// </summary>
         /// <typeparam name="T">The type of elements in the source collection.</typeparam>
         /// <typeparam name="U">The type of values in the resulting options.</typeparam>
-        /// <param name="source">The source collection to traverse.</param>
         /// <param name="selector">A function that transforms each element into an option.</param>
         /// <returns>
         ///     <c>Some</c> containing a list of all transformed values if all operations succeed;
@@ -337,7 +329,6 @@ public static class CollectionExtensions
         /// <typeparam name="T">The type of elements in the source collection.</typeparam>
         /// <typeparam name="L">The type of left values in the resulting eithers.</typeparam>
         /// <typeparam name="R">The type of right values in the resulting eithers.</typeparam>
-        /// <param name="source">The source collection to traverse.</param>
         /// <param name="selector">A function that transforms each element into an either.</param>
         /// <returns>
         ///     <c>Left</c> containing a list of all transformed left values if all operations produce <c>Left</c>;
@@ -384,7 +375,6 @@ public static class CollectionExtensions
         /// <typeparam name="T">The type of elements in the source collection.</typeparam>
         /// <typeparam name="L">The type of left values in the resulting eithers.</typeparam>
         /// <typeparam name="R">The type of right values in the resulting eithers.</typeparam>
-        /// <param name="source">The source collection to traverse.</param>
         /// <param name="selector">A function that transforms each element into an either.</param>
         /// <returns>
         ///     <c>Right</c> containing a list of all transformed right values if all operations produce <c>Right</c>;
@@ -431,7 +421,6 @@ public static class CollectionExtensions
         /// <typeparam name="T">The type of elements in the source collection.</typeparam>
         /// <typeparam name="U">The type of success values in the resulting validations.</typeparam>
         /// <typeparam name="E">The type of error values in the resulting validations.</typeparam>
-        /// <param name="source">The source collection to traverse.</param>
         /// <param name="validator">A function that validates each element.</param>
         /// <returns>
         ///     <c>Valid</c> containing a list of all transformed values if all operations succeed;
@@ -480,7 +469,6 @@ public static class CollectionExtensions
         /// </summary>
         /// <typeparam name="T">The type of elements in the source collection.</typeparam>
         /// <typeparam name="U">The type of values in the resulting options.</typeparam>
-        /// <param name="source">The source collection to search.</param>
         /// <param name="selector">A function that transforms each element into an option.</param>
         /// <returns>The first <c>Some</c> result from the selector; otherwise, <c>None</c>.</returns>
         /// <remarks>
@@ -519,7 +507,6 @@ public static class CollectionExtensions
         /// </summary>
         /// <typeparam name="T">The type of success values in the results.</typeparam>
         /// <typeparam name="E">The type of error values in the results.</typeparam>
-        /// <param name="results">The collection of results to sequence.</param>
         /// <returns>
         ///     <c>Ok</c> containing a list of all success values if all results are <c>Ok</c>;
         ///     otherwise, <c>Err</c> containing the first error encountered.
@@ -566,7 +553,6 @@ public static class CollectionExtensions
         /// </summary>
         /// <typeparam name="T">The type of success values in the results.</typeparam>
         /// <typeparam name="E">The type of error values in the results.</typeparam>
-        /// <param name="results">The collection of results to collect from.</param>
         /// <returns>A collection containing only the values from <c>Ok</c> results.</returns>
         /// <remarks>
         ///     This method never fails - it always returns a collection (which may be empty if all results are <c>Err</c>).
@@ -596,7 +582,6 @@ public static class CollectionExtensions
         /// </summary>
         /// <typeparam name="T">The type of success values in the results.</typeparam>
         /// <typeparam name="E">The type of error values in the results.</typeparam>
-        /// <param name="results">The collection of results to collect from.</param>
         /// <returns>A collection containing only the errors from <c>Err</c> results.</returns>
         /// <remarks>
         ///     This method never fails - it always returns a collection (which may be empty if all results are <c>Ok</c>).
@@ -627,7 +612,6 @@ public static class CollectionExtensions
         /// </summary>
         /// <typeparam name="T">The type of success values in the results.</typeparam>
         /// <typeparam name="E">The type of error values in the results.</typeparam>
-        /// <param name="results">The collection of results to partition.</param>
         /// <returns>
         ///     A tuple containing:
         ///     - A list of all values from <c>Ok</c> results
@@ -667,7 +651,6 @@ public static class CollectionExtensions
         /// </summary>
         /// <typeparam name="T">The type of success values in the results.</typeparam>
         /// <typeparam name="E">The type of error values in the results.</typeparam>
-        /// <param name="results">The collection of results to search.</param>
         /// <returns>
         ///     The first <c>Ok</c> result if found; otherwise, <c>Err</c> containing all accumulated errors.
         /// </returns>
@@ -716,7 +699,6 @@ public static class CollectionExtensions
         /// </summary>
         /// <typeparam name="T">The type of success values in the results.</typeparam>
         /// <typeparam name="E">The type of error values in the results.</typeparam>
-        /// <param name="results">The collection of results to sequence.</param>
         /// <returns>
         ///     <c>Ok</c> containing a list of all success values if all results are <c>Ok</c>;
         ///     otherwise, <c>Err</c> containing all accumulated errors.
@@ -765,7 +747,6 @@ public static class CollectionExtensions
         /// </summary>
         /// <typeparam name="T">The type of success values in the results.</typeparam>
         /// <typeparam name="E">The type of error values in the results.</typeparam>
-        /// <param name="results">The collection of results to check.</param>
         /// <returns>true if at least one result is <c>Ok</c>; otherwise, false.</returns>
         /// <remarks>This method short-circuits on the first <c>Ok</c> found.</remarks>
         /// <example>
@@ -794,7 +775,6 @@ public static class CollectionExtensions
         /// </summary>
         /// <typeparam name="T">The type of success values in the results.</typeparam>
         /// <typeparam name="E">The type of error values in the results.</typeparam>
-        /// <param name="results">The collection of results to check.</param>
         /// <returns>true if all results are <c>Ok</c>; otherwise, false.</returns>
         /// <remarks>
         ///     This method short-circuits on the first <c>Err</c> found.
@@ -832,7 +812,6 @@ public static class CollectionExtensions
         /// </summary>
         /// <typeparam name="L">The type of left values in the eithers.</typeparam>
         /// <typeparam name="R">The type of right values in the eithers.</typeparam>
-        /// <param name="eithers">The collection of eithers to sequence.</param>
         /// <returns>
         ///     <c>Left</c> containing a list of all left values if all eithers are <c>Left</c>;
         ///     otherwise, <c>Right</c> containing the first right value encountered.
@@ -881,7 +860,6 @@ public static class CollectionExtensions
         /// </summary>
         /// <typeparam name="L">The type of left values in the eithers.</typeparam>
         /// <typeparam name="R">The type of right values in the eithers.</typeparam>
-        /// <param name="eithers">The collection of eithers to sequence.</param>
         /// <returns>
         ///     <c>Right</c> containing a list of all right values if all eithers are <c>Right</c>;
         ///     otherwise, <c>Left</c> containing the first left value encountered.
@@ -932,7 +910,6 @@ public static class CollectionExtensions
         /// </summary>
         /// <typeparam name="T">The type of success values in the validations.</typeparam>
         /// <typeparam name="E">The type of error values in the validations.</typeparam>
-        /// <param name="validations">The collection of validations to partition.</param>
         /// <returns>
         ///     A tuple containing:
         ///     - A list of all values from <c>Valid</c> validations
@@ -979,7 +956,6 @@ public static class CollectionExtensions
         /// <typeparam name="TKey">The type of the keys in the dictionary.</typeparam>
         /// <typeparam name="TValue">The type of the values in the dictionary.</typeparam>
         /// <typeparam name="E">The type of error values in the results.</typeparam>
-        /// <param name="results">The collection of results to convert.</param>
         /// <returns>A dictionary containing only the key-value pairs from <c>Ok</c> results.</returns>
         /// <remarks>
         ///     If there are duplicate keys in the successful results, only the first occurrence is kept.
@@ -1017,7 +993,6 @@ public static class CollectionExtensions
         /// </summary>
         /// <typeparam name="TKey">The type of the keys in the dictionary.</typeparam>
         /// <typeparam name="TValue">The type of the values in the dictionary.</typeparam>
-        /// <param name="options">The collection of options to convert.</param>
         /// <returns>A dictionary containing only the key-value pairs from <c>Some</c> options.</returns>
         /// <remarks>
         ///     If there are duplicate keys in the Some options, only the first occurrence is kept.

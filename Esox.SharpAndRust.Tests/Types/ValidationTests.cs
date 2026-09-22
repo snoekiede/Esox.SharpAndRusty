@@ -37,7 +37,7 @@ public class ValidationTests
     public void Invalid_WithMultipleErrors_CreatesFailedValidation()
     {
         // Arrange & Act
-        var validation = Validation<int, string>.Invalid(new[] { "error1", "error2", "error3" });
+        var validation = Validation<int, string>.Invalid(["error1", "error2", "error3"]);
 
         // Assert
         Assert.True(validation.IsFailure);
@@ -79,7 +79,7 @@ public class ValidationTests
     public void TryGetErrors_WithFailure_ReturnsTrue()
     {
         // Arrange
-        var validation = Validation<int, string>.Invalid(new[] { "error1", "error2" });
+        var validation = Validation<int, string>.Invalid(["error1", "error2"]);
 
         // Act
         var success = validation.TryGetErrors(out var errors);
@@ -123,7 +123,7 @@ public class ValidationTests
     public void Match_WithFailure_ExecutesFailureFunction()
     {
         // Arrange
-        var validation = Validation<int, string>.Invalid(new[] { "error1", "error2" });
+        var validation = Validation<int, string>.Invalid(["error1", "error2"]);
 
         // Act
         var result = validation.Match(
@@ -154,7 +154,7 @@ public class ValidationTests
     public void Map_WithFailure_ReturnsErrorsUnchanged()
     {
         // Arrange
-        var validation = Validation<int, string>.Invalid(new[] { "error1", "error2" });
+        var validation = Validation<int, string>.Invalid(["error1", "error2"]);
 
         // Act
         var result = validation.Map(x => x * 2);
@@ -169,7 +169,7 @@ public class ValidationTests
     public void MapErrors_WithFailure_TransformsErrors()
     {
         // Arrange
-        var validation = Validation<int, string>.Invalid(new[] { "error1", "error2" });
+        var validation = Validation<int, string>.Invalid(["error1", "error2"]);
 
         // Act
         var result = validation.MapErrors(e => e.ToUpper());
@@ -215,7 +215,7 @@ public class ValidationTests
     public void ToResult_WithErrorCombiner_CombinesErrors()
     {
         // Arrange
-        var validation = Validation<int, string>.Invalid(new[] { "error1", "error2", "error3" });
+        var validation = Validation<int, string>.Invalid(["error1", "error2", "error3"]);
 
         // Act
         var result = validation.ToResult(errors => string.Join("; ", errors));
@@ -245,7 +245,7 @@ public class ValidationTests
     public void ToResultFirstError_WithFailure_ReturnsFirstError()
     {
         // Arrange
-        var validation = Validation<int, string>.Invalid(new[] { "error1", "error2", "error3" });
+        var validation = Validation<int, string>.Invalid(["error1", "error2", "error3"]);
 
         // Act
         var result = validation.ToResultFirstError();
@@ -441,7 +441,7 @@ public class ValidationTests
     public void Bind_WithFailure_ReturnsErrorsUnchanged()
     {
         // Arrange
-        var validation = Validation<int, string>.Invalid(new[] { "error1", "error2" });
+        var validation = Validation<int, string>.Invalid(["error1", "error2"]);
 
         // Act
         var result = validation.Bind(x =>
@@ -488,7 +488,7 @@ public class ValidationTests
         // Assert
         Assert.True(result.IsSuccess);
         Assert.True(result.TryGetValue(out var values));
-        Assert.Equal(new[] { 1, 2, 3 }, values);
+        Assert.Equal([1, 2, 3], values);
     }
 
     [Fact]
@@ -540,7 +540,7 @@ public class ValidationTests
     public void OnFailure_WithFailure_ExecutesAction()
     {
         // Arrange
-        var validation = Validation<int, string>.Invalid(new[] { "error1", "error2" });
+        var validation = Validation<int, string>.Invalid(["error1", "error2"]);
         var executed = false;
         var capturedErrors = ImmutableList<string>.Empty;
 

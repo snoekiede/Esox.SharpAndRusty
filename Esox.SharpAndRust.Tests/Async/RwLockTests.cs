@@ -169,7 +169,7 @@ public class RwLockTests
         var readResult = rwlock.Read();
 
         // Act
-        var writeTask = Task.Run(() => rwlock.TryWrite());
+        var writeTask = Task.Run(rwlock.TryWrite);
         await Task.Delay(50); // Give write attempt time to try
 
         // Assert - write should fail because reader is active
@@ -373,7 +373,7 @@ public class RwLockTests
         var readGuard = rwlock.Read();
 
         // Act - Try from different thread to avoid recursion
-        var result = await Task.Run(() => rwlock.TryWrite());
+        var result = await Task.Run(rwlock.TryWrite);
 
         // Assert
         Assert.True(result.IsFailure);
@@ -696,7 +696,7 @@ public class RwLockTests
     public async Task RwLock_StressTest_MaintainsDataIntegrity()
     {
         // Arrange
-        var rwlock = new RwLock<List<int>>(new List<int>());
+        var rwlock = new RwLock<List<int>>([]);
         var writerCount = 5;
         var itemsPerWriter = 10;
         var tasks = new List<Task>();
@@ -768,7 +768,7 @@ public class RwLockTests
     public void Dispose_WithUsingStatement_ReleasesResources()
     {
         // Arrange & Act
-        RwLock<int>? rwlock = null;
+        RwLock<int>? rwlock;
         using (rwlock = new RwLock<int>(42)) Assert.False(rwlock.IsDisposed);
 
         // Assert
@@ -944,12 +944,11 @@ public class RwLockTests
         var rwlock = new RwLock<int>(42);
         var guardAcquired = new ManualResetEventSlim(false);
         var disposeCompleted = new ManualResetEventSlim(false);
-        WriteGuard<int>? capturedGuard = null;
 
         var holder = new Thread(() =>
         {
             var result = rwlock.Write();
-            if (result.TryGetValue(out capturedGuard))
+            if (result.TryGetValue(out var capturedGuard))
             {
                 guardAcquired.Set();
                 // Hold the guard for 150 ms to give the disposer time to reach Dispose()

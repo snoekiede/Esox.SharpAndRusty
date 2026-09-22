@@ -167,6 +167,10 @@ public abstract record Validation<T, E>
     /// </summary>
     public static Validation<T, E> Invalid(IEnumerable<E> errors) => new Failure(errors);
 
+    /// <summary>
+    /// Returns a string representation of this validation and its errors or value.
+    /// </summary>
+    /// <returns>A string describing the validation state.</returns>
     public override string ToString()
     {
         return this switch

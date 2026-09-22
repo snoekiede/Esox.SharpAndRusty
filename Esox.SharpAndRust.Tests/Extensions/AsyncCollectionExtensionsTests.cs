@@ -21,7 +21,7 @@ public class AsyncCollectionExtensionsTests
 
         // Assert
         Assert.True(result.IsSome());
-        if (result is Option<IEnumerable<int>>.Some some) Assert.Equal(new[] { 1, 2, 3 }, some.Value);
+        if (result is Option<IEnumerable<int>>.Some some) Assert.Equal([1, 2, 3], some.Value);
     }
 
     [Fact]
@@ -75,7 +75,7 @@ public class AsyncCollectionExtensionsTests
 
         // Assert
         Assert.True(result.IsSome());
-        if (result is Option<IEnumerable<int>>.Some some) Assert.Equal(new[] { 2, 4, 6 }, some.Value);
+        if (result is Option<IEnumerable<int>>.Some some) Assert.Equal([2, 4, 6], some.Value);
     }
 
     [Fact]
@@ -200,7 +200,7 @@ public class AsyncCollectionExtensionsTests
         var result = await tasks.CollectSomeAsync();
 
         // Assert
-        Assert.Equal(new[] { 1, 3, 5 }, result);
+        Assert.Equal([1, 3, 5], result);
     }
 
     [Fact]
@@ -238,7 +238,7 @@ public class AsyncCollectionExtensionsTests
         // Assert
         Assert.True(result.IsSuccess);
         Assert.True(result.TryGetValue(out var values));
-        Assert.Equal(new[] { 1, 2, 3 }, values);
+        Assert.Equal([1, 2, 3], values);
     }
 
     [Fact]
@@ -280,7 +280,7 @@ public class AsyncCollectionExtensionsTests
         // Assert
         Assert.True(result.IsSuccess);
         Assert.True(result.TryGetValue(out var values));
-        Assert.Equal(new[] { 1, 2, 3 }, values);
+        Assert.Equal([1, 2, 3], values);
     }
 
     [Fact]
@@ -387,7 +387,7 @@ public class AsyncCollectionExtensionsTests
         var result = await tasks.CollectOkAsync();
 
         // Assert
-        Assert.Equal(new[] { 1, 3, 5 }, result);
+        Assert.Equal([1, 3, 5], result);
     }
 
     [Fact]
@@ -424,7 +424,7 @@ public class AsyncCollectionExtensionsTests
         var result = await tasks.CollectErrAsync();
 
         // Assert
-        Assert.Equal(new[] { "error1", "error2" }, result);
+        Assert.Equal(["error1", "error2"], result);
     }
 
     [Fact]

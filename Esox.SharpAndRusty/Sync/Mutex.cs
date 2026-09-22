@@ -284,7 +284,7 @@ public sealed class Mutex<T> : IDisposable
     ///     Asynchronously acquires the mutex, awaiting until it is available.
     ///     Returns a MutexGuard that provides access to the protected data and automatically releases the lock when disposed.
     /// </summary>
-    /// <param name="cancellationToken">A cancellation token to cancel the lock acquisition.</param>
+    /// <param name="ct">A cancellation token to cancel the lock acquisition.</param>
     /// <returns>
     ///     A Task containing a Result with a MutexGuard on success, or an Error if the operation was cancelled or failed.
     /// </returns>

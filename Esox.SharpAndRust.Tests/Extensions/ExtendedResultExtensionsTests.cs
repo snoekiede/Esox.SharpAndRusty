@@ -123,7 +123,7 @@ public class ExtendedResultExtensionsTests
         }.Combine();
 
         Assert.True(allOk.TryGetValue(out var values));
-        Assert.Equal(new[] { 1, 2, 3 }, values);
+        Assert.Equal([1, 2, 3], values);
 
         var withErr = new[]
         {
@@ -203,7 +203,7 @@ public class ExtendedResultExtensionsTests
         }.Combine();
 
         Assert.True(combined.TryGetValue(out var values));
-        Assert.Equal(new[] { null, "x" }, values);
+        Assert.Equal([null, "x"], values);
     }
 
     [Fact]

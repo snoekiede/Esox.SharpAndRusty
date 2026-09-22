@@ -563,7 +563,7 @@ public class MutexTests
     public async Task Mutex_StressTest_MaintainsConsistency()
     {
         // Arrange
-        var mutex = new Mutex<List<int>>(new List<int>());
+        var mutex = new Mutex<List<int>>([]);
         var iterations = 50;
         var tasks = new List<Task>();
 
@@ -628,7 +628,7 @@ public class MutexTests
     public void Dispose_WithUsingStatement_ReleasesResources()
     {
         // Arrange & Act
-        Mutex<int>? mutex = null;
+        Mutex<int>? mutex;
         using (mutex = new Mutex<int>(42)) Assert.False(mutex.IsDisposed);
 
         // Assert
@@ -759,7 +759,7 @@ public class MutexTests
         // Assert - tasks should either fail with error or be cancelled
         foreach (var task in tasks)
         {
-            if (task.IsCompleted && !task.IsCanceled && !task.IsFaulted)
+            if (task is { IsCompleted: true, IsCanceled: false, IsFaulted: false })
             {
                 var result = await task;
                 Assert.True(result.IsFailure);
@@ -858,7 +858,7 @@ public class MutexTests
         // Assert - should fail immediately like TryLock
         Assert.True(result.IsFailure);
         if (result.TryGetError(out var error))
-            Assert.Contains(new[] { ErrorKind.ResourceExhausted, ErrorKind.Timeout }, k => k == error.Kind);
+            Assert.Contains([ErrorKind.ResourceExhausted, ErrorKind.Timeout], k => k == error.Kind);
 
         // Cleanup
         if (guard1.TryGetValue(out var g1)) g1.Dispose();

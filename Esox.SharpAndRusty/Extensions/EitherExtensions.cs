@@ -15,7 +15,6 @@ public static class EitherExtensions
         /// <typeparam name="L">The type of the Left value.</typeparam>
         /// <typeparam name="R">The type of the current Right value.</typeparam>
         /// <typeparam name="R2">The type of the new Right value.</typeparam>
-        /// <param name="either">The either to bind.</param>
         /// <param name="binder">A function that transforms the Right value into a new Either.</param>
         /// <returns>The result of the binder if Right, otherwise the original Left value.</returns>
         public Either<L, R2> BindRight<R2>(
@@ -37,7 +36,6 @@ public static class EitherExtensions
         /// <typeparam name="L">The type of the current Left value.</typeparam>
         /// <typeparam name="R">The type of the Right value.</typeparam>
         /// <typeparam name="L2">The type of the new Left value.</typeparam>
-        /// <param name="either">The either to bind.</param>
         /// <param name="binder">A function that transforms the Left value into a new Either.</param>
         /// <returns>The result of the binder if Left, otherwise the original Right value.</returns>
         public Either<L2, R> BindLeft<L2>(
@@ -58,7 +56,6 @@ public static class EitherExtensions
         /// </summary>
         /// <typeparam name="L">The type of the Left value.</typeparam>
         /// <typeparam name="R">The type of the Right value.</typeparam>
-        /// <param name="either">The either to inspect.</param>
         /// <param name="action">The action to execute on the Left value.</param>
         /// <returns>The original either for method chaining.</returns>
         public Either<L, R> IfLeft(Action<L> action)
@@ -75,7 +72,6 @@ public static class EitherExtensions
         /// </summary>
         /// <typeparam name="L">The type of the Left value.</typeparam>
         /// <typeparam name="R">The type of the Right value.</typeparam>
-        /// <param name="either">The either to inspect.</param>
         /// <param name="action">The action to execute on the Right value.</param>
         /// <returns>The original either for method chaining.</returns>
         public Either<L, R> IfRight(Action<R> action)
@@ -92,7 +88,6 @@ public static class EitherExtensions
         /// </summary>
         /// <typeparam name="L">The type of the Left value.</typeparam>
         /// <typeparam name="R">The type of the Right value.</typeparam>
-        /// <param name="either">The either to extract the value from.</param>
         /// <param name="defaultValue">The value to return if the either is Right.</param>
         /// <returns>The Left value if present, otherwise <paramref name="defaultValue" />.</returns>
         public L GetLeftOrDefault(L defaultValue) => either is Either<L, R>.Left left ? left.Value : defaultValue;
@@ -102,7 +97,6 @@ public static class EitherExtensions
         /// </summary>
         /// <typeparam name="L">The type of the Left value.</typeparam>
         /// <typeparam name="R">The type of the Right value.</typeparam>
-        /// <param name="either">The either to extract the value from.</param>
         /// <param name="defaultValue">The value to return if the either is Left.</param>
         /// <returns>The Right value if present, otherwise <paramref name="defaultValue" />.</returns>
         public R GetRightOrDefault(R defaultValue) => either is Either<L, R>.Right right ? right.Value : defaultValue;
@@ -115,7 +109,6 @@ public static class EitherExtensions
         /// </summary>
         /// <typeparam name="L">The type of the Left values.</typeparam>
         /// <typeparam name="R">The type of the Right values.</typeparam>
-        /// <param name="eithers">The collection of eithers to partition.</param>
         /// <returns>
         ///     A tuple containing:
         ///     - A list of all Left values
@@ -147,7 +140,6 @@ public static class EitherExtensions
         /// </summary>
         /// <typeparam name="L">The type of the Left values.</typeparam>
         /// <typeparam name="R">The type of the Right values.</typeparam>
-        /// <param name="eithers">The collection of eithers to collect from.</param>
         /// <returns>A collection containing only the Left values.</returns>
         public IEnumerable<L> Lefts()
         {
@@ -162,7 +154,6 @@ public static class EitherExtensions
         /// </summary>
         /// <typeparam name="L">The type of the Left values.</typeparam>
         /// <typeparam name="R">The type of the Right values.</typeparam>
-        /// <param name="eithers">The collection of eithers to collect from.</param>
         /// <returns>A collection containing only the Right values.</returns>
         public IEnumerable<R> Rights()
         {

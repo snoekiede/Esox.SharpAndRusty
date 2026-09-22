@@ -867,7 +867,7 @@ public class ExtendedResultTests
         };
         var combined = items.Combine();
         Assert.True(combined.TryGetValue(out var values));
-        Assert.Equal(new[] { 1, 2, 3 }, values);
+        Assert.Equal([1, 2, 3], values);
     }
 
     [Fact]

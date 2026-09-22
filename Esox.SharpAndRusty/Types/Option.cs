@@ -2,6 +2,10 @@
 // ReSharper disable HeapView.ObjectAllocation.Evident
 namespace Esox.SharpAndRusty.Types;
 
+/// <summary>
+/// Represents either a value of type <typeparamref name="T" /> or no value.
+/// </summary>
+/// <typeparam name="T">The type of the optional value.</typeparam>
 public abstract record Option<T>
 {
     /// <summary>
@@ -14,7 +18,14 @@ public abstract record Option<T>
         // ReSharper disable once HeapView.ObjectAllocation.Evident
         value is null ? new None() : new Some(value);
 
+    /// <summary>
+    /// Represents an option containing a value.
+    /// </summary>
+    /// <param name="Value">The contained value.</param>
     public sealed record Some(T Value) : Option<T>;
 
+    /// <summary>
+    /// Represents an option without a value.
+    /// </summary>
     public sealed record None : Option<T>;
 }

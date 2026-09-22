@@ -24,7 +24,7 @@ public class CollectionExtensionsEnhancedTests
 
         // Assert
         Assert.True(result is Either<IEnumerable<int>, string>.Left);
-        if (result is Either<IEnumerable<int>, string>.Left left) Assert.Equal(new[] { 1, 2, 3 }, left.Value);
+        if (result is Either<IEnumerable<int>, string>.Left left) Assert.Equal([1, 2, 3], left.Value);
     }
 
     [Fact]
@@ -77,7 +77,7 @@ public class CollectionExtensionsEnhancedTests
 
         // Assert
         Assert.True(result is Either<string, IEnumerable<int>>.Right);
-        if (result is Either<string, IEnumerable<int>>.Right right) Assert.Equal(new[] { 1, 2, 3 }, right.Value);
+        if (result is Either<string, IEnumerable<int>>.Right right) Assert.Equal([1, 2, 3], right.Value);
     }
 
     [Fact]
@@ -130,7 +130,7 @@ public class CollectionExtensionsEnhancedTests
 
         // Assert
         Assert.True(result is Either<IEnumerable<int>, string>.Left);
-        if (result is Either<IEnumerable<int>, string>.Left left) Assert.Equal(new[] { 1, 2, 3 }, left.Value);
+        if (result is Either<IEnumerable<int>, string>.Left left) Assert.Equal([1, 2, 3], left.Value);
     }
 
     [Fact]
@@ -184,7 +184,7 @@ public class CollectionExtensionsEnhancedTests
 
         // Assert
         Assert.True(result is Either<string, IEnumerable<int>>.Right);
-        if (result is Either<string, IEnumerable<int>>.Right right) Assert.Equal(new[] { 1, 2, 3 }, right.Value);
+        if (result is Either<string, IEnumerable<int>>.Right right) Assert.Equal([1, 2, 3], right.Value);
     }
 
     [Fact]
@@ -239,7 +239,7 @@ public class CollectionExtensionsEnhancedTests
 
         // Assert
         Assert.True(result.IsSuccess);
-        if (result.TryGetValue(out var values)) Assert.Equal(new[] { 1, 2, 3 }, values);
+        if (result.TryGetValue(out var values)) Assert.Equal([1, 2, 3], values);
     }
 
     [Fact]
@@ -293,7 +293,7 @@ public class CollectionExtensionsEnhancedTests
         var result = inputs.TraverseValidation<string, int, string>(s =>
             int.TryParse(s, out var n)
                 ? Validation<int, string>.Valid(n)
-                : Validation<int, string>.Invalid(new[] { $"Parse error: {s}", $"Format error: {s}" })
+                : Validation<int, string>.Invalid([$"Parse error: {s}", $"Format error: {s}"])
         );
 
         // Assert
@@ -314,7 +314,7 @@ public class CollectionExtensionsEnhancedTests
         var validations = new[]
         {
             Validation<int, string>.Valid(1),
-            Validation<int, string>.Invalid(new[] { "error1", "error2" }),
+            Validation<int, string>.Invalid(["error1", "error2"]),
             Validation<int, string>.Valid(3),
             Validation<int, string>.Invalid("error3")
         };
@@ -358,7 +358,7 @@ public class CollectionExtensionsEnhancedTests
         var validations = new[]
         {
             Validation<int, string>.Invalid("error1"),
-            Validation<int, string>.Invalid(new[] { "error2", "error3" }),
+            Validation<int, string>.Invalid(["error2", "error3"]),
             Validation<int, string>.Invalid("error4")
         };
 
@@ -423,7 +423,7 @@ public class CollectionExtensionsEnhancedTests
         // Assert
         Assert.True(result.IsFailure);
         Assert.True(result.TryGetError(out var errors));
-        Assert.Equal(new[] { "error1", "error2", "error3" }, errors);
+        Assert.Equal(["error1", "error2", "error3"], errors);
     }
 
     [Fact]
@@ -466,12 +466,12 @@ public class CollectionExtensionsEnhancedTests
     {
         // Arrange
         Option<int>[] options =
-        {
+        [
             new Option<int>.None(),
             new Option<int>.Some(42),
             new Option<int>.None(),
             new Option<int>.Some(99)
-        };
+        ];
 
         // Act
         var result = options.FirstSome();
@@ -486,11 +486,11 @@ public class CollectionExtensionsEnhancedTests
     {
         // Arrange
         Option<int>[] options =
-        {
+        [
             new Option<int>.None(),
             new Option<int>.None(),
             new Option<int>.None()
-        };
+        ];
 
         // Act
         var result = options.FirstSome();
@@ -625,7 +625,7 @@ public class CollectionExtensionsEnhancedTests
         // Assert
         Assert.True(result.IsSuccess);
         Assert.True(result.TryGetValue(out var values));
-        Assert.Equal(new[] { 1, 2, 3 }, values);
+        Assert.Equal([1, 2, 3], values);
     }
 
     [Fact]
@@ -646,7 +646,7 @@ public class CollectionExtensionsEnhancedTests
         // Assert
         Assert.True(result.IsFailure);
         Assert.True(result.TryGetError(out var errors));
-        Assert.Equal(new[] { "error1", "error2" }, errors);
+        Assert.Equal(["error1", "error2"], errors);
     }
 
     [Fact]
@@ -797,11 +797,11 @@ public class CollectionExtensionsEnhancedTests
     {
         // Arrange
         Option<int>[] options =
-        {
+        [
             new Option<int>.None(),
             new Option<int>.Some(42),
             new Option<int>.None()
-        };
+        ];
 
         // Act
         var hasSome = options.AnySome();
@@ -815,10 +815,10 @@ public class CollectionExtensionsEnhancedTests
     {
         // Arrange
         Option<int>[] options =
-        {
+        [
             new Option<int>.None(),
             new Option<int>.None()
-        };
+        ];
 
         // Act
         var hasSome = options.AnySome();
@@ -863,11 +863,11 @@ public class CollectionExtensionsEnhancedTests
     {
         // Arrange
         Option<int>[] options =
-        {
+        [
             new Option<int>.Some(1),
             new Option<int>.None(),
             new Option<int>.Some(3)
-        };
+        ];
 
         // Act
         var allSome = options.AllSome();
