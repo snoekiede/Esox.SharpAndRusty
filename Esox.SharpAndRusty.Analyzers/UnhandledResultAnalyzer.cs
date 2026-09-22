@@ -12,7 +12,10 @@ namespace Esox.SharpAndRusty.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class UnhandledResultAnalyzer : DiagnosticAnalyzer
 {
+    /// <summary>Diagnostic ID reported when a Result value is ignored.</summary>
     public const string DiagnosticIdResult = "ESOX1001";
+
+    /// <summary>Diagnostic ID reported when an Option value is ignored.</summary>
     public const string DiagnosticIdOption = "ESOX1002";
 
     private const string Category = "Usage";
@@ -53,9 +56,16 @@ public class UnhandledResultAnalyzer : DiagnosticAnalyzer
         DescriptionOption,
         "https://github.com/snoekiede/Esox.SharpAndRusty/wiki/ESOX1002");
 
+    /// <summary>
+    /// Gets the diagnostics reported by this analyzer.
+    /// </summary>
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
         ImmutableArray.Create(RuleResult, RuleOption);
 
+    /// <summary>
+    /// Registers the syntax analysis callbacks used to detect ignored Result and Option values.
+    /// </summary>
+    /// <param name="context">The analysis context provided by Roslyn.</param>
     public override void Initialize(AnalysisContext context)
     {
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);

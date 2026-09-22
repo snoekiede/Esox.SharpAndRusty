@@ -215,7 +215,7 @@ public class OptionExtensionsTests
         var callCount = 0;
 
         // Act
-        var result = option.GetValueOrElse(() =>
+        option.GetValueOrElse(() =>
         {
             callCount++;
             return 99;
@@ -404,7 +404,7 @@ public class OptionExtensionsTests
         var option = new Option<int>.Some(42);
 
         // Act
-        var result = option.Bind(x => new Option<string>.None());
+        var result = option.Bind(_ => new Option<string>.None());
 
         // Assert
         Assert.True(result.IsNone());
@@ -437,7 +437,7 @@ public class OptionExtensionsTests
         // Act
         var result = option
             .Bind(x => new Option<int>.Some(x * 2))
-            .Bind(x => new Option<int>.None()) // Returns None here
+            .Bind(_ => new Option<int>.None()) // Returns None here
             .Bind(x =>
             {
                 thirdBindCalled = true;
@@ -854,7 +854,7 @@ public class OptionExtensionsTests
         var predicateCalled = false;
 
         // Act
-        var result = option.Filter(x =>
+        var result = option.Filter(_ =>
         {
             predicateCalled = true;
             return true;
@@ -872,7 +872,7 @@ public class OptionExtensionsTests
         var option = new Option<string>.Some("hello");
 
         // Act
-        var result = option.Filter(s => s.Length > 3 && s.StartsWith("h"));
+        var result = option.Filter(s => s.Length > 3 && s.StartsWith('h'));
 
         // Assert
         Assert.True(result.IsSome());
@@ -936,7 +936,7 @@ public class OptionExtensionsTests
         Option<int> age = new Option<int>.Some(25);
 
         // Act - Filter for valid adult age
-        var validAge = age.Filter(a => a >= 18 && a <= 120);
+        var validAge = age.Filter(a => a is >= 18 and <= 120);
 
         // Assert
         Assert.True(validAge.IsSome());
@@ -950,7 +950,7 @@ public class OptionExtensionsTests
         Option<string> email = new Option<string>.Some("test@example.com");
 
         // Act - Filter for valid email format
-        var validEmail = email.Filter(e => e.Contains("@") && e.Length > 5);
+        var validEmail = email.Filter(e => e.Contains('@') && e.Length > 5);
 
         // Assert
         Assert.True(validEmail.IsSome());
@@ -982,7 +982,7 @@ public class OptionExtensionsTests
         Option<string?> option = new Option<string?>.Some("test");
 
         // Act
-        var result = option.Filter(s => s != null && s.Length > 0);
+        var result = option.Filter(s => s is { Length: > 0 });
 
         // Assert
         Assert.True(result.IsSome());
@@ -1076,7 +1076,7 @@ public class OptionExtensionsTests
 
         // Act & Assert
         Assert.Throws<NullReferenceException>(() =>
-            option.Match(value => { }, onNone)
+            option.Match(_ => { }, onNone)
         );
     }
 
@@ -1129,7 +1129,7 @@ public class OptionExtensionsTests
             .Map(p => p)
             .Filter(p => p != null)
             .Match(
-                p => "Found",
+                _ => "Found",
                 () => "Not Found"
             );
 
@@ -1145,7 +1145,7 @@ public class OptionExtensionsTests
 
         // Act & Assert
         Assert.Throws<InvalidOperationException>(() =>
-            option.Filter(x => throw new InvalidOperationException("Predicate failed"))
+            option.Filter(_ => throw new InvalidOperationException("Predicate failed"))
         );
     }
 
@@ -1156,13 +1156,8 @@ public class OptionExtensionsTests
         Option<int> option = new Option<int>.Some(42);
 
         // Act & Assert
-        Assert.Throws<InvalidOperationException>(() =>
-            option.Map(x =>
-            {
-                throw new InvalidOperationException("Mapper failed");
-                return x;
-            })
-        );
+        Func<int, int> mapper = _ => throw new InvalidOperationException("Mapper failed");
+        Assert.Throws<InvalidOperationException>(() => option.Map(mapper));
     }
 
     [Fact]
@@ -1172,13 +1167,8 @@ public class OptionExtensionsTests
         Option<int> option = new Option<int>.Some(42);
 
         // Act & Assert
-        Assert.Throws<InvalidOperationException>(() =>
-            option.Bind(x =>
-            {
-                throw new InvalidOperationException("Binder failed");
-                return new Option<int>.Some(x);
-            })
-        );
+        Func<int, Option<int>> binder = _ => throw new InvalidOperationException("Binder failed");
+        Assert.Throws<InvalidOperationException>(() => option.Bind(binder));
     }
 
     [Fact]
@@ -1190,7 +1180,7 @@ public class OptionExtensionsTests
         // Act & Assert
         Assert.Throws<InvalidOperationException>(() =>
             option.Match(
-                x => throw new InvalidOperationException("OnSome failed"),
+                _ => throw new InvalidOperationException("OnSome failed"),
                 () => "default"
             )
         );

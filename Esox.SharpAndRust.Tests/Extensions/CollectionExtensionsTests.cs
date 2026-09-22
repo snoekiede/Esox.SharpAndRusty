@@ -21,7 +21,7 @@ public class CollectionExtensionsTests
 
         // Assert
         Assert.True(result.IsSome());
-        if (result is Option<IEnumerable<int>>.Some some) Assert.Equal(new[] { 1, 2, 3 }, some.Value);
+        if (result is Option<IEnumerable<int>>.Some some) Assert.Equal([1, 2, 3], some.Value);
     }
 
     [Fact]
@@ -29,11 +29,11 @@ public class CollectionExtensionsTests
     {
         // Arrange
         Option<int>[] options =
-        {
+        [
             new Option<int>.Some(1),
             new Option<int>.None(),
             new Option<int>.Some(3)
-        };
+        ];
 
         // Act
         var result = options.Sequence();
@@ -73,7 +73,7 @@ public class CollectionExtensionsTests
         // Assert
         Assert.True(result.IsSome());
         if (result is Option<IEnumerable<string>>.Some some)
-            Assert.Equal(new[] { "first", "second", "third" }, some.Value);
+            Assert.Equal(["first", "second", "third"], some.Value);
     }
 
 
@@ -91,7 +91,7 @@ public class CollectionExtensionsTests
 
         // Assert
         Assert.True(result.IsSome());
-        if (result is Option<IEnumerable<int>>.Some some) Assert.Equal(new[] { 1, 2, 3 }, some.Value);
+        if (result is Option<IEnumerable<int>>.Some some) Assert.Equal([1, 2, 3], some.Value);
     }
 
     [Fact]
@@ -146,13 +146,13 @@ public class CollectionExtensionsTests
     {
         // Arrange
         Option<int>[] options =
-        {
+        [
             new Option<int>.Some(1),
             new Option<int>.None(),
             new Option<int>.Some(3),
             new Option<int>.None(),
             new Option<int>.Some(5)
-        };
+        ];
 
         // Act
         var result = options.CollectSome().ToList();
@@ -194,7 +194,7 @@ public class CollectionExtensionsTests
         var result = options.CollectSome();
 
         // Assert
-        Assert.Equal(new[] { 1, 2, 3 }, result);
+        Assert.Equal([1, 2, 3], result);
     }
 
     [Fact]
@@ -202,12 +202,12 @@ public class CollectionExtensionsTests
     {
         // Arrange
         Option<string>[] options =
-        {
+        [
             new Option<string>.Some("c"),
             new Option<string>.None(),
             new Option<string>.Some("a"),
             new Option<string>.Some("b")
-        };
+        ];
 
         // Act
         var result = options.CollectSome().ToList();
@@ -222,13 +222,13 @@ public class CollectionExtensionsTests
     {
         // Arrange
         Option<int>[] options =
-        {
+        [
             new Option<int>.Some(1),
             new Option<int>.None(),
             new Option<int>.Some(3),
             new Option<int>.None(),
             new Option<int>.Some(5)
-        };
+        ];
 
         // Act
         var (values, noneCount) = options.PartitionOptions();
@@ -294,7 +294,7 @@ public class CollectionExtensionsTests
         // Assert
         Assert.True(combined.IsSuccess);
         Assert.True(combined.TryGetValue(out var values));
-        Assert.Equal(new[] { 1, 2, 3 }, values);
+        Assert.Equal([1, 2, 3], values);
     }
 
     [Fact]
@@ -349,7 +349,7 @@ public class CollectionExtensionsTests
         // Assert
         Assert.True(combined.IsSuccess);
         Assert.True(combined.TryGetValue(out var values));
-        Assert.Equal(new[] { "first", "second", "third" }, values);
+        Assert.Equal(["first", "second", "third"], values);
     }
 
 
@@ -368,7 +368,7 @@ public class CollectionExtensionsTests
         // Assert
         Assert.True(result.IsSuccess);
         Assert.True(result.TryGetValue(out var values));
-        Assert.Equal(new[] { 1, 2, 3 }, values);
+        Assert.Equal([1, 2, 3], values);
     }
 
     [Fact]
@@ -413,7 +413,7 @@ public class CollectionExtensionsTests
 
         // Act
         var result = ages.Traverse<int, int, string>(age =>
-            age >= 0 && age <= 120
+            age is >= 0 and <= 120
                 ? Result<int, string>.Ok(age)
                 : Result<int, string>.Err($"Invalid age: {age}"));
 
@@ -441,7 +441,7 @@ public class CollectionExtensionsTests
         var values = results.CollectOk();
 
         // Assert
-        Assert.Equal(new[] { 1, 3, 5 }, values);
+        Assert.Equal([1, 3, 5], values);
     }
 
     [Fact]
@@ -477,7 +477,7 @@ public class CollectionExtensionsTests
         var values = results.CollectOk();
 
         // Assert
-        Assert.Equal(new[] { 1, 2, 3 }, values);
+        Assert.Equal([1, 2, 3], values);
     }
 
 
@@ -498,7 +498,7 @@ public class CollectionExtensionsTests
         var errors = results.CollectErr();
 
         // Assert
-        Assert.Equal(new[] { "error1", "error2" }, errors);
+        Assert.Equal(["error1", "error2"], errors);
     }
 
     [Fact]
@@ -534,7 +534,7 @@ public class CollectionExtensionsTests
         var errors = results.CollectErr();
 
         // Assert
-        Assert.Equal(new[] { "error1", "error2", "error3" }, errors);
+        Assert.Equal(["error1", "error2", "error3"], errors);
     }
 
 
@@ -634,9 +634,10 @@ public class CollectionExtensionsTests
         Result<IEnumerable<int>, string> result;
         if (traversed.TryGetValue(out var values))
         {
-            var sum = values.Sum();
+            IEnumerable<int> value = values.ToList();
+            var sum = value.Sum();
             result = sum <= 100
-                ? Result<IEnumerable<int>, string>.Ok(values)
+                ? Result<IEnumerable<int>, string>.Ok(value)
                 : Result<IEnumerable<int>, string>.Err($"Sum too large: {sum}");
         }
         else
@@ -689,7 +690,7 @@ public class CollectionExtensionsTests
 
         // Assert
         Assert.True(result2.IsSome());
-        if (result2 is Option<IEnumerable<int>>.Some some) Assert.Equal(new[] { 4, 16, 36 }, some.Value);
+        if (result2 is Option<IEnumerable<int>>.Some some) Assert.Equal([4, 16, 36], some.Value);
     }
 
     [Fact]
@@ -705,13 +706,13 @@ public class CollectionExtensionsTests
                     ? Result<int, string>.Ok(n)
                     : Result<int, string>.Err($"Parse error: {s}"))
             .Map<IEnumerable<int>, string, IEnumerable<int>>(values =>
-                values.Where(age => age >= 18 && age <= 120))
+                values.Where(age => age is >= 18 and <= 120))
             .Map<IEnumerable<int>, string, IEnumerable<string>>(validAges =>
                 validAges.Select(age => $"Age: {age}"));
 
         // Assert
         Assert.True(result.IsSuccess);
         Assert.True(result.TryGetValue(out var descriptions));
-        Assert.Equal(new[] { "Age: 25", "Age: 30", "Age: 35" }, descriptions);
+        Assert.Equal(["Age: 25", "Age: 30", "Age: 35"], descriptions);
     }
 }

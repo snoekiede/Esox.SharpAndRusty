@@ -15,7 +15,6 @@ public static class AsyncCollectionExtensions
         ///     Returns <c>Some</c> containing all values if all options are <c>Some</c>; otherwise, returns <c>None</c>.
         /// </summary>
         /// <typeparam name="T">The type of values in the options.</typeparam>
-        /// <param name="optionTasks">The collection of option tasks to sequence.</param>
         /// <param name="cancellationToken">A cancellation token to observe while waiting for tasks to complete.</param>
         /// <returns>
         ///     A task that represents the asynchronous operation. The task result contains:
@@ -56,7 +55,6 @@ public static class AsyncCollectionExtensions
         ///     discarding any <c>None</c> values.
         /// </summary>
         /// <typeparam name="T">The type of values in the options.</typeparam>
-        /// <param name="optionTasks">The collection of option tasks to collect from.</param>
         /// <param name="cancellationToken">A cancellation token to observe while waiting for tasks to complete.</param>
         /// <returns>
         ///     A task that represents the asynchronous operation. The task result contains
@@ -117,7 +115,6 @@ public static class AsyncCollectionExtensions
         /// </summary>
         /// <typeparam name="T">The type of elements in the source collection.</typeparam>
         /// <typeparam name="U">The type of values in the resulting options.</typeparam>
-        /// <param name="source">The source collection to traverse.</param>
         /// <param name="asyncSelector">An async function that transforms each element into an option.</param>
         /// <param name="maxDegreeOfParallelism">The maximum number of concurrent operations. Use -1 for unlimited.</param>
         /// <param name="cancellationToken">A cancellation token to observe while waiting for tasks to complete.</param>
@@ -143,7 +140,7 @@ public static class AsyncCollectionExtensions
             int maxDegreeOfParallelism = -1,
             CancellationToken cancellationToken = default)
         {
-            var sourceList = source as IList<T> ?? source.ToList();
+            var sourceList = source as IList<T> ?? [.. source];
             var options = new ParallelOptions
             {
                 MaxDegreeOfParallelism = maxDegreeOfParallelism,
@@ -155,7 +152,7 @@ public static class AsyncCollectionExtensions
             await Parallel.ForEachAsync(
                 sourceList.Select((item, index) => (item, index)),
                 options,
-                async (tuple, ct) =>
+                async (tuple, _) =>
                 {
                     var (item, index) = tuple;
                     results[index] = await asyncSelector(item).ConfigureAwait(false);
@@ -182,7 +179,6 @@ public static class AsyncCollectionExtensions
         /// <typeparam name="T">The type of elements in the source collection.</typeparam>
         /// <typeparam name="U">The type of success values in the resulting results.</typeparam>
         /// <typeparam name="E">The type of error values in the resulting results.</typeparam>
-        /// <param name="source">The source collection to traverse.</param>
         /// <param name="asyncSelector">An async function that transforms each element into a result.</param>
         /// <param name="cancellationToken">A cancellation token to observe while waiting for tasks to complete.</param>
         /// <returns>
@@ -230,7 +226,6 @@ public static class AsyncCollectionExtensions
         /// <typeparam name="T">The type of elements in the source collection.</typeparam>
         /// <typeparam name="U">The type of success values in the resulting results.</typeparam>
         /// <typeparam name="E">The type of error values in the resulting results.</typeparam>
-        /// <param name="source">The source collection to traverse.</param>
         /// <param name="asyncSelector">An async function that transforms each element into a result.</param>
         /// <param name="maxDegreeOfParallelism">The maximum number of concurrent operations. Use -1 for unlimited.</param>
         /// <param name="cancellationToken">A cancellation token to observe while waiting for tasks to complete.</param>
@@ -257,7 +252,7 @@ public static class AsyncCollectionExtensions
             int maxDegreeOfParallelism = -1,
             CancellationToken cancellationToken = default)
         {
-            var sourceList = source as IList<T> ?? source.ToList();
+            var sourceList = source as IList<T> ?? [.. source];
             var options = new ParallelOptions
             {
                 MaxDegreeOfParallelism = maxDegreeOfParallelism,
@@ -269,7 +264,7 @@ public static class AsyncCollectionExtensions
             await Parallel.ForEachAsync(
                 sourceList.Select((item, index) => (item, index)),
                 options,
-                async (tuple, ct) =>
+                async (tuple, _) =>
                 {
                     var (item, index) = tuple;
                     results[index] = await asyncSelector(item).ConfigureAwait(false);
@@ -296,7 +291,6 @@ public static class AsyncCollectionExtensions
         /// </summary>
         /// <typeparam name="T">The type of success values in the results.</typeparam>
         /// <typeparam name="E">The type of error values in the results.</typeparam>
-        /// <param name="resultTasks">The collection of result tasks to collect from.</param>
         /// <param name="cancellationToken">A cancellation token to observe while waiting for tasks to complete.</param>
         /// <returns>
         ///     A task that represents the asynchronous operation. The task result contains
@@ -336,7 +330,6 @@ public static class AsyncCollectionExtensions
         /// </summary>
         /// <typeparam name="T">The type of success values in the results.</typeparam>
         /// <typeparam name="E">The type of error values in the results.</typeparam>
-        /// <param name="resultTasks">The collection of result tasks to sequence.</param>
         /// <param name="cancellationToken">A cancellation token to observe while waiting for tasks to complete.</param>
         /// <returns>
         ///     A task that represents the asynchronous operation. The task result contains:
@@ -380,7 +373,6 @@ public static class AsyncCollectionExtensions
         /// </summary>
         /// <typeparam name="T">The type of success values in the results.</typeparam>
         /// <typeparam name="E">The type of error values in the results.</typeparam>
-        /// <param name="resultTasks">The collection of result tasks to collect from.</param>
         /// <param name="cancellationToken">A cancellation token to observe while waiting for tasks to complete.</param>
         /// <returns>
         ///     A task that represents the asynchronous operation. The task result contains
@@ -419,7 +411,6 @@ public static class AsyncCollectionExtensions
         /// </summary>
         /// <typeparam name="T">The type of success values in the results.</typeparam>
         /// <typeparam name="E">The type of error values in the results.</typeparam>
-        /// <param name="resultTasks">The collection of result tasks to partition.</param>
         /// <param name="cancellationToken">A cancellation token to observe while waiting for tasks to complete.</param>
         /// <returns>
         ///     A task that represents the asynchronous operation. The task result contains

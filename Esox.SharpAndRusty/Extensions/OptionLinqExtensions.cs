@@ -16,7 +16,6 @@ public static class OptionLinqExtensions
         /// </summary>
         /// <typeparam name="T">The type of the value in the option.</typeparam>
         /// <typeparam name="TResult">The type of the value returned by <paramref name="selector" />.</typeparam>
-        /// <param name="option">The option whose value to project.</param>
         /// <param name="selector">A transform function to apply to the contained value.</param>
         /// <returns>
         ///     An option whose value is the result of invoking the transform function on the value of the source option,
@@ -58,7 +57,6 @@ public static class OptionLinqExtensions
         /// <typeparam name="T">The type of the value in the source option.</typeparam>
         /// <typeparam name="TCollection">The type of the intermediate value collected by <paramref name="collectionSelector" />.</typeparam>
         /// <typeparam name="TResult">The type of the resulting value.</typeparam>
-        /// <param name="option">The source option.</param>
         /// <param name="collectionSelector">A transform function to apply to the value of the source option.</param>
         /// <param name="resultSelector">A transform function to apply to the intermediate values.</param>
         /// <returns>
@@ -107,7 +105,6 @@ public static class OptionLinqExtensions
         /// </summary>
         /// <typeparam name="T">The type of the value in the source option.</typeparam>
         /// <typeparam name="TResult">The type of the value in the resulting option.</typeparam>
-        /// <param name="option">The source option.</param>
         /// <param name="selector">A transform function to apply to the value of the source option.</param>
         /// <returns>
         ///     The option returned by <paramref name="selector" />, or <c>None</c> if the source option is <c>None</c>.
@@ -143,7 +140,6 @@ public static class OptionLinqExtensions
         ///     keyword.
         /// </summary>
         /// <typeparam name="T">The type of the value in the option.</typeparam>
-        /// <param name="option">The option to filter.</param>
         /// <param name="predicate">A function to test the contained value.</param>
         /// <returns>
         ///     The original option if it is <c>Some</c> and the predicate returns <c>true</c>; otherwise, <c>None</c>.

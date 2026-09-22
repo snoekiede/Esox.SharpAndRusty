@@ -59,7 +59,7 @@ public class MutexDisposalStressTests
 
             // Dispose concurrently, deliberately not waiting for waiters to be "in position" —
             // the whole point is to hit every possible interleaving over enough iterations.
-            var disposeTask = Task.Run(() => mutex.Dispose());
+            var disposeTask = Task.Run(mutex.Dispose);
 
             var allWork = Task.WhenAll(waiterTasks.Append(disposeTask));
             var winner = await Task.WhenAny(allWork, Task.Delay(TimeSpan.FromSeconds(10)));

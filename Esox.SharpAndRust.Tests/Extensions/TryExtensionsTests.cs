@@ -122,13 +122,14 @@ public class TryExtensionsTests
     public void Try_WithErrorMapper_CustomErrorType()
     {
         // Arrange
-        var errorMapper = (Exception ex) => Error.New(ex.Message)
-            .WithKind(ErrorKind.InvalidInput);
+        Error ErrorMapper(Exception ex) =>
+            Error.New(ex.Message)
+                .WithKind(ErrorKind.InvalidInput);
 
         // Act
         var result = TryExtensions.Try(
             () => int.Parse("invalid"),
-            errorMapper);
+            (Func<Exception, Error>?)ErrorMapper);
 
         // Assert
         Assert.True(result.IsFailure);

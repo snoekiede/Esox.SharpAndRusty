@@ -85,7 +85,7 @@ public class EitherTests
 
         // Assert
         Assert.False(success);
-        Assert.Equal(null, value);
+        Assert.Null(value);
     }
 
 
@@ -691,7 +691,10 @@ public class EitherTests
 
     private record EnvConfig(string VarName);
 
+    // ReSharper disable once NotAccessedPositionalProperty.Local
+    // ReSharper disable once NotAccessedPositionalProperty.Local
     private record CachedData(int Id, DateTime CachedAt);
 
+    // ReSharper disable once NotAccessedPositionalProperty.Local
     private record DatabaseData(int Id, bool Fresh);
 }

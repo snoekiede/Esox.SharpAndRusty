@@ -510,10 +510,10 @@ public class ResultTests
     public void Try_ReturnsSuccessForSuccessfulOperation()
     {
         // Arrange
-        var operation = () => 42;
+        int Operation() => 42;
 
         // Act
-        var result = Result<int, string>.Try(operation, ex => ex.Message);
+        var result = Result<int, string>.Try(Operation, ex => ex.Message);
 
         // Assert
         Assert.True(result.IsSuccess);
@@ -524,14 +524,10 @@ public class ResultTests
     public void Try_ReturnsErrorForFailedOperation()
     {
         // Arrange
-        var operation = () =>
-        {
-            throw new InvalidOperationException("Test error");
-            return 42;
-        };
+        static int Operation() => throw new InvalidOperationException("Test error");
 
         // Act
-        var result = Result<int, string>.Try(operation, ex => ex.Message);
+        var result = Result<int, string>.Try(Operation, ex => ex.Message);
 
         // Assert
         Assert.True(result.IsFailure);

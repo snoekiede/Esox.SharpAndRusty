@@ -164,7 +164,7 @@ public class AsyncOptionExtensionsTests
         var predicateCalled = false;
 
         // Act
-        var result = await option.FilterAsync(async x =>
+        var result = await option.FilterAsync(async _ =>
         {
             predicateCalled = true;
             await Task.Delay(10);
@@ -205,7 +205,7 @@ public class AsyncOptionExtensionsTests
         var inspectorCalled = false;
 
         // Act
-        var result = await option.InspectAsync(async x =>
+        var result = await option.InspectAsync(async _ =>
         {
             inspectorCalled = true;
             await Task.Delay(10);
@@ -292,7 +292,7 @@ public class AsyncOptionExtensionsTests
 
         // Act
         await option.MatchAsync(
-            async x =>
+            async _ =>
             {
                 someCalled = true;
                 await Task.Delay(10);
@@ -486,7 +486,7 @@ public class AsyncOptionExtensionsTests
                 await Task.Delay(10);
                 return x * 2;
             })
-            .ContinueWith(t => t.Result.FilterAsync(async x =>
+            .ContinueWith(t => t.Result.FilterAsync(async _ =>
             {
                 Interlocked.Increment(ref operations);
                 await Task.Delay(10);

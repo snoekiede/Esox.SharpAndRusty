@@ -1,6 +1,7 @@
 ﻿// ReSharper disable HeapView.ObjectAllocation.Evident
 namespace Esox.SharpAndRusty.Types;
 
+// ReSharper disable once InconsistentNaming
 public abstract record ExtendedResult<T, TE>
 {
     /// <summary>

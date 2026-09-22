@@ -1,4 +1,5 @@
-﻿using Esox.SharpAndRusty.EntityFrameworkCore.Extensions;
+﻿using System.ComponentModel.DataAnnotations;
+using Esox.SharpAndRusty.EntityFrameworkCore.Extensions;
 using Esox.SharpAndRusty.EntityFrameworkCore.Types;
 using Esox.SharpAndRusty.Types;
 using Microsoft.EntityFrameworkCore;
@@ -115,6 +116,8 @@ public class EntityFrameworkCoreExtensionsTests
     private sealed class TestUser
     {
         public int Id { get; init; }
+
+        [MaxLength(320)]
         public string Email { get; init; } = string.Empty;
     }
 }

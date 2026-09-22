@@ -37,7 +37,7 @@ public class ValidationTests
     public void Invalid_WithMultipleErrors_CreatesFailedValidation()
     {
         // Arrange & Act
-        var validation = Validation<int, string>.Invalid(new[] { "error1", "error2", "error3" });
+        var validation = Validation<int, string>.Invalid(["error1", "error2", "error3"]);
 
         // Assert
         Assert.True(validation.IsFailure);
@@ -79,7 +79,7 @@ public class ValidationTests
     public void TryGetErrors_WithFailure_ReturnsTrue()
     {
         // Arrange
-        var validation = Validation<int, string>.Invalid(new[] { "error1", "error2" });
+        var validation = Validation<int, string>.Invalid(["error1", "error2"]);
 
         // Act
         var success = validation.TryGetErrors(out var errors);
@@ -123,7 +123,7 @@ public class ValidationTests
     public void Match_WithFailure_ExecutesFailureFunction()
     {
         // Arrange
-        var validation = Validation<int, string>.Invalid(new[] { "error1", "error2" });
+        var validation = Validation<int, string>.Invalid(["error1", "error2"]);
 
         // Act
         var result = validation.Match(
@@ -154,7 +154,7 @@ public class ValidationTests
     public void Map_WithFailure_ReturnsErrorsUnchanged()
     {
         // Arrange
-        var validation = Validation<int, string>.Invalid(new[] { "error1", "error2" });
+        var validation = Validation<int, string>.Invalid(["error1", "error2"]);
 
         // Act
         var result = validation.Map(x => x * 2);
@@ -169,7 +169,7 @@ public class ValidationTests
     public void MapErrors_WithFailure_TransformsErrors()
     {
         // Arrange
-        var validation = Validation<int, string>.Invalid(new[] { "error1", "error2" });
+        var validation = Validation<int, string>.Invalid(["error1", "error2"]);
 
         // Act
         var result = validation.MapErrors(e => e.ToUpper());
@@ -215,7 +215,7 @@ public class ValidationTests
     public void ToResult_WithErrorCombiner_CombinesErrors()
     {
         // Arrange
-        var validation = Validation<int, string>.Invalid(new[] { "error1", "error2", "error3" });
+        var validation = Validation<int, string>.Invalid(["error1", "error2", "error3"]);
 
         // Act
         var result = validation.ToResult(errors => string.Join("; ", errors));
@@ -245,7 +245,7 @@ public class ValidationTests
     public void ToResultFirstError_WithFailure_ReturnsFirstError()
     {
         // Arrange
-        var validation = Validation<int, string>.Invalid(new[] { "error1", "error2", "error3" });
+        var validation = Validation<int, string>.Invalid(["error1", "error2", "error3"]);
 
         // Act
         var result = validation.ToResultFirstError();
@@ -349,7 +349,7 @@ public class ValidationTests
         // Assert
         Assert.True(result.IsSuccess);
         Assert.True(result.TryGetValue(out var user));
-        Assert.Equal("John", user.Name);
+        Assert.Equal("John", user!.Name);
         Assert.Equal("john@example.com", user.Email);
         Assert.Equal(30, user.Age);
     }
@@ -441,7 +441,7 @@ public class ValidationTests
     public void Bind_WithFailure_ReturnsErrorsUnchanged()
     {
         // Arrange
-        var validation = Validation<int, string>.Invalid(new[] { "error1", "error2" });
+        var validation = Validation<int, string>.Invalid(["error1", "error2"]);
 
         // Act
         var result = validation.Bind(x =>
@@ -460,7 +460,7 @@ public class ValidationTests
         var validation = Validation<int, string>.Valid(42);
 
         // Act
-        var result = validation.Bind(x =>
+        var result = validation.Bind(_ =>
             Validation<string, string>.Invalid("Validation failed"));
 
         // Assert
@@ -488,7 +488,7 @@ public class ValidationTests
         // Assert
         Assert.True(result.IsSuccess);
         Assert.True(result.TryGetValue(out var values));
-        Assert.Equal(new[] { 1, 2, 3 }, values);
+        Assert.Equal([1, 2, 3], values);
     }
 
     [Fact]
@@ -540,7 +540,7 @@ public class ValidationTests
     public void OnFailure_WithFailure_ExecutesAction()
     {
         // Arrange
-        var validation = Validation<int, string>.Invalid(new[] { "error1", "error2" });
+        var validation = Validation<int, string>.Invalid(["error1", "error2"]);
         var executed = false;
         var capturedErrors = ImmutableList<string>.Empty;
 
@@ -570,7 +570,7 @@ public class ValidationTests
         // Assert
         Assert.True(validation.IsSuccess);
         Assert.True(validation.TryGetValue(out var user));
-        Assert.Equal("John Doe", user.Name);
+        Assert.Equal("John Doe", user!.Name);
     }
 
     [Fact]
@@ -608,32 +608,32 @@ public class ValidationTests
         Assert.Contains("Email", errors[0]);
     }
 
-    private Validation<TestUser, string> ValidateForm(RegistrationForm form)
+    private static Validation<TestUser, string> ValidateForm(RegistrationForm form)
     {
         return ValidationExtensions.Apply(
             ValidateName(form.Name),
             ValidateEmail(form.Email),
             ValidateAge(form.Age),
             ValidatePassword(form.Password),
-            (name, email, age, password) => new TestUser(name, email, age));
+            (name, email, age, _) => new TestUser(name, email, age));
     }
 
-    private Validation<string, string> ValidateName(string name) =>
+    private static Validation<string, string> ValidateName(string name) =>
         !string.IsNullOrWhiteSpace(name) && name.Length >= 3
             ? Validation<string, string>.Valid(name)
             : Validation<string, string>.Invalid("Name must be at least 3 characters");
 
-    private Validation<string, string> ValidateEmail(string email) =>
-        email.Contains("@") && email.Contains(".")
+    private static Validation<string, string> ValidateEmail(string email) =>
+        email.Contains('@') && email.Contains('.')
             ? Validation<string, string>.Valid(email)
             : Validation<string, string>.Invalid("Email must be valid");
 
-    private Validation<int, string> ValidateAge(int age) =>
-        age >= 18 && age <= 120
+    private static Validation<int, string> ValidateAge(int age) =>
+        age is >= 18 and <= 120
             ? Validation<int, string>.Valid(age)
             : Validation<int, string>.Invalid("Age must be between 18 and 120");
 
-    private Validation<string, string> ValidatePassword(string password) =>
+    private static Validation<string, string> ValidatePassword(string password) =>
         password.Length >= 8
             ? Validation<string, string>.Valid(password)
             : Validation<string, string>.Invalid("Password must be at least 8 characters");
@@ -667,31 +667,31 @@ public class ValidationTests
         Assert.True(errors.Count >= 2); // At least database and timeout errors
     }
 
-    private Validation<AppConfig, string> ValidateConfig(AppConfig config)
+    private static Validation<AppConfig, string> ValidateConfig(AppConfig config)
     {
         return ValidationExtensions.Apply(
             ValidateDatabase(config.DatabaseUrl),
             ValidateCache(config.CacheUrl),
             ValidateLogging(config.EnableLogging),
             ValidateTimeout(config.TimeoutSeconds),
-            (db, cache, logging, timeout) => config);
+            (_, _, _, _) => config);
     }
 
-    private Validation<string, string> ValidateDatabase(string url) =>
+    private static Validation<string, string> ValidateDatabase(string url) =>
         !string.IsNullOrWhiteSpace(url)
             ? Validation<string, string>.Valid(url)
             : Validation<string, string>.Invalid("Database URL is required");
 
-    private Validation<string, string> ValidateCache(string url) =>
+    private static Validation<string, string> ValidateCache(string url) =>
         !string.IsNullOrWhiteSpace(url)
             ? Validation<string, string>.Valid(url)
             : Validation<string, string>.Invalid("Cache URL is required");
 
-    private Validation<bool, string> ValidateLogging(bool enabled) =>
+    private static Validation<bool, string> ValidateLogging(bool enabled) =>
         Validation<bool, string>.Valid(enabled); // Always valid
 
-    private Validation<int, string> ValidateTimeout(int seconds) =>
-        seconds > 0 && seconds <= 300
+    private static Validation<int, string> ValidateTimeout(int seconds) =>
+        seconds is > 0 and <= 300
             ? Validation<int, string>.Valid(seconds)
             : Validation<int, string>.Invalid("Timeout must be between 1 and 300 seconds");
 
@@ -714,22 +714,22 @@ public class ValidationTests
         Assert.Contains("Name", error);
     }
 
-    private Result<string, string> ValidateNameResult(string name) =>
+    private static Result<string, string> ValidateNameResult(string name) =>
         !string.IsNullOrWhiteSpace(name) && name.Length >= 3
             ? Result<string, string>.Ok(name)
             : Result<string, string>.Err("Name must be at least 3 characters");
 
-    private Result<string, string> ValidateEmailResult(string email) =>
-        email.Contains("@")
+    private static Result<string, string> ValidateEmailResult(string email) =>
+        email.Contains('@')
             ? Result<string, string>.Ok(email)
             : Result<string, string>.Err("Email must be valid");
 
-    private Result<int, string> ValidateAgeResult(int age) =>
+    private static Result<int, string> ValidateAgeResult(int age) =>
         age >= 18
             ? Result<int, string>.Ok(age)
             : Result<int, string>.Err("Age must be at least 18");
 
-    private Result<string, string> ValidatePasswordResult(string password) =>
+    private static Result<string, string> ValidatePasswordResult(string password) =>
         password.Length >= 8
             ? Result<string, string>.Ok(password)
             : Result<string, string>.Err("Password must be at least 8 characters");

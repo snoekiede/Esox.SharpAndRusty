@@ -844,7 +844,7 @@ public class OptionTests
         static Option<string> GetNonNullOption()
         {
             var value = "test";
-            return value!;
+            return value;
         }
     }
 
@@ -857,7 +857,7 @@ public class OptionTests
 
         // Act
         var noneResult = ProcessOption(nullValue!);
-        var someResult = ProcessOption(nonNullValue!);
+        var someResult = ProcessOption(nonNullValue);
 
         // Assert
         Assert.Equal("None", noneResult);
@@ -882,7 +882,7 @@ public class OptionTests
         var nonNullValue = "test";
 
         Option<string> nullOption = nullValue!;
-        Option<string> valueOption = nonNullValue!;
+        Option<string> valueOption = nonNullValue;
 
         // Act
         var nullOutput = nullOption switch

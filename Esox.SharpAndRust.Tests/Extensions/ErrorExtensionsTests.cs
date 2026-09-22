@@ -24,7 +24,7 @@ public class ErrorExtensionsTests
 
         Assert.True(withContext.IsFailure);
         Assert.True(withContext.TryGetError(out var error));
-        Assert.Equal("Failed to process data", error!.Message);
+        Assert.Equal("Failed to process data", error.Message);
         Assert.NotNull(error.Source);
         Assert.Equal("Original error", error.Source!.Message);
     }
@@ -45,7 +45,7 @@ public class ErrorExtensionsTests
             .Context("Operation failed");
 
         Assert.True(result.TryGetError(out var error));
-        Assert.Equal("Operation failed", error!.Message);
+        Assert.Equal("Operation failed", error.Message);
         Assert.Equal("Step 2 failed", error.Source!.Message);
         Assert.Equal("Step 1 failed", error.Source.Source!.Message);
         Assert.Equal("Base error", error.Source.Source.Source!.Message);
@@ -67,7 +67,7 @@ public class ErrorExtensionsTests
         var withContext = result.WithContext(err => $"Failed to parse input: {err.Message}");
 
         Assert.True(withContext.TryGetError(out var error));
-        Assert.Equal("Failed to parse input: Parse error", error!.Message);
+        Assert.Equal("Failed to parse input: Parse error", error.Message);
         Assert.Equal("Parse error", error.Source!.Message);
     }
 
@@ -95,7 +95,7 @@ public class ErrorExtensionsTests
             .WithMetadata("action", "delete");
 
         Assert.True(result.TryGetError(out var error));
-        Assert.True(error!.TryGetMetadata("userId", out var userId));
+        Assert.True(error.TryGetMetadata("userId", out var userId));
         Assert.Equal(123, userId);
         Assert.True(error.TryGetMetadata("action", out var action));
         Assert.Equal("delete", action);
@@ -121,7 +121,7 @@ public class ErrorExtensionsTests
 
         Assert.True(result.TryGetError(out var error));
 
-        Assert.True(error!.TryGetMetadata("count", out int count));
+        Assert.True(error.TryGetMetadata("count", out int count));
         Assert.Equal(42, count);
 
         Assert.True(error.TryGetMetadata("isRetryable", out bool isRetryable));
@@ -147,7 +147,7 @@ public class ErrorExtensionsTests
             .WithKind(ErrorKind.Timeout);
 
         Assert.True(result.TryGetError(out var error));
-        Assert.Equal(ErrorKind.Timeout, error!.Kind);
+        Assert.Equal(ErrorKind.Timeout, error.Kind);
     }
 
     [Fact]
@@ -166,7 +166,7 @@ public class ErrorExtensionsTests
         var withContext = await result.ContextAsync("Operation failed");
 
         Assert.True(withContext.TryGetError(out var error));
-        Assert.Equal("Operation failed", error!.Message);
+        Assert.Equal("Operation failed", error.Message);
         Assert.Equal("Original error", error.Source!.Message);
     }
 
@@ -189,7 +189,7 @@ public class ErrorExtensionsTests
         var withContext = await result.WithContextAsync(err => $"Failed: {err.Message}");
 
         Assert.True(withContext.TryGetError(out var error));
-        Assert.Equal("Failed: Parse error", error!.Message);
+        Assert.Equal("Failed: Parse error", error.Message);
     }
 
     [Fact]
@@ -199,7 +199,7 @@ public class ErrorExtensionsTests
         var withMetadata = await result.WithMetadataAsync("key", "value");
 
         Assert.True(withMetadata.TryGetError(out var error));
-        Assert.True(error!.TryGetMetadata("key", out var value));
+        Assert.True(error.TryGetMetadata("key", out var value));
         Assert.Equal("value", value);
     }
 
@@ -211,7 +211,7 @@ public class ErrorExtensionsTests
 
         Assert.True(result.IsFailure);
         Assert.True(result.TryGetError(out var error));
-        Assert.Equal("Operation failed", error!.Message);
+        Assert.Equal("Operation failed", error.Message);
         Assert.Equal(ErrorKind.InvalidOperation, error.Kind);
     }
 
@@ -239,7 +239,7 @@ public class ErrorExtensionsTests
 
         Assert.True(result.IsFailure);
         Assert.True(result.TryGetError(out var error));
-        Assert.Contains("correct format", error!.Message);
+        Assert.Contains("correct format", error.Message);
         // FormatException is now mapped to ParseError instead of Other
         Assert.Equal(ErrorKind.ParseError, error.Kind);
     }
@@ -275,7 +275,7 @@ public class ErrorExtensionsTests
 
         Assert.True(result.IsFailure);
         Assert.True(result.TryGetError(out var error));
-        Assert.Equal("Async operation failed", error!.Message);
+        Assert.Equal("Async operation failed", error.Message);
         Assert.Equal(ErrorKind.InvalidOperation, error.Kind);
     }
 
@@ -295,7 +295,7 @@ public class ErrorExtensionsTests
         // and returns an Err result with the cancellation error
         Assert.True(result.IsFailure);
         Assert.True(result.TryGetError(out var error));
-        Assert.Equal(ErrorKind.Interrupted, error!.Kind);
+        Assert.Equal(ErrorKind.Interrupted, error.Kind);
     }
 
     [Fact]
@@ -317,12 +317,12 @@ public class ErrorExtensionsTests
 
         Assert.True(result.IsFailure);
         Assert.True(result.TryGetError(out var error));
-        Assert.Equal("User validation failed", error!.Message);
+        Assert.Equal("User validation failed", error.Message);
         Assert.Equal(ErrorKind.ParseError, error.Kind);
 
         var source = error.Source;
         Assert.NotNull(source);
-        Assert.Equal("Failed to parse user input", source!.Message);
+        Assert.Equal("Failed to parse user input", source.Message);
         Assert.True(source.TryGetMetadata("input", out var input));
         Assert.Equal("not a number", input);
         Assert.True(source.TryGetMetadata("field", out var field));
@@ -333,7 +333,7 @@ public class ErrorExtensionsTests
     public void RealWorldScenario_FileProcessing()
     {
         // Simulate a file processing operation that fails
-        Result<string, Error> ReadFile(string path)
+        Result<string, Error> ReadFile()
         {
             return Result<string, Error>.Err(Error.New("File not found", ErrorKind.NotFound));
         }
@@ -343,7 +343,7 @@ public class ErrorExtensionsTests
             return ErrorExtensions.Try(() => int.Parse(content));
         }
 
-        var result = ReadFile("/etc/config.json")
+        var result = ReadFile()
             .Context("Failed to read configuration file")
             .WithMetadata("path", "/etc/config.json")
             .Bind(content => ParseContent(content)
@@ -353,7 +353,7 @@ public class ErrorExtensionsTests
         Assert.True(result.IsFailure);
         Assert.True(result.TryGetError(out var error));
 
-        var fullMessage = error!.GetFullMessage();
+        var fullMessage = error.GetFullMessage();
         Assert.Contains("Failed to read configuration file", fullMessage);
         Assert.Contains("path=/etc/config.json", fullMessage);
         Assert.Contains("File not found", fullMessage);
@@ -389,7 +389,7 @@ public class ErrorExtensionsTests
         // Assert
         Assert.True(withMetadata.TryGetError(out var error));
 
-        Assert.True(error!.TryGetMetadata("count", out int count));
+        Assert.True(error.TryGetMetadata("count", out int count));
         Assert.Equal(42, count);
 
         Assert.True(error.TryGetMetadata("isRetryable", out bool isRetryable));
@@ -411,8 +411,8 @@ public class ErrorExtensionsTests
 
         // Assert
         Assert.True(withMetadata.TryGetError(out var error));
-        Assert.True(error!.TryGetMetadata("dict", out Dictionary<string, string> retrieved));
-        Assert.Equal("value", retrieved["key"]);
+        Assert.True(error.TryGetMetadata("dict", out Dictionary<string, string>? retrieved));
+        Assert.Equal("value", retrieved!["key"]);
     }
 
     [Fact]
@@ -471,7 +471,7 @@ public class ErrorExtensionsTests
 
         // Assert
         Assert.True(final.TryGetError(out var error));
-        Assert.Equal("Operation failed", error!.Message);
+        Assert.Equal("Operation failed", error.Message);
         Assert.Equal("Step 2 failed", error.Source!.Message);
         Assert.Equal("Step 1 failed", error.Source.Source!.Message);
         Assert.Equal("Base error", error.Source.Source.Source!.Message);
@@ -497,12 +497,12 @@ public class ErrorExtensionsTests
 
         // The outermost error is "Step 2 failed" with no metadata
         // (ContextAsync creates a new error without metadata)
-        Assert.Equal("Step 2 failed", error!.Message);
+        Assert.Equal("Step 2 failed", error.Message);
 
         // The metadata is on the source (the error that was wrapped)
         var source1 = error.Source;
         Assert.NotNull(source1);
-        Assert.Equal("Step 1 failed", source1!.Message);
+        Assert.Equal("Step 1 failed", source1.Message);
         Assert.True(source1.TryGetMetadata("step", out var step2));
         Assert.Equal(2, step2); // The metadata added after first ContextAsync
 
@@ -510,7 +510,7 @@ public class ErrorExtensionsTests
         var source2 = source1.Source;
         Assert.NotNull(source2);
         // This should be the original "Base error" with step=1 metadata
-        Assert.Equal("Base error", source2!.Message);
+        Assert.Equal("Base error", source2.Message);
         Assert.True(source2.TryGetMetadata("step", out var step1));
         Assert.Equal(1, step1); // The metadata added initially
     }
@@ -553,7 +553,7 @@ public class ErrorExtensionsTests
         // Assert
         Assert.True(result.IsFailure);
         Assert.True(result.TryGetError(out var error));
-        Assert.Equal("Failed midway", error!.Message);
+        Assert.Equal("Failed midway", error.Message);
         Assert.Equal(ErrorKind.InvalidOperation, error.Kind);
     }
 
@@ -564,15 +564,10 @@ public class ErrorExtensionsTests
         using var cts = new CancellationTokenSource();
 
         // Act
-        var resultTask = ErrorExtensions.TryAsync(async () =>
-        {
-            await Task.Delay(50, cts.Token);
-            await Task.Delay(1000, cts.Token); // This should be cancelled
-            return 42;
-        }, cts.Token);
+        var resultTask = StartCancellableTryAsync(cts.Token);
 
         // Cancel after initial delay
-        await Task.Delay(100,cts.Token);
+        await Task.Delay(100, cts.Token);
         await cts.CancelAsync();
 
         var result = await resultTask;
@@ -580,21 +575,21 @@ public class ErrorExtensionsTests
         // Assert
         Assert.True(result.IsFailure);
         Assert.True(result.TryGetError(out var error));
-        Assert.Equal(ErrorKind.Interrupted, error!.Kind);
+        Assert.Equal(ErrorKind.Interrupted, error.Kind);
     }
 
     [Fact]
     public async Task AsyncChain_ComplexScenario_WorksEndToEnd()
     {
         // Arrange
-        async Task<Result<int, Error>> ReadAsync(string path)
+        static async Task<Result<int, Error>> ReadAsync()
         {
             await Task.Delay(10);
             return Result<int, Error>.Err(Error.New("File not found", ErrorKind.NotFound));
         }
 
         // Act
-        var result = await ReadAsync("/config.json")
+        var result = await ReadAsync()
             .ContextAsync("Failed to read configuration")
             .WithMetadataAsync("path", "/config.json")
             .WithMetadataAsync("timestamp", DateTime.UtcNow)
@@ -603,11 +598,21 @@ public class ErrorExtensionsTests
         // Assert
         Assert.True(result.IsFailure);
         Assert.True(result.TryGetError(out var error));
-        Assert.Equal("Configuration load failed", error!.Message);
+        Assert.Equal("Configuration load failed", error.Message);
         Assert.Equal("Failed to read configuration", error.Source!.Message);
         Assert.True(error.Source.TryGetMetadata("path", out var path));
         Assert.Equal("/config.json", path);
         Assert.True(error.Source.TryGetMetadata("timestamp", out DateTime timestamp));
         Assert.NotEqual(default, timestamp);
+    }
+
+    private static Task<Result<int, Error>> StartCancellableTryAsync(CancellationToken cancellationToken)
+    {
+        return ErrorExtensions.TryAsync(async () =>
+        {
+            await Task.Delay(50, cancellationToken);
+            await Task.Delay(1000, cancellationToken);
+            return 42;
+        }, cancellationToken);
     }
 }

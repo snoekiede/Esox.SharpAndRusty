@@ -16,7 +16,6 @@ public static class ResultAsyncExtensions
         /// <typeparam name="T">The type of the original success value.</typeparam>
         /// <typeparam name="E">The type of the error value.</typeparam>
         /// <typeparam name="U">The type of the transformed success value.</typeparam>
-        /// <param name="resultTask">The task containing the result to transform.</param>
         /// <param name="mapper">A function to transform the success value.</param>
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
         /// <returns>A task containing the transformed result.</returns>
@@ -50,7 +49,6 @@ public static class ResultAsyncExtensions
         /// <typeparam name="T">The type of the original success value.</typeparam>
         /// <typeparam name="E">The type of the error value.</typeparam>
         /// <typeparam name="U">The type of the transformed success value.</typeparam>
-        /// <param name="result">The result to transform.</param>
         /// <param name="asyncMapper">An async function to transform the success value.</param>
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
         /// <returns>A task containing the transformed result.</returns>
@@ -89,7 +87,6 @@ public static class ResultAsyncExtensions
         /// <typeparam name="T">The type of the original success value.</typeparam>
         /// <typeparam name="E">The type of the error value.</typeparam>
         /// <typeparam name="U">The type of the success value in the result returned by the async binder.</typeparam>
-        /// <param name="result">The result to bind.</param>
         /// <param name="asyncBinder">An async function that takes the success value and returns a new result.</param>
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
         /// <returns>A task containing the result from the async binder, or the original error.</returns>
@@ -131,7 +128,6 @@ public static class ResultAsyncExtensions
         /// <typeparam name="T">The type of the original success value.</typeparam>
         /// <typeparam name="E">The type of the error value.</typeparam>
         /// <typeparam name="U">The type of the success value in the result returned by the binder.</typeparam>
-        /// <param name="resultTask">The task containing the result to bind.</param>
         /// <param name="binder">A function that takes the success value and returns a new result.</param>
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
         /// <returns>A task containing the result from the binder, or the original error.</returns>
@@ -303,7 +299,6 @@ public static class ResultAsyncExtensions
         /// </summary>
         /// <typeparam name="T">The type of the success values.</typeparam>
         /// <typeparam name="E">The type of the error value.</typeparam>
-        /// <param name="resultTasks">The collection of tasks containing results to combine.</param>
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
         /// <returns>
         ///     A task containing a result with all success values if all results are successful;

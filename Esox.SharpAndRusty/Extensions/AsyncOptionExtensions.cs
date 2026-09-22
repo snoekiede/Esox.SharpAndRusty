@@ -14,7 +14,6 @@ public static class AsyncOptionExtensions
         /// </summary>
         /// <typeparam name="T">The type of the value in the option.</typeparam>
         /// <typeparam name="TResult">The type of the transformed value.</typeparam>
-        /// <param name="option">The option to transform.</param>
         /// <param name="asyncMapper">
         ///     An async function that transforms the value from type <typeparamref name="T" /> to type
         ///     <typeparamref name="TResult" />.
@@ -60,7 +59,6 @@ public static class AsyncOptionExtensions
         /// </summary>
         /// <typeparam name="T">The type of the value in the option.</typeparam>
         /// <typeparam name="TResult">The type of the value in the resulting option.</typeparam>
-        /// <param name="option">The option to bind.</param>
         /// <param name="asyncBinder">
         ///     An async function that takes the current value and returns a new
         ///     <see cref="Option{TResult}" />.
@@ -102,7 +100,6 @@ public static class AsyncOptionExtensions
         ///     <c>None</c>.
         /// </summary>
         /// <typeparam name="T">The type of the value in the option.</typeparam>
-        /// <param name="option">The option to filter.</param>
         /// <param name="asyncPredicate">An async function to test the contained value.</param>
         /// <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
         /// <returns>
@@ -140,7 +137,6 @@ public static class AsyncOptionExtensions
         ///     Useful for debugging, logging, or other side effects in async contexts.
         /// </summary>
         /// <typeparam name="T">The type of the value in the option.</typeparam>
-        /// <param name="option">The option to inspect.</param>
         /// <param name="asyncInspector">An async action to execute on the contained value.</param>
         /// <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
         /// <returns>
@@ -177,7 +173,6 @@ public static class AsyncOptionExtensions
         ///     Useful for debugging, logging, or other side effects when a value is absent in async contexts.
         /// </summary>
         /// <typeparam name="T">The type of the value in the option.</typeparam>
-        /// <param name="option">The option to inspect.</param>
         /// <param name="asyncInspector">An async action to execute if the option is <c>None</c>.</param>
         /// <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
         /// <returns>
@@ -210,7 +205,6 @@ public static class AsyncOptionExtensions
         ///     Asynchronously executes one of two async actions based on whether the option contains a value.
         /// </summary>
         /// <typeparam name="T">The type of the value in the option.</typeparam>
-        /// <param name="option">The option to match.</param>
         /// <param name="onSomeAsync">The async action to execute if the option is <c>Some</c>, receiving the contained value.</param>
         /// <param name="onNoneAsync">The async action to execute if the option is <c>None</c>.</param>
         /// <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
@@ -241,7 +235,6 @@ public static class AsyncOptionExtensions
         /// </summary>
         /// <typeparam name="T">The type of the value in the option.</typeparam>
         /// <typeparam name="TResult">The type of the result.</typeparam>
-        /// <param name="option">The option to match.</param>
         /// <param name="onSomeAsync">The async function to execute if the option is <c>Some</c>, receiving the contained value.</param>
         /// <param name="onNoneAsync">The async function to execute if the option is <c>None</c>.</param>
         /// <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
@@ -275,7 +268,6 @@ public static class AsyncOptionExtensions
         /// </summary>
         /// <typeparam name="T">The type of the value in the option.</typeparam>
         /// <typeparam name="E">The type of the error.</typeparam>
-        /// <param name="option">The option to convert.</param>
         /// <param name="asyncErrorFactory">An async function that produces an error if the option is <c>None</c>.</param>
         /// <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
         /// <returns>

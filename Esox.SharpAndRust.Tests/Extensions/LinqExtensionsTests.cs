@@ -153,7 +153,7 @@ public class LinqExtensionsTests
     public void Option_NestedQuery_WorksCorrectly()
     {
         // Arrange
-        Option<int> GetValue(int x)
+        static Option<int> GetValue(int x)
         {
             return new Option<int>.Some(x * 2);
         }
@@ -257,7 +257,7 @@ public class LinqExtensionsTests
     public void Integration_Option_ValidationChain_WorksCorrectly()
     {
         // Arrange
-        Option<int> ParseInt(string s)
+        static Option<int> ParseInt(string s)
         {
             return int.TryParse(s, out var n)
                 ? new Option<int>.Some(n)
@@ -291,7 +291,7 @@ public class LinqExtensionsTests
 
         Option<int> Validate(int n)
         {
-            return n > 0 && n < 100
+            return n is > 0 and < 100
                 ? new Option<int>.Some(n)
                 : new Option<int>.None();
         }

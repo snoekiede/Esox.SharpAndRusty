@@ -122,7 +122,7 @@ public class ExtendedResultTests
     [Fact]
     public async Task TryAsync_Success()
     {
-        async Task<int> Op()
+        static async Task<int> Op()
         {
             await Task.Delay(1);
             return 7;
@@ -137,7 +137,7 @@ public class ExtendedResultTests
     [Fact]
     public async Task TryAsync_Failure()
     {
-        async Task<int> Op()
+        static async Task<int> Op()
         {
             await Task.Delay(1);
             throw new InvalidOperationException("nope");
@@ -500,7 +500,7 @@ public class ExtendedResultTests
     {
         var result = ExtendedResult<int, string>.Ok(42);
 
-        var alternative = result.OrElse(error => ExtendedResult<int, string>.Ok(99));
+        var alternative = result.OrElse(_ => ExtendedResult<int, string>.Ok(99));
 
         Assert.True(alternative.TryGetValue(out var value));
         Assert.Equal(42, value); // Original value, not alternative
@@ -511,7 +511,7 @@ public class ExtendedResultTests
     {
         var result = ExtendedResult<int, string>.Err("error");
 
-        var alternative = result.OrElse(error => ExtendedResult<int, string>.Ok(99));
+        var alternative = result.OrElse(_ => ExtendedResult<int, string>.Ok(99));
 
         Assert.True(alternative.TryGetValue(out var value));
         Assert.Equal(99, value);
@@ -867,7 +867,7 @@ public class ExtendedResultTests
         };
         var combined = items.Combine();
         Assert.True(combined.TryGetValue(out var values));
-        Assert.Equal(new[] { 1, 2, 3 }, values);
+        Assert.Equal([1, 2, 3], values);
     }
 
     [Fact]

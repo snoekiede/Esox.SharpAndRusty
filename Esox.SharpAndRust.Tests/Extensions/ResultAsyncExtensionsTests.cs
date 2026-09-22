@@ -723,7 +723,7 @@ public class ResultAsyncExtensionsTests
         // Assert
         Assert.True(combined.IsSuccess);
         combined.TryGetValue(out var values);
-        Assert.Empty(values!);
+        Assert.Empty(values);
     }
 
     [Fact]
@@ -798,10 +798,7 @@ public class ResultAsyncExtensionsTests
 
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-            await resultTask.MapAsync<int, string, int>(_ =>
-            {
-                throw new InvalidOperationException("Mapper failed");
-            }));
+            await resultTask.MapAsync<int, string, int>(_ => throw new InvalidOperationException("Mapper failed")));
     }
 
     [Fact]
@@ -915,10 +912,7 @@ public class ResultAsyncExtensionsTests
 
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-            await resultTask.MapErrorAsync<int, string, int>(_ =>
-            {
-                throw new InvalidOperationException("Error mapper failed");
-            }));
+            await resultTask.MapErrorAsync<int, string, int>(_ => throw new InvalidOperationException("Error mapper failed")));
     }
 
     [Fact]
@@ -981,8 +975,9 @@ public class ResultAsyncExtensionsTests
         // Assert
         Assert.True(combined.IsSuccess);
         combined.TryGetValue(out var values);
-        Assert.Equal(100, values!.Count());
-        Assert.Equal(Enumerable.Range(0, 100), values);
+        var actual = values.ToList();
+        Assert.Equal(100, actual.Count);
+        Assert.Equal(Enumerable.Range(0, 100), actual);
     }
 
     [Fact]
