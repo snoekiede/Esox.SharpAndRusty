@@ -144,7 +144,7 @@ public static class ExtendedResultExtensions
         /// <summary>
         ///     Projects the success value of the result using a selector function.
         ///     This method enables LINQ query comprehension syntax for Result types with select projections.
-        ///     Equivalent to <see cref="Map{U}(x)" />.
+        ///     Equivalent to <see cref="Map{U}" />.
         ///     If the result is a failure, the error is propagated unchanged without calling the selector.
         /// </summary>
         /// <typeparam name="U">The type of the projected success value.</typeparam>
@@ -166,7 +166,7 @@ public static class ExtendedResultExtensions
         /// <summary>
         ///     Projects the success value of the result into a new result using a selector function.
         ///     This method enables LINQ query comprehension syntax for Result types.
-        ///     Equivalent to <see cref="Bind{U}(x)" />.
+        ///     Equivalent to <see cref="Bind{U}" />.
         ///     If the result is a failure, the error is propagated unchanged without calling the selector.
         /// </summary>
         /// <typeparam name="U">The type of the success value in the result returned by the selector.</typeparam>

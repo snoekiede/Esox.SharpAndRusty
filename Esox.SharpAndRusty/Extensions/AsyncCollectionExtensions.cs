@@ -55,7 +55,6 @@ public static class AsyncCollectionExtensions
         ///     discarding any <c>None</c> values.
         /// </summary>
         /// <typeparam name="T">The type of values in the options.</typeparam>
-        /// <param name="optionTasks">The collection of option tasks to collect from.</param>
         /// <param name="cancellationToken">A cancellation token to observe while waiting for tasks to complete.</param>
         /// <returns>
         ///     A task that represents the asynchronous operation. The task result contains
@@ -141,7 +140,7 @@ public static class AsyncCollectionExtensions
             int maxDegreeOfParallelism = -1,
             CancellationToken cancellationToken = default)
         {
-            var sourceList = source as IList<T> ?? source.ToList();
+            var sourceList = source as IList<T> ?? [.. source];
             var options = new ParallelOptions
             {
                 MaxDegreeOfParallelism = maxDegreeOfParallelism,
@@ -153,7 +152,7 @@ public static class AsyncCollectionExtensions
             await Parallel.ForEachAsync(
                 sourceList.Select((item, index) => (item, index)),
                 options,
-                async (tuple, ct) =>
+                async (tuple, _) =>
                 {
                     var (item, index) = tuple;
                     results[index] = await asyncSelector(item).ConfigureAwait(false);
@@ -253,7 +252,7 @@ public static class AsyncCollectionExtensions
             int maxDegreeOfParallelism = -1,
             CancellationToken cancellationToken = default)
         {
-            var sourceList = source as IList<T> ?? source.ToList();
+            var sourceList = source as IList<T> ?? [.. source];
             var options = new ParallelOptions
             {
                 MaxDegreeOfParallelism = maxDegreeOfParallelism,
@@ -265,7 +264,7 @@ public static class AsyncCollectionExtensions
             await Parallel.ForEachAsync(
                 sourceList.Select((item, index) => (item, index)),
                 options,
-                async (tuple, ct) =>
+                async (tuple, _) =>
                 {
                     var (item, index) = tuple;
                     results[index] = await asyncSelector(item).ConfigureAwait(false);

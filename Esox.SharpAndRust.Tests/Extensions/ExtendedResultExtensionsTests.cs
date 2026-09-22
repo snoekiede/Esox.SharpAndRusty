@@ -188,7 +188,7 @@ public class ExtendedResultExtensionsTests
     [Fact]
     public void MapError_WithNullError_PreservesNull()
     {
-        var r = ExtendedResult<int, string?>.Err(null).MapError(e => e == null ? -1 : e.Length);
+        var r = ExtendedResult<int, string?>.Err(null).MapError(e => e?.Length ?? -1);
         Assert.True(r.TryGetError(out var errVal));
         Assert.Equal(-1, errVal);
     }

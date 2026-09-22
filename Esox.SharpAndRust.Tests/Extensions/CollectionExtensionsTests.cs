@@ -413,7 +413,7 @@ public class CollectionExtensionsTests
 
         // Act
         var result = ages.Traverse<int, int, string>(age =>
-            age >= 0 && age <= 120
+            age is >= 0 and <= 120
                 ? Result<int, string>.Ok(age)
                 : Result<int, string>.Err($"Invalid age: {age}"));
 
@@ -634,9 +634,10 @@ public class CollectionExtensionsTests
         Result<IEnumerable<int>, string> result;
         if (traversed.TryGetValue(out var values))
         {
-            var sum = values.Sum();
+            IEnumerable<int> value = values.ToList();
+            var sum = value.Sum();
             result = sum <= 100
-                ? Result<IEnumerable<int>, string>.Ok(values)
+                ? Result<IEnumerable<int>, string>.Ok(value)
                 : Result<IEnumerable<int>, string>.Err($"Sum too large: {sum}");
         }
         else
@@ -705,7 +706,7 @@ public class CollectionExtensionsTests
                     ? Result<int, string>.Ok(n)
                     : Result<int, string>.Err($"Parse error: {s}"))
             .Map<IEnumerable<int>, string, IEnumerable<int>>(values =>
-                values.Where(age => age >= 18 && age <= 120))
+                values.Where(age => age is >= 18 and <= 120))
             .Map<IEnumerable<int>, string, IEnumerable<string>>(validAges =>
                 validAges.Select(age => $"Age: {age}"));
 

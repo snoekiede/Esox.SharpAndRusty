@@ -855,6 +855,36 @@ public class RwLockTests
 
     #region Stress and disposal-race tests
 
+    private static Thread CreateWorkerThread(
+        RwLock<int> rwlock,
+        System.Collections.Concurrent.ConcurrentBag<Exception> errors,
+        Action<RwLock<int>> work)
+    {
+        return new Thread(() => RunWorker(rwlock, errors, work));
+    }
+
+    private static void RunWorker(
+        RwLock<int> rwlock,
+        System.Collections.Concurrent.ConcurrentBag<Exception> errors,
+        Action<RwLock<int>> work)
+    {
+        try
+        {
+            while (!rwlock.IsDisposed)
+            {
+                work(rwlock);
+                Thread.SpinWait(5);
+            }
+        }
+        catch (ObjectDisposedException)
+        {
+        }
+        catch (Exception ex)
+        {
+            errors.Add(ex);
+        }
+    }
+
     /// <summary>
     /// Races concurrent Read/Write/TryRead/TryWrite calls against a Dispose() call across many
     /// iterations. Success means: no unhandled exceptions, no hangs, and IsDisposed is true once
@@ -871,52 +901,29 @@ public class RwLockTests
             var errors = new System.Collections.Concurrent.ConcurrentBag<Exception>();
 
             // Spin up several reader and writer threads that loop until the lock is disposed.
-            var threads = new List<Thread>();
-
-            void WorkerBody(Action work)
+            var threads = new List<Thread>
             {
-                try
+                CreateWorkerThread(rwlock, errors, guardedLock =>
                 {
-                    while (!rwlock.IsDisposed)
-                    {
-                        work();
-                        Thread.SpinWait(5);
-                    }
-                }
-                catch (ObjectDisposedException)
+                    var r = guardedLock.TryRead();
+                    if (r.TryGetValue(out var g)) g.Dispose();
+                }),
+                CreateWorkerThread(rwlock, errors, guardedLock =>
                 {
-                    // Expected: worker read IsDisposed==false, then Dispose() ran concurrently.
-                    // This is the documented "blocked-on-entry during Dispose" race; not a bug.
-                }
-                catch (Exception ex)
+                    var r = guardedLock.TryReadTimeout(TimeSpan.FromMilliseconds(1));
+                    if (r.TryGetValue(out var g)) g.Dispose();
+                }),
+                CreateWorkerThread(rwlock, errors, guardedLock =>
                 {
-                    errors.Add(ex);
-                }
-            }
-
-            threads.Add(new Thread(() => WorkerBody(() =>
-            {
-                var r = rwlock.TryRead();
-                if (r.TryGetValue(out var g)) g.Dispose();
-            })));
-
-            threads.Add(new Thread(() => WorkerBody(() =>
-            {
-                var r = rwlock.TryReadTimeout(TimeSpan.FromMilliseconds(1));
-                if (r.TryGetValue(out var g)) g.Dispose();
-            })));
-
-            threads.Add(new Thread(() => WorkerBody(() =>
-            {
-                var r = rwlock.TryWrite();
-                if (r.TryGetValue(out var g)) g.Dispose();
-            })));
-
-            threads.Add(new Thread(() => WorkerBody(() =>
-            {
-                var r = rwlock.TryWriteTimeout(TimeSpan.FromMilliseconds(1));
-                if (r.TryGetValue(out var g)) g.Dispose();
-            })));
+                    var r = guardedLock.TryWrite();
+                    if (r.TryGetValue(out var g)) g.Dispose();
+                }),
+                CreateWorkerThread(rwlock, errors, guardedLock =>
+                {
+                    var r = guardedLock.TryWriteTimeout(TimeSpan.FromMilliseconds(1));
+                    if (r.TryGetValue(out var g)) g.Dispose();
+                })
+            };
 
             foreach (var t in threads) t.Start();
 

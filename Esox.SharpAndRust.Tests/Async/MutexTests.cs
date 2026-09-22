@@ -531,31 +531,92 @@ public class MutexTests
         // Arrange
         const int threadCount = 10;
         var mutex = new Mutex<int>(0);
-        var successCount = 0;
+        var successCount = new[] { 0 };
 
         // Use a Barrier so all threads call TryLock at the same instant,
         // while the winner is still holding the lock.
         using var barrier = new Barrier(threadCount);
 
-        var tasks = Enumerable.Range(0, threadCount).Select(_ => Task.Run(() =>
+        var tasks = Enumerable.Range(0, threadCount)
+            .Select(_ => RunConcurrentTryLockAsync(mutex, barrier, successCount))
+            .ToArray();
+
+        await Task.WhenAll(tasks);
+
+        // Assert - exactly one task should have acquired the lock
+        Assert.Equal(1, successCount[0]);
+    }
+
+    private static Task RunConcurrentTryLockAsync(Mutex<int> mutex, Barrier barrier, int[] successCount)
+    {
+        return Task.Run(() =>
         {
             barrier.SignalAndWait(); // synchronise all threads before attempting
             var result = mutex.TryLock();
             if (result.IsSuccess)
             {
-                Interlocked.Increment(ref successCount);
+                Interlocked.Increment(ref successCount[0]);
                 if (result.TryGetValue(out var guard))
                 {
                     Thread.Sleep(100); // hold lock long enough for stragglers
                     guard.Dispose();
                 }
             }
-        })).ToArray();
+        });
+    }
 
-        await Task.WhenAll(tasks);
+    private static Thread StartTryLockTimeoutThread(
+        Mutex<int> mutex,
+        ManualResetEventSlim waitStarted,
+        TimeSpan timeout,
+        Action<Result<MutexGuard<int>, Error>> setResult)
+    {
+        return new Thread(() =>
+        {
+            waitStarted.Set();
+            setResult(mutex.TryLockTimeout(timeout));
+        });
+    }
 
-        // Assert - exactly one task should have acquired the lock
-        Assert.Equal(1, successCount);
+    private static Thread StartLockThread(
+        Mutex<int> mutex,
+        ManualResetEventSlim waitStarted,
+        Action<Result<MutexGuard<int>, Error>> setResult)
+    {
+        return new Thread(() =>
+        {
+            waitStarted.Set();
+            setResult(mutex.Lock());
+        });
+    }
+
+    private static Task<Result<MutexGuard<int>, Error>> StartLockAsync(Mutex<int> mutex)
+    {
+        return Task.Run(() => mutex.LockAsync());
+    }
+
+    private static Task<Result<MutexGuard<int>, Error>> StartLockAsync(
+        Mutex<int> mutex,
+        CancellationToken cancellationToken)
+    {
+        return Task.Run(() => mutex.LockAsync(cancellationToken), cancellationToken);
+    }
+
+    private static Task<Result<MutexGuard<int>, Error>> StartLockTimeoutAsync(
+        Mutex<int> mutex,
+        TimeSpan timeout,
+        CancellationToken cancellationToken = default)
+    {
+        return Task.Run(() => mutex.LockAsyncTimeout(timeout, cancellationToken), cancellationToken);
+    }
+
+    private static Task DisposeAfterDelayAsync(Mutex<int> mutex, TimeSpan delay)
+    {
+        return Task.Run(() =>
+        {
+            Thread.Sleep(delay);
+            mutex.Dispose();
+        });
     }
 
     [Fact]
@@ -640,7 +701,7 @@ public class MutexTests
     public void Mutex_WithComplexType_WorksCorrectly()
     {
         // Arrange
-        var mutex = new Mutex<Dictionary<string, int>>(new Dictionary<string, int>());
+        var mutex = new Mutex<Dictionary<string, int>>([]);
 
         // Act
         var result = mutex.Lock();
@@ -699,7 +760,7 @@ public class MutexTests
         var guard1 = await mutex.LockAsync();
 
         // Act - start async lock, then dispose mutex while waiting
-        var lockTask = Task.Run(async () => await mutex.LockAsync());
+        var lockTask = StartLockAsync(mutex);
         await Task.Delay(50); // Let it start waiting
         mutex.Dispose();
 
@@ -732,10 +793,10 @@ public class MutexTests
         // Act - queue multiple async lock attempts with cancellation support
         for (var i = 0; i < 5; i++)
         {
-            tasks.Add(Task.Run(() => mutex.LockAsync(cts.Token),cts.Token));
+            tasks.Add(StartLockAsync(mutex, cts.Token));
         }
 
-        await Task.Delay(100,cts.Token); // Let them all start waiting
+        await Task.Delay(100, cts.Token); // Let them all start waiting
 
         // Dispose mutex while tasks are waiting
         mutex.Dispose();
@@ -744,7 +805,7 @@ public class MutexTests
         if (initialGuard.TryGetValue(out var g)) g.Dispose();
 
         // Wait for tasks with timeout to prevent hanging
-        var timeoutTask = Task.Delay(5000,cts.Token); // 5 second timeout
+        var timeoutTask = Task.Delay(5000, cts.Token); // 5 second timeout
         var allTasksTask = Task.WhenAll(tasks);
         var completedTask = await Task.WhenAny(allTasksTask, timeoutTask);
 
@@ -753,7 +814,7 @@ public class MutexTests
         {
             await cts.CancelAsync();
             // Give tasks a moment to handle cancellation
-            await Task.WhenAny(allTasksTask, Task.Delay(1000,cts.Token));
+            await Task.WhenAny(allTasksTask, Task.Delay(1000, cts.Token));
         }
 
         // Assert - tasks should either fail with error or be cancelled
@@ -776,7 +837,7 @@ public class MutexTests
         var timeout = TimeSpan.FromSeconds(5);
 
         // Act - start timeout lock, then dispose while waiting
-        var lockTask = Task.Run(async () => await mutex.LockAsyncTimeout(timeout));
+        var lockTask = StartLockTimeoutAsync(mutex, timeout);
         await Task.Delay(30);
         mutex.Dispose();
 
@@ -803,8 +864,8 @@ public class MutexTests
         var timeout = TimeSpan.FromSeconds(10);
 
         // Act - start timeout lock, then cancel
-        var lockTask = Task.Run(() => mutex.LockAsyncTimeout(timeout, cts.Token),cts.Token);
-        await Task.Delay(50,cts.Token);
+        var lockTask = StartLockTimeoutAsync(mutex, timeout, cts.Token);
+        await Task.Delay(50, cts.Token);
         await cts.CancelAsync();
 
         var result = await lockTask;
@@ -828,12 +889,8 @@ public class MutexTests
         var mutex = new Mutex<int>(42);
 
         // Act - race between lock and dispose
-        var lockTask = Task.Run(async () => await mutex.LockAsync());
-        var disposeTask = Task.Run(() =>
-        {
-            Thread.Sleep(10); // Tiny delay to create race
-            mutex.Dispose();
-        });
+        var lockTask = StartLockAsync(mutex);
+        var disposeTask = DisposeAfterDelayAsync(mutex, TimeSpan.FromMilliseconds(10));
 
         await Task.WhenAll(lockTask, disposeTask);
         var result = await lockTask;
@@ -1008,11 +1065,7 @@ public class MutexTests
         var waitStarted = new ManualResetEventSlim(false);
 
         // Act - block a thread inside Lock(), then dispose from this thread
-        var waiter = new Thread(() =>
-        {
-            waitStarted.Set();
-            result = mutex.Lock();
-        });
+        var waiter = StartLockThread(mutex, waitStarted, value => result = value);
         waiter.Start();
 
         waitStarted.Wait();
@@ -1044,11 +1097,7 @@ public class MutexTests
         var timeout = TimeSpan.FromSeconds(10);
 
         // Act - block a thread inside TryLockTimeout(), then dispose from this thread
-        var waiter = new Thread(() =>
-        {
-            waitStarted.Set();
-            result = mutex.TryLockTimeout(timeout);
-        });
+        var waiter = StartTryLockTimeoutThread(mutex, waitStarted, timeout, value => result = value);
         waiter.Start();
 
         waitStarted.Wait();
@@ -1075,7 +1124,7 @@ public class MutexTests
         // Arrange
         var mutex = new Mutex<int>(42);
         var guard1 = mutex.Lock();
-        var waiterExited = false;
+        var waiterExited = new ManualResetEventSlim(false);
         var disposeCompleted = new ManualResetEventSlim(false);
         var waitStarted = new ManualResetEventSlim(false);
 
@@ -1084,7 +1133,7 @@ public class MutexTests
         {
             waitStarted.Set();
             mutex.Lock(); // will be cancelled by Dispose()
-            Volatile.Write(ref waiterExited, true);
+            waiterExited.Set();
         });
 
         var disposer = new Thread(() =>
@@ -1103,7 +1152,7 @@ public class MutexTests
 
         // Assert - Dispose() completed and the waiter thread had already exited the lock call
         Assert.True(completed, "Dispose() did not complete within the timeout.");
-        Assert.True(Volatile.Read(ref waiterExited),
+        Assert.True(waiterExited.IsSet,
             "Dispose() returned before the sync Lock() caller had fully exited.");
 
         waiter.Join(TimeSpan.FromSeconds(3));

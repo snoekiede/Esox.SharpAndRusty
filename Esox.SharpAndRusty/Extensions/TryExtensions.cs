@@ -57,7 +57,7 @@ public static class TryExtensions
     /// // Returns Result&lt;int, string&gt;
     /// </code>
     /// </example>
-    public static Result<T, E> Try<T, E>(Func<T> func, Func<Exception, E> errorMapper)
+    public static Result<T, E> Try<T, E>(Func<T> func, Func<Exception, E>? errorMapper)
     {
         if (func is null) throw new ArgumentNullException(nameof(func));
         if (errorMapper is null) throw new ArgumentNullException(nameof(errorMapper));

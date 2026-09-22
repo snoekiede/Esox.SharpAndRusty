@@ -380,7 +380,7 @@ public class ErrorTests
     public void TryGetMetadata_WithNullKey_ThrowsArgumentNullException()
     {
         var error = Error.New("Test");
-        Assert.Throws<ArgumentNullException>(() => error.TryGetMetadata(null!, out var value));
+        Assert.Throws<ArgumentNullException>(() => error.TryGetMetadata(null!, out _));
     }
 
 
@@ -516,7 +516,7 @@ public class ErrorTests
         var error = Error.New("Test");
 
         Assert.False(error.Equals(null));
-        Assert.True(error != null);
+        Assert.NotNull(error);
     }
 
     [Fact]
@@ -525,7 +525,6 @@ public class ErrorTests
         var error = Error.New("Test");
 
         Assert.True(error.Equals(error));
-        Assert.True(ReferenceEquals(error, error));
     }
 
 

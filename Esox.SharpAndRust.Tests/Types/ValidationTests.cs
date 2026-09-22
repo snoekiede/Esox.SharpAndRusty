@@ -460,7 +460,7 @@ public class ValidationTests
         var validation = Validation<int, string>.Valid(42);
 
         // Act
-        var result = validation.Bind(x =>
+        var result = validation.Bind(_ =>
             Validation<string, string>.Invalid("Validation failed"));
 
         // Assert
@@ -608,32 +608,32 @@ public class ValidationTests
         Assert.Contains("Email", errors[0]);
     }
 
-    private Validation<TestUser, string> ValidateForm(RegistrationForm form)
+    private static Validation<TestUser, string> ValidateForm(RegistrationForm form)
     {
         return ValidationExtensions.Apply(
             ValidateName(form.Name),
             ValidateEmail(form.Email),
             ValidateAge(form.Age),
             ValidatePassword(form.Password),
-            (name, email, age, password) => new TestUser(name, email, age));
+            (name, email, age, _) => new TestUser(name, email, age));
     }
 
-    private Validation<string, string> ValidateName(string name) =>
+    private static Validation<string, string> ValidateName(string name) =>
         !string.IsNullOrWhiteSpace(name) && name.Length >= 3
             ? Validation<string, string>.Valid(name)
             : Validation<string, string>.Invalid("Name must be at least 3 characters");
 
-    private Validation<string, string> ValidateEmail(string email) =>
-        email.Contains("@") && email.Contains(".")
+    private static Validation<string, string> ValidateEmail(string email) =>
+        email.Contains('@') && email.Contains('.')
             ? Validation<string, string>.Valid(email)
             : Validation<string, string>.Invalid("Email must be valid");
 
-    private Validation<int, string> ValidateAge(int age) =>
-        age >= 18 && age <= 120
+    private static Validation<int, string> ValidateAge(int age) =>
+        age is >= 18 and <= 120
             ? Validation<int, string>.Valid(age)
             : Validation<int, string>.Invalid("Age must be between 18 and 120");
 
-    private Validation<string, string> ValidatePassword(string password) =>
+    private static Validation<string, string> ValidatePassword(string password) =>
         password.Length >= 8
             ? Validation<string, string>.Valid(password)
             : Validation<string, string>.Invalid("Password must be at least 8 characters");
@@ -667,31 +667,31 @@ public class ValidationTests
         Assert.True(errors.Count >= 2); // At least database and timeout errors
     }
 
-    private Validation<AppConfig, string> ValidateConfig(AppConfig config)
+    private static Validation<AppConfig, string> ValidateConfig(AppConfig config)
     {
         return ValidationExtensions.Apply(
             ValidateDatabase(config.DatabaseUrl),
             ValidateCache(config.CacheUrl),
             ValidateLogging(config.EnableLogging),
             ValidateTimeout(config.TimeoutSeconds),
-            (db, cache, logging, timeout) => config);
+            (_, _, _, _) => config);
     }
 
-    private Validation<string, string> ValidateDatabase(string url) =>
+    private static Validation<string, string> ValidateDatabase(string url) =>
         !string.IsNullOrWhiteSpace(url)
             ? Validation<string, string>.Valid(url)
             : Validation<string, string>.Invalid("Database URL is required");
 
-    private Validation<string, string> ValidateCache(string url) =>
+    private static Validation<string, string> ValidateCache(string url) =>
         !string.IsNullOrWhiteSpace(url)
             ? Validation<string, string>.Valid(url)
             : Validation<string, string>.Invalid("Cache URL is required");
 
-    private Validation<bool, string> ValidateLogging(bool enabled) =>
+    private static Validation<bool, string> ValidateLogging(bool enabled) =>
         Validation<bool, string>.Valid(enabled); // Always valid
 
-    private Validation<int, string> ValidateTimeout(int seconds) =>
-        seconds > 0 && seconds <= 300
+    private static Validation<int, string> ValidateTimeout(int seconds) =>
+        seconds is > 0 and <= 300
             ? Validation<int, string>.Valid(seconds)
             : Validation<int, string>.Invalid("Timeout must be between 1 and 300 seconds");
 
@@ -714,22 +714,22 @@ public class ValidationTests
         Assert.Contains("Name", error);
     }
 
-    private Result<string, string> ValidateNameResult(string name) =>
+    private static Result<string, string> ValidateNameResult(string name) =>
         !string.IsNullOrWhiteSpace(name) && name.Length >= 3
             ? Result<string, string>.Ok(name)
             : Result<string, string>.Err("Name must be at least 3 characters");
 
-    private Result<string, string> ValidateEmailResult(string email) =>
-        email.Contains("@")
+    private static Result<string, string> ValidateEmailResult(string email) =>
+        email.Contains('@')
             ? Result<string, string>.Ok(email)
             : Result<string, string>.Err("Email must be valid");
 
-    private Result<int, string> ValidateAgeResult(int age) =>
+    private static Result<int, string> ValidateAgeResult(int age) =>
         age >= 18
             ? Result<int, string>.Ok(age)
             : Result<int, string>.Err("Age must be at least 18");
 
-    private Result<string, string> ValidatePasswordResult(string password) =>
+    private static Result<string, string> ValidatePasswordResult(string password) =>
         password.Length >= 8
             ? Result<string, string>.Ok(password)
             : Result<string, string>.Err("Password must be at least 8 characters");

@@ -116,7 +116,7 @@ public abstract record Validation<T, E>
         {
             Success success => new Validation<T, E2>.Success(success.Value),
             Failure failure => new Validation<T, E2>.Failure(
-                failure.Errors.Select(errorMapper).ToImmutableList()),
+                [.. failure.Errors.Select(errorMapper)]),
             _ => throw new InvalidOperationException("Validation is in an invalid state.")
         };
     }
@@ -201,7 +201,7 @@ public abstract record Validation<T, E>
         /// <summary>
         ///     Creates a Failure with multiple errors.
         /// </summary>
-        public Failure(IEnumerable<E> errors) : this(errors.ToImmutableList())
+        public Failure(IEnumerable<E> errors) : this([.. errors])
         {
         }
     }

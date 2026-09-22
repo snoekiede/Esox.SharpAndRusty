@@ -40,7 +40,7 @@ public class OptionExtensionsAdvancedTests
         var predicateCalled = false;
 
         // Act
-        var result = option.Filter(x =>
+        var result = option.Filter(_ =>
         {
             predicateCalled = true;
             return true;
@@ -463,7 +463,7 @@ public class OptionExtensionsAdvancedTests
         var actionCalled = false;
 
         // Act
-        var result = option.Inspect(x => actionCalled = true);
+        var result = option.Inspect(_ => actionCalled = true);
 
         // Assert
         Assert.False(actionCalled);
@@ -478,12 +478,12 @@ public class OptionExtensionsAdvancedTests
         var log = new List<string>();
 
         // Act
-        var result = option
-            .Inspect(x => log.Add($"Initial: {x}"))
-            .Map(x => x * 2)
-            .Inspect(x => log.Add($"After map: {x}"))
-            .Filter(x => x > 15)
-            .Inspect(x => log.Add($"After filter: {x}"));
+        option
+            .Inspect(i => log.Add($"Initial: {i}"))
+            .Map(i => i * 2)
+            .Inspect(i => log.Add($"After map: {i}"))
+            .Filter(i => i > 15)
+            .Inspect(i => log.Add($"After filter: {i}"));
 
         // Assert
         Assert.Equal(3, log.Count);

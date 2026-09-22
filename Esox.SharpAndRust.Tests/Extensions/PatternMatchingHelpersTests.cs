@@ -418,7 +418,7 @@ public class PatternMatchingHelpersTests
         var factoryCalled = false;
 
         // Act
-        var value = result.GetValueOrElse(error =>
+        var value = result.GetValueOrElse(_ =>
         {
             factoryCalled = true;
             return 99;
@@ -610,11 +610,7 @@ public class PatternMatchingHelpersTests
             .GetOrElse(() =>
             {
                 // Try fallback 1
-                return new Option<int>.None().GetOrElse(() =>
-                {
-                    // Try fallback 2
-                    return 99; // Final fallback
-                });
+                return new Option<int>.None().GetOrElse(() => 99);
             });
 
         // Assert

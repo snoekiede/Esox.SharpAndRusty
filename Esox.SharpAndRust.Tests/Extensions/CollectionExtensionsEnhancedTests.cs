@@ -668,9 +668,10 @@ public class CollectionExtensionsEnhancedTests
         // Assert - SequenceAll accumulates all errors
         Assert.True(sequenceAll.IsFailure);
         Assert.True(sequenceAll.TryGetError(out var allErrors));
-        Assert.Equal(2, allErrors.Count());
-        Assert.Contains("error1", allErrors);
-        Assert.Contains("error2", allErrors);
+        var collection = allErrors.ToList();
+        Assert.Equal(2, collection.Count);
+        Assert.Contains("error1", collection);
+        Assert.Contains("error2", collection);
 
         // Assert - Sequence short-circuits on first error
         Assert.True(sequence.IsFailure);
