@@ -1,12 +1,12 @@
 ﻿# Esox.SharpAndRusty
 
-A production-ready C# library that brings Rust-inspired patterns to .NET, including `Result<T, E>` for type-safe error handling and `Option<T>` for representing optional values without null references.
+A production-focused C# library that brings Rust-inspired patterns to .NET, including `Result<T, E>` for type-safe error handling and `Option<T>` for representing optional values without null references.
 
 ## ⚠️ Disclaimer
 
 This library is provided "as is" without warranty of any kind, either express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose, and non-infringement. In no event shall the authors or copyright holders be liable for any claim, damages, or other liability, whether in an action of contract, tort, or otherwise, arising from, out of, or in connection with the software or the use or other dealings in the software.
 
-**Use at your own risk.** While this library has been designed to be production-ready with comprehensive test coverage, it is your responsibility to evaluate its suitability for your specific use case and to test it thoroughly in your environment before deploying to production.
+**Use at your own risk.** The library is maintained and tested for production use, but it is your responsibility to evaluate its suitability for your specific use case and test it in your environment before deployment.
 
 ## Features
 
@@ -28,7 +28,7 @@ This library is provided "as is" without warranty of any kind, either express or
 - ✅ **Collection Operations**: `Combine` and `Partition` for batch processing
 - ✅ **Full Async Support**: Complete async/await integration with `MapAsync`, `BindAsync`, `TapAsync`, and more
 - ✅ **Cancellation Support**: All async methods support `CancellationToken` for graceful operation cancellation
-- ✅ **.NET 10 Compatible**: Built for the latest .NET platform with C# 14
+- ✅ **Multi-targeted**: Core and EF Core packages target .NET 8, .NET 9, and .NET 10; the analyzer targets .NET Standard 2.0
 - ✨ **Roslyn Analyzer**: Enforces proper Result/Option handling at compile-time (like Rust's `#[must_use]`)
 - 🧪 **Experimental: Mutex<T>**: Rust-inspired mutual exclusion primitive with Result-based locking, safe async disposal, and cooperative cancellation (works in both sync and async contexts)
 - 🧪 **Experimental: RwLock<T>**: Rust-inspired reader-writer lock for shared data access (synchronous only — **guards must not be held across an `await`**)
@@ -43,15 +43,56 @@ This library is provided "as is" without warranty of any kind, either express or
 
 ## Installation
 
+Install the core package from NuGet:
+
+```bash
+dotnet add package Esox.SharpAndRusty
+```
+
+For Entity Framework Core integrations, install the optional package:
+
+```bash
+dotnet add package Esox.SharpAndRusty.EntityFrameworkCore
+```
+
+The analyzer is optional and can be added when compile-time warnings for ignored `Result` and `Option` values are desired:
+
+```bash
+dotnet add package Esox.SharpAndRusty.Analyzers
+```
+
+### Build and test from source
+
 ```bash
 # Clone the repository
 git clone https://github.com/snoekiede/Esox.SharpAndRusty.git
+cd Esox.SharpAndRusty
 
-# Build the project
-dotnet build
+# Build the solution
+dotnet build Esox.SharpAndRusty.slnx
 
 # Run tests
-dotnet test
+dotnet test Esox.SharpAndRusty.slnx
+```
+
+### Release validation
+
+The release validation workflow builds all configured target frameworks, runs the tests, scans dependencies for known vulnerabilities, and creates the NuGet packages:
+
+```bash
+dotnet restore Esox.SharpAndRusty.slnx
+dotnet build Esox.SharpAndRusty.slnx --configuration Release
+dotnet test Esox.SharpAndRusty.slnx --configuration Release -p:ContinuousIntegrationBuild=true
+dotnet list Esox.SharpAndRusty.slnx package --vulnerable --include-transitive
+dotnet pack Esox.SharpAndRusty.slnx --configuration Release --no-build
+```
+
+Assembly signing is optional for local builds. Configure a secure key path for signed releases:
+
+```bash
+dotnet pack Esox.SharpAndRusty.slnx --configuration Release \
+  -p:SignAssembly=true \
+  -p:EsoxSigningKeyFile=/secure/path/Esox.SharpAndRusty.snk
 ```
 
 ## Quick Start
