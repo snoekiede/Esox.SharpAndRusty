@@ -1157,10 +1157,12 @@ public class MutexTests
         // Allow up to 3 seconds for Dispose() to complete
         var completed = disposeCompleted.Wait(TimeSpan.FromSeconds(3));
 
-        // Assert - Dispose() completed and the waiter thread had already exited the lock call
+        // Assert - Dispose() completed, and the waiter has left Lock(). Dispose() only guarantees that
+        // Lock() has exited its critical region; the waiter's next statement may run slightly later,
+        // so wait for the signal rather than sampling it.
         Assert.True(completed, "Dispose() did not complete within the timeout.");
-        Assert.True(waiterExited.IsSet,
-            "Dispose() returned before the sync Lock() caller had fully exited.");
+        Assert.True(waiterExited.Wait(TimeSpan.FromSeconds(3)),
+            "The sync Lock() caller did not exit after Dispose() completed.");
 
         waiter.Join(TimeSpan.FromSeconds(3));
         disposer.Join(TimeSpan.FromSeconds(3));
