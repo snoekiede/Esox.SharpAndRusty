@@ -258,6 +258,68 @@ public static class ResultAsyncExtensions
         }
 
         /// <summary>
+        ///     Validates the success value of a Task-wrapped result against a predicate, switching to the failure track
+        ///     when the predicate is false. A failed result is returned unchanged and the predicate is not called.
+        /// </summary>
+        /// <param name="predicate">The condition the success value must satisfy.</param>
+        /// <param name="errorFactory">Creates the error from the offending value when the predicate returns false.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
+        /// <returns>A task containing the original result, or a failure when the predicate does not hold.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when resultTask, predicate, or errorFactory is null.</exception>
+        /// <exception cref="OperationCanceledException">Thrown when the operation is cancelled via the cancellation token.</exception>
+        /// <example>
+        ///     <code>
+        /// var result = await GetUserAsync(userId, ct)
+        ///     .EnsureAsync(u => u.IsActive, u => $"User {u.Id} is inactive", ct);
+        /// </code>
+        /// </example>
+        public async Task<Result<T, E>> EnsureAsync(
+            Func<T, bool> predicate,
+            Func<T, E> errorFactory,
+            CancellationToken cancellationToken = default)
+        {
+            if (resultTask is null) throw new ArgumentNullException(nameof(resultTask));
+            ArgumentNullException.ThrowIfNull(predicate);
+            ArgumentNullException.ThrowIfNull(errorFactory);
+
+            var result = await resultTask.ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return result.Ensure(predicate, errorFactory);
+        }
+
+        /// <summary>
+        ///     Validates the success value of a Task-wrapped result against an asynchronous predicate, switching to the
+        ///     failure track when the predicate is false. A failed result is returned unchanged and the predicate is not called.
+        /// </summary>
+        /// <param name="predicate">The asynchronous condition the success value must satisfy.</param>
+        /// <param name="errorFactory">Creates the error from the offending value when the predicate returns false.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
+        /// <returns>A task containing the original result, or a failure when the predicate does not hold.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when resultTask, predicate, or errorFactory is null.</exception>
+        /// <exception cref="OperationCanceledException">Thrown when the operation is cancelled via the cancellation token.</exception>
+        public async Task<Result<T, E>> EnsureAsync(
+            Func<T, Task<bool>> predicate,
+            Func<T, E> errorFactory,
+            CancellationToken cancellationToken = default)
+        {
+            if (resultTask is null) throw new ArgumentNullException(nameof(resultTask));
+            ArgumentNullException.ThrowIfNull(predicate);
+            ArgumentNullException.ThrowIfNull(errorFactory);
+
+            var result = await resultTask.ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (!result.TryGetValue(out var value))
+                return result;
+
+            var holds = await predicate(value).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return holds ? result : Result<T, E>.Err(errorFactory(value));
+        }
+
+        /// <summary>
         ///     Provides an alternative result from an async function if the Task-wrapped result is a failure.
         /// </summary>
         /// <param name="asyncAlternative">An async function that produces an alternative result based on the error.</param>

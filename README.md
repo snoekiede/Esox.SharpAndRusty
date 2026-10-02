@@ -17,6 +17,9 @@ This library is provided "as is" without warranty of any kind, either express or
 - ✅ **Zero Overhead**: `Result<T,E>` is a `readonly struct` for minimal allocation pressure
 - ✅ **ExtendedResult<T,TE>**: Record-based alternative with sealed `Success`/`Failure` subtypes for exhaustive C# switch expressions and structural equality
 - ✅ **Functional Composition**: Chain operations with `Map`, `Bind`, `MapError`, and `OrElse`
+- ✅ **Railway-Oriented Programming**: Build flat success/failure pipelines with `Bind`, `Map`, `Ensure`, `Tap`, `MapError`, and `OrElse` (see [Railway-Oriented Programming](#-railway-oriented-programming))
+- ✅ **Error Accumulation**: `Validation<T,E>` with `Apply`, `TraverseValidation`, and `Sequence` collects *all* errors instead of stopping at the first
+- ✅ **Either and Collection Helpers**: `Either<L,R>`, plus `Traverse`, `Sequence`, `SequenceAll`, and `Partition` for working with collections of results
 - ✅ **Pattern Matching**: Use the `Match` method for elegant success/failure handling
 - ✅ **Full Equality Support**: Implements `IEquatable<T>` with proper `==`, `!=`, and `GetHashCode()`
 - ✅ **Implicit Conversions**: Concise result and option creation with `Result<int, string> r = 42;` and `Option<int> o = 42;`
@@ -135,7 +138,7 @@ Option<int> FindUser(int id) => id > 0
     : new Option<int>.None();
 
 var userOption = FindUser(42);
-var message = userOption switch
+var optionMessage = userOption switch
 {
     Option<int>.Some(var id) => $"Found user {id}",
     Option<int>.None => "User not found",
@@ -149,6 +152,106 @@ Result<int, Error> parsedAge = "42".TryParse<int>();
 Option<int> ageOption = parsedAge.ValueOption();
 Option<Error> parseErrorOption = parsedAge.ErrorOption();
 ```
+
+## 🚂 Railway-Oriented Programming
+
+A workflow built from Result types has two tracks: a **success track** and a **failure track**. Every step runs only while you are still on the success track. The first failure switches you to the failure track, and the remaining steps are skipped. This approach is known as *railway-oriented programming* (popularised by Scott Wlaschin for F#), and it replaces nested `if`/`try` blocks with a flat pipeline.
+
+| Railway concept | In Esox.SharpAndRusty |
+|---|---|
+| Success / failure track | `Ok` / `Err` on `Result<T, E>` |
+| Switch function (a step that can fail) | `Bind`, or `from ... in ...` in a LINQ query |
+| Single-track function (a step that cannot fail) | `Map` |
+| Check a condition on the success track | `Ensure` |
+| Adapting code that throws | `Try` / `TryAsync` |
+| Side effect that leaves the result unchanged | `Tap`, `Inspect`, `InspectErr` |
+| Translating the error type | `MapError` |
+| Recovering back onto the success track | `OrElse` |
+| Running steps independently and collecting *all* errors | `Validation<T, E>` (see below) |
+| End of the line | `Match`, `UnwrapOr` |
+
+```csharp
+using Esox.SharpAndRusty.Extensions;
+using Esox.SharpAndRusty.Types;
+
+Result<int, string> ParseQuantity(string raw) =>
+    int.TryParse(raw, out var n) ? n : $"'{raw}' is not a number";
+
+Result<Order, string> PlaceOrder(OrderRequest request) =>
+    ParseQuantity(request.Quantity)                                  // start on the success track
+        .Ensure(q => q > 0, q => $"Quantity must be positive, got {q}")
+        .Ensure(q => q <= 100, "Quantity is limited to 100")
+        .Map(q => new Order(request.CustomerId, q))                  // single-track function
+        .Tap(
+            order => Console.WriteLine($"Accepted order for {order.CustomerId}"),
+            error => Console.WriteLine($"Rejected: {error}"));       // side effect, result unchanged
+
+var message = PlaceOrder(new OrderRequest("c-1", "250")).Match(
+    success: order => $"Order placed: {order.Quantity} item(s)",
+    failure: error => $"Order rejected: {error}");
+// "Order rejected: Quantity is limited to 100" - no exception was thrown anywhere
+
+record OrderRequest(string CustomerId, string Quantity);   // types go at the bottom of Program.cs
+record Order(string CustomerId, int Quantity);
+```
+
+Code that throws joins the railway through `Try`, and `Bind` continues from there:
+
+```csharp
+Result<string, string> ReadConfig(string path) =>
+    Result<string, string>.Try(
+        () => File.ReadAllText(path),
+        ex => $"Cannot read '{path}': {ex.Message}");
+
+Result<int, string> QuantityFromFile(string path) =>
+    ReadConfig(path).Bind(ParseQuantity);
+
+// Recover back onto the success track, or translate the error type
+var withDefault = ParseQuantity("oops").OrElse(_ => Result<int, string>.Ok(1));
+var errorLength = ParseQuantity("oops").MapError(text => text.Length);
+```
+
+### Collecting all errors with `Validation<T, E>`
+
+A `Result` pipeline is **fail-fast**: later steps usually depend on earlier ones, so it stops at the first error. When the steps are *independent* (for example the fields of a form) you usually want every error at once. `Validation<T, E>` is the parallel-track counterpart: it accumulates errors instead of stopping.
+
+```csharp
+Validation<string, string> ValidateEmail(string email) =>
+    email.Contains('@')
+        ? Validation<string, string>.Valid(email)
+        : Validation<string, string>.Invalid("Email must contain '@'");
+
+Validation<int, string> ValidateAge(int age) =>
+    age >= 18
+        ? Validation<int, string>.Valid(age)
+        : Validation<int, string>.Invalid("Must be at least 18");
+
+var signup = ValidationExtensions.Apply(
+    ValidateEmail("nope"),
+    ValidateAge(15),
+    (email, age) => new Signup(email, age));
+// Invalid: ["Email must contain '@'", "Must be at least 18"] - both errors, not just the first
+
+// Back onto a single track when you need a Result again
+Result<Signup, string> asResult = signup.ToResult(errors => string.Join("; ", errors));
+// Err("Email must contain '@'; Must be at least 18")
+
+record Signup(string Email, int Age);
+```
+
+For collections, `TraverseValidation` validates every element and collects all errors, while `Traverse` (for `Result`) stops at the first one:
+
+```csharp
+var parsed = new[] { "1", "x", "3", "y" }.TraverseValidation(s =>
+    int.TryParse(s, out var n)
+        ? Validation<int, string>.Valid(n)
+        : Validation<int, string>.Invalid($"'{s}' is not a number"));
+// Invalid: ["'x' is not a number", "'y' is not a number"]
+```
+
+**Rule of thumb:** use `Result` when steps depend on each other (fail fast), and `Validation` when steps are independent and the caller benefits from seeing every problem.
+
+**When not to use it:** Result types model *expected* failures (bad input, missing data, a rejected request). Programming errors and unrecoverable conditions are still best expressed as exceptions, and a pipeline of two trivial steps is often clearer as plain code.
 
 ## 🔍 Roslyn Analyzer - Compile-Time Safety (Optional)
 
@@ -220,8 +323,6 @@ _ = GetResult();
 ```
 
 **Learn More:**
-- [Analyzer Quick Start Guide](ANALYZER_QUICK_START.md)
-- [Complete Implementation Details](ROSLYN_ANALYZER_SUMMARY.md)
 - [Analyzer README](Esox.SharpAndRusty.Analyzers/README.md)
 
 ## Usage Examples
@@ -470,12 +571,12 @@ Result<int, string> GetUserAge() => Result<int, string>.Ok(25);
 
 // Transform the success value
 var result = GetUserAge()
-    .Map<int, string, string>(age => $"User is {age} years old");
+    .Map(age => $"User is {age} years old");
 // Result: Ok("User is 25 years old")
 
 // Errors propagate automatically
 Result<int, string> failed = Result<int, string>.Err("User not found");
-var mappedFailed = failed.Map<int, string, string>(age => $"User is {age} years old");
+var mappedFailed = failed.Map(age => $"User is {age} years old");
 // Result: Err("User not found")
 ```
 
@@ -579,9 +680,9 @@ var result = from x in GetValue()
 
 ```csharp
 var result = ParseInt("42")
-    .Map<int, string, int>(x => x * 2)              // Transform value: 42 -> 84
+    .Map(x => x * 2)              // Transform value: 42 -> 84
     .Bind(x => Divide(x, 2))                         // Chain operation: 84 / 2 = 42
-    .Map<int, string, string>(x => $"Result: {x}"); // Transform to string
+    .Map(x => $"Result: {x}"); // Transform to string
 // Result: Ok("Result: 42")
 ```
 
@@ -614,7 +715,7 @@ Execute side effects without transforming the result:
 var result = GetUser(userId)
     .Inspect(user => Logger.Info($"Found user: {user.Name}"))
     .InspectErr(error => Logger.Error($"User lookup failed: {error}"))
-    .Map<User, string, string>(user => user.Email);
+    .Map(user => user.Email);
 
 // Logs are written, but result is transformed only on success
 ```
@@ -741,8 +842,6 @@ var detailedError = error.CaptureStackTrace(includeFileInfo: true);    // Detail
 - `UnauthorizedAccessException` → `PermissionDenied`
 - And more...
 
-See [ERROR_TYPE.md](../ERROR_TYPE.md) for comprehensive Error type documentation.
-See [ERROR_TYPE_PRODUCTION_IMPROVEMENTS.md](../ERROR_TYPE_PRODUCTION_IMPROVEMENTS.md) for detailed production optimization information.
 
 ---
 
@@ -1047,8 +1146,6 @@ Record-based result type. `Success` and `Failure` are sealed records, enabling e
 - `int GetHashCode()` - Hash combines a discriminant (1 for Success, 2 for Failure) with the inner value
 - `string ToString()` - Returns `"Ok(value)"` or `"Err(error)"`
 
-### Extension Methods (ResultExtensions)
-
 ### Extension Methods (ParseExtensions)
 
 Out-free wrappers for TryParse-style APIs:
@@ -1095,6 +1192,28 @@ var result = Result<int, string>.Ok(10)
         ? Result<int, string>.Ok(x * 2) 
         : Result<int, string>.Err("Must be positive"));
 // Result: Ok(20)
+```
+
+#### `Ensure`
+
+Checks a condition on the success value and switches to the failure track when it does not hold. A result that is already a failure is returned unchanged and the predicate is not called:
+
+```csharp
+Result<T, E> Ensure<T, E>(this Result<T, E> result, Func<T, bool> predicate, Func<T, E> errorFactory)
+Result<T, E> Ensure<T, E>(this Result<T, E> result, Func<T, bool> predicate, E error)
+Task<Result<T, E>> EnsureAsync<T, E>(this Task<Result<T, E>> resultTask, Func<T, bool> predicate, Func<T, E> errorFactory, CancellationToken cancellationToken = default)
+Task<Result<T, E>> EnsureAsync<T, E>(this Task<Result<T, E>> resultTask, Func<T, Task<bool>> predicate, Func<T, E> errorFactory, CancellationToken cancellationToken = default)
+```
+
+`ExtendedResult<T, E>` has the same synchronous overloads.
+
+**Example:**
+
+```csharp
+var result = Result<int, string>.Ok(150)
+    .Ensure(x => x > 0, "Must be positive")
+    .Ensure(x => x < 100, x => $"{x} must be below 100");
+// Result: Err("150 must be below 100")
 ```
 
 #### `Select<U>` (LINQ Support)
@@ -1181,7 +1300,6 @@ A rich error type inspired by Rust's error handling patterns with **production-g
 - Circular detection: O(1) per node
 - Memory: Immutable with structural sharing
 
-See [ERROR_TYPE_PRODUCTION_IMPROVEMENTS.md](../ERROR_TYPE_PRODUCTION_IMPROVEMENTS.md) for complete optimization details.
 
 ## Why Use Result Types?
 
@@ -1421,8 +1539,3 @@ The `Mutex<T>` and `RwLock<T>` APIs are currently experimental and may undergo c
 **Recommendation:** Ensure all work that may acquire the lock has finished before calling `Dispose()` — for example at application shutdown or after draining a work queue.
 
 For complete synchronization primitives documentation, see the [Advanced Features Guide](Esox.SharpAndRusty/ADVANCED_FEATURES.md).
-
-## Why Use Result Types?
-
-
-

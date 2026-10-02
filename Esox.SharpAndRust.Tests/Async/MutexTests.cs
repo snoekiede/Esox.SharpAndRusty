@@ -536,9 +536,10 @@ public class MutexTests
         // Use a Barrier so all threads call TryLock at the same instant,
         // while the winner is still holding the lock.
         using var barrier = new Barrier(threadCount);
+        using var allAttempted = new CountdownEvent(threadCount);
 
         var tasks = Enumerable.Range(0, threadCount)
-            .Select(_ => RunConcurrentTryLockAsync(mutex, barrier, successCount))
+            .Select(_ => RunConcurrentTryLockAsync(mutex, barrier, allAttempted, successCount))
             .ToArray();
 
         await Task.WhenAll(tasks);
@@ -547,22 +548,28 @@ public class MutexTests
         Assert.Equal(1, successCount[0]);
     }
 
-    private static Task RunConcurrentTryLockAsync(Mutex<int> mutex, Barrier barrier, int[] successCount)
+    private static Task RunConcurrentTryLockAsync(
+        Mutex<int> mutex,
+        Barrier barrier,
+        CountdownEvent allAttempted,
+        int[] successCount)
     {
-        return Task.Run(() =>
+        return Task.Factory.StartNew(() =>
         {
             barrier.SignalAndWait(); // synchronise all threads before attempting
             var result = mutex.TryLock();
+            allAttempted.Signal();
             if (result.IsSuccess)
             {
                 Interlocked.Increment(ref successCount[0]);
                 if (result.TryGetValue(out var guard))
                 {
-                    Thread.Sleep(100); // hold lock long enough for stragglers
+                    // Hold the lock until every thread has made its attempt.
+                    allAttempted.Wait();
                     guard.Dispose();
                 }
             }
-        });
+        }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
     }
 
     private static Thread StartTryLockTimeoutThread(
@@ -1150,10 +1157,12 @@ public class MutexTests
         // Allow up to 3 seconds for Dispose() to complete
         var completed = disposeCompleted.Wait(TimeSpan.FromSeconds(3));
 
-        // Assert - Dispose() completed and the waiter thread had already exited the lock call
+        // Assert - Dispose() completed, and the waiter has left Lock(). Dispose() only guarantees that
+        // Lock() has exited its critical region; the waiter's next statement may run slightly later,
+        // so wait for the signal rather than sampling it.
         Assert.True(completed, "Dispose() did not complete within the timeout.");
-        Assert.True(waiterExited.IsSet,
-            "Dispose() returned before the sync Lock() caller had fully exited.");
+        Assert.True(waiterExited.Wait(TimeSpan.FromSeconds(3)),
+            "The sync Lock() caller did not exit after Dispose() completed.");
 
         waiter.Join(TimeSpan.FromSeconds(3));
         disposer.Join(TimeSpan.FromSeconds(3));

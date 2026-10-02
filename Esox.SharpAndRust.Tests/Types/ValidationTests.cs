@@ -735,6 +735,41 @@ public class ValidationTests
             : Result<string, string>.Err("Password must be at least 8 characters");
 
 
+    [Fact]
+    public void ToString_Valid_UsesDocumentedFormat()
+    {
+        var validation = Validation<int, string>.Valid(42);
+
+        Assert.Equal("Valid(42)", validation.ToString());
+    }
+
+    [Fact]
+    public void ToString_InvalidWithSingleError_UsesDocumentedFormat()
+    {
+        var validation = Validation<int, string>.Invalid("Must be positive");
+
+        Assert.Equal("Invalid([Must be positive])", validation.ToString());
+    }
+
+    [Fact]
+    public void ToString_InvalidWithMultipleErrors_ListsAllErrors()
+    {
+        var validation = Validation<int, string>.Invalid(["Email is required", "Age must be at least 18"]);
+
+        Assert.Equal("Invalid([Email is required, Age must be at least 18])", validation.ToString());
+    }
+
+    [Fact]
+    public void ToString_Interpolated_DoesNotExposeRecordInternals()
+    {
+        var validation = Validation<int, string>.Invalid("bad");
+
+        var text = $"{validation}";
+
+        Assert.DoesNotContain("ImmutableList", text);
+        Assert.DoesNotContain("IsSuccess", text);
+    }
+
     private record TestUser(string Name, string Email, int Age);
 
     private record RegistrationForm(string Name, string Email, int Age, string Password);

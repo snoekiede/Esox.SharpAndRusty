@@ -445,9 +445,7 @@ public class ExtendedResultTests
 
         var str = result.ToString();
 
-        // Records have their own ToString, so check it contains the value
-        Assert.Contains("Success", str);
-        Assert.Contains("42", str);
+        Assert.Equal("Ok(42)", str);
     }
 
     [Fact]
@@ -457,9 +455,7 @@ public class ExtendedResultTests
 
         var str = result.ToString();
 
-        // Records have their own ToString, so check it contains the error
-        Assert.Contains("Failure", str);
-        Assert.Contains("Something went wrong", str);
+        Assert.Equal("Err(Something went wrong)", str);
     }
 
     [Fact]
@@ -481,7 +477,7 @@ public class ExtendedResultTests
 
         var str = result.ToString();
 
-        Assert.Contains("Success", str);
+        Assert.Equal("Ok()", str);
     }
 
     [Fact]
@@ -491,7 +487,7 @@ public class ExtendedResultTests
 
         var str = result.ToString();
 
-        Assert.Contains("Failure", str);
+        Assert.Equal("Err()", str);
     }
 
 
