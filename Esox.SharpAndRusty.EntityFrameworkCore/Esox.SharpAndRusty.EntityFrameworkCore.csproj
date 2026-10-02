@@ -2,14 +2,21 @@
 
     <PropertyGroup>
         <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
-        <Version>1.0.1</Version>
+        <Version>1.1.0</Version>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <LangVersion>14.0</LangVersion>
         <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
         <PackageReadmeFile>README.md</PackageReadmeFile>
-        <Description>Some EF net core extensions so we can use the Result&lt;&gt; and Option&lt;&gt; types</Description>
-        <Copyright>(c) 2026 Codenomad</Copyright>
+        <Description>Entity Framework Core extensions for Esox.SharpAndRusty Result and Option types.</Description>
+        <Copyright>(c) 2026 Esox Solutions</Copyright>
+        <Authors>Iede Snoek</Authors>
+        <Company>Esox Solutions</Company>
+        <RepositoryUrl>https://github.com/snoekiede/Esox.SharpAndRusty</RepositoryUrl>
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
         <PackageProjectUrl>https://github.com/snoekiede/Esox.SharpAndRusty</PackageProjectUrl>
     </PropertyGroup>
 
@@ -19,7 +26,9 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.2"/>
-        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.5"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.18" Condition="'$(TargetFramework)' == 'net8.0'"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.5" Condition="'$(TargetFramework)' == 'net9.0'"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.0" Condition="'$(TargetFramework)' == 'net10.0'"/>
     </ItemGroup>
 
     <ItemGroup>

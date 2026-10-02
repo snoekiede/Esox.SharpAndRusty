@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
+using Esox.SharpAndRusty.Analyzers;
 
 namespace Esox.SharpAndRusty.Analyzers.Tests
 {
@@ -243,9 +244,31 @@ public class TestClass
             await VerifyAnalyzerAsync(test);
         }
 
+        [Fact]
+        public async Task UnrelatedResultType_DoesNotReportDiagnostic()
+        {
+            var test = @"
+namespace OtherLibrary
+{
+    public class Result<T, E> { }
+}
+
+public class TestClass
+{
+    public OtherLibrary.Result<int, string> GetResult() => new();
+
+    public void TestMethod()
+    {
+        GetResult();
+    }
+}";
+
+            await VerifyAnalyzerAsync(test);
+        }
+
         private static async Task VerifyAnalyzerAsync(string source, params DiagnosticResult[] expected)
         {
-            var test = new CSharpAnalyzerTest<UnhandledResultAnalyzer, XUnitVerifier>
+            var test = new CSharpAnalyzerTest<UnhandledResultAnalyzer, DefaultVerifier>
             {
                 TestCode = source,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net80,

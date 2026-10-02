@@ -2,6 +2,7 @@
 using Esox.SharpAndRusty.EntityFrameworkCore.Extensions;
 using Esox.SharpAndRusty.EntityFrameworkCore.Types;
 using Esox.SharpAndRusty.Types;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
 namespace Esox.SharpAndRusty.Tests.Extensions;
@@ -93,6 +94,100 @@ public class EntityFrameworkCoreExtensionsTests
         Assert.Equal(DbErrorKind.ConcurrencyConflict, error.Kind);
     }
 
+    [Fact]
+    public async Task SaveChangesSafeAsync_WhenSuccessful_ReturnsAffectedRows()
+    {
+        await using var context = CreateContext();
+        context.Users.Add(new TestUser { Id = 3, Email = "carol@example.com" });
+
+        var result = await context.SaveChangesSafeAsync();
+
+        Assert.True(result.IsSuccess);
+        Assert.True(result.TryGetValue(out var affectedRows));
+        Assert.Equal(1, affectedRows);
+    }
+
+    [Fact]
+    public async Task ExecuteSafeAsync_WhenCancelled_ReturnsCancelledError()
+    {
+        await using var context = CreateContext();
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+
+        var result = await context.ExecuteSafeAsync<int>(
+            (_, ct) => Task.FromCanceled<int>(ct),
+            cancellation.Token);
+
+        Assert.True(result.IsFailure);
+        Assert.True(result.TryGetError(out var error));
+        Assert.Equal(DbErrorKind.Cancelled, error.Kind);
+        Assert.True(error.Exception is OperationCanceledException canceled && canceled.CancellationToken.IsCancellationRequested);
+    }
+
+    [Fact]
+    public async Task ExecuteSafeAsync_WhenTimeoutOccurs_ReturnsTransientTimeoutError()
+    {
+        await using var context = CreateContext();
+
+        var result = await context.ExecuteSafeAsync<int>(
+            (_, _) => throw new TimeoutException("The database operation timed out."));
+
+        Assert.True(result.IsFailure);
+        Assert.True(result.TryGetError(out var error));
+        Assert.Equal(DbErrorKind.Timeout, error.Kind);
+        Assert.True(error.IsTransient);
+    }
+
+    [Fact]
+    public async Task ExecuteSafeAsync_WhenQueryFails_ReturnsQueryFailure()
+    {
+        await using var context = CreateContext();
+
+        var result = await context.ExecuteSafeAsync<int>(
+            (_, _) => throw new InvalidOperationException("The query could not be translated."));
+
+        Assert.True(result.IsFailure);
+        Assert.True(result.TryGetError(out var error));
+        Assert.Equal(DbErrorKind.QueryFailure, error.Kind);
+    }
+
+    [Fact]
+    public async Task SaveChangesSafeAsync_WhenSqliteConstraintFails_ReturnsConstraintViolation()
+    {
+        await using var connection = new SqliteConnection("Data Source=:memory:");
+        await connection.OpenAsync();
+        await using var context = CreateSqliteContext(connection);
+        await context.Database.EnsureCreatedAsync();
+
+        context.Users.Add(new TestUser { Id = 1, Email = "duplicate@example.com" });
+        Assert.True((await context.SaveChangesSafeAsync()).IsSuccess);
+
+        context.Users.Add(new TestUser { Id = 2, Email = "duplicate@example.com" });
+        var result = await context.SaveChangesSafeAsync();
+
+        Assert.True(result.IsFailure);
+        Assert.True(result.TryGetError(out var error));
+        Assert.Equal(DbErrorKind.ConstraintViolation, error.Kind);
+    }
+
+    [Fact]
+    public async Task SingleOrNoneAsync_WithSqliteQueryTranslation_ReturnsMatchingEntity()
+    {
+        await using var connection = new SqliteConnection("Data Source=:memory:");
+        await connection.OpenAsync();
+        await using var context = CreateSqliteContext(connection);
+        await context.Database.EnsureCreatedAsync();
+        context.Users.Add(new TestUser { Id = 1, Email = "sqlite@example.com" });
+        await context.SaveChangesAsync();
+
+        var result = await context.Users
+            .Where(user => user.Email.EndsWith("@example.com"))
+            .SingleOrNoneAsync();
+
+        var some = Assert.IsType<Option<TestUser>.Some>(result);
+        Assert.Equal("sqlite@example.com", some.Value.Email);
+    }
+
     private static TestDbContext CreateContext()
     {
         var options = new DbContextOptionsBuilder<TestDbContext>()
@@ -108,9 +203,26 @@ public class EntityFrameworkCoreExtensionsTests
         return context;
     }
 
+    private static SqliteTestDbContext CreateSqliteContext(SqliteConnection connection)
+    {
+        var options = new DbContextOptionsBuilder<SqliteTestDbContext>()
+            .UseSqlite(connection)
+            .Options;
+
+        return new SqliteTestDbContext(options);
+    }
+
     private sealed class TestDbContext(DbContextOptions<TestDbContext> options) : DbContext(options)
     {
         public DbSet<TestUser> Users => Set<TestUser>();
+    }
+
+    private sealed class SqliteTestDbContext(DbContextOptions<SqliteTestDbContext> options) : DbContext(options)
+    {
+        public DbSet<TestUser> Users => Set<TestUser>();
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder) =>
+            modelBuilder.Entity<TestUser>().HasIndex(user => user.Email).IsUnique();
     }
 
     private sealed class TestUser
