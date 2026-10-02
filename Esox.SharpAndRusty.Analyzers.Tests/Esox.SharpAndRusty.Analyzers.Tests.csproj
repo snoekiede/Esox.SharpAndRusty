@@ -31,7 +31,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Compile Remove="UnhandledResultAnalyzerTests.cs"/>
+        <ProjectReference Include="..\Esox.SharpAndRusty.Analyzers\Esox.SharpAndRusty.Analyzers.csproj"/>
+        <ProjectReference Include="..\Esox.SharpAndRusty\Esox.SharpAndRusty.csproj"/>
     </ItemGroup>
 
 </Project>
