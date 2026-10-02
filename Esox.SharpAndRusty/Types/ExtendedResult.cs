@@ -209,7 +209,7 @@ public abstract record ExtendedResult<T, TE>
     /// <summary>
     ///     Returns a string representation of this result.
     /// </summary>
-    public override string ToString()
+    public sealed override string ToString()
     {
         return this switch
         {

@@ -171,7 +171,7 @@ public abstract record Validation<T, E>
     /// Returns a string representation of this validation and its errors or value.
     /// </summary>
     /// <returns>A string describing the validation state.</returns>
-    public override string ToString()
+    public sealed override string ToString()
     {
         return this switch
         {

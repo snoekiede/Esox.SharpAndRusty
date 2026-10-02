@@ -142,6 +142,47 @@ public static class ExtendedResultExtensions
         }
 
         /// <summary>
+        ///     Validates the success value against a predicate, switching to the failure track when the predicate is false.
+        ///     If the result is already a failure, it is returned unchanged and the predicate is not called.
+        /// </summary>
+        /// <param name="predicate">The condition the success value must satisfy.</param>
+        /// <param name="errorFactory">Creates the error from the offending value when the predicate returns false.</param>
+        /// <returns>The original result if it is a failure or the predicate holds; otherwise a failure.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when predicate or errorFactory is null.</exception>
+        /// <remarks>Exceptions thrown by the predicate or the error factory are not captured and propagate to the caller.</remarks>
+        /// <example>
+        ///     <code>
+        /// var result = ParseInt("42")
+        ///     .Ensure(x => x > 0, x => $"{x} must be positive")
+        ///     .Ensure(x => x &lt; 100, x => $"{x} must be below 100");
+        /// </code>
+        /// </example>
+        public ExtendedResult<T, E> Ensure(Func<T, bool> predicate, Func<T, E> errorFactory)
+        {
+            ArgumentNullException.ThrowIfNull(predicate);
+            ArgumentNullException.ThrowIfNull(errorFactory);
+
+            var current = result;
+            return current.Bind(value => predicate(value)
+                ? current
+                : ExtendedResult<T, E>.Err(errorFactory(value)));
+        }
+
+        /// <summary>
+        ///     Validates the success value against a predicate, using a fixed error when the predicate is false.
+        /// </summary>
+        /// <param name="predicate">The condition the success value must satisfy.</param>
+        /// <param name="error">The error to return when the predicate returns false.</param>
+        /// <returns>The original result if it is a failure or the predicate holds; otherwise a failure carrying <paramref name="error" />.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when predicate is null.</exception>
+        public ExtendedResult<T, E> Ensure(Func<T, bool> predicate, E error)
+        {
+            ArgumentNullException.ThrowIfNull(predicate);
+
+            return result.Ensure(predicate, _ => error);
+        }
+
+        /// <summary>
         ///     Projects the success value of the result using a selector function.
         ///     This method enables LINQ query comprehension syntax for Result types with select projections.
         ///     Equivalent to <see cref="Map{U}" />.

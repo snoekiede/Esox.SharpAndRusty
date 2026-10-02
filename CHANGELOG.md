@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Ensure` / `EnsureAsync`** for `Result<T, E>` (and synchronous `Ensure` for `ExtendedResult<T, E>`): check a condition on the success value and switch to the failure track when it does not hold, either with an error factory (`Func<T, E>`) or a fixed error. `EnsureAsync` supports both synchronous and asynchronous predicates and a `CancellationToken`. A failed result is returned unchanged and the predicate is not called.
+
+### Fixed
+
+- **`Validation<T, E>.ToString()` and `ExtendedResult<T, E>.ToString()`** now return the documented, readable formats (`Valid(5)` / `Invalid([a, b])` and `Ok(5)` / `Err(bad)`). Their `ToString()` overrides were not sealed, so the sealed `Success` and `Failure` records generated their own output such as `Failure { IsSuccess = False, IsFailure = True, Errors = System.Collections.Immutable.ImmutableList`1[System.String] }`. The base overrides are now `sealed`. **Behaviour note:** code that parsed or asserted on the old compiler-generated text will need updating.
+
+### Documentation
+
+- Added a "Railway-Oriented Programming" section that maps the pattern onto the API, and documented `Validation<T, E>` (error accumulation), `TraverseValidation`, and `Ensure`.
+- Fixed the duplicate `message` variable in the Quick Start example, removed links to documents that do not exist, and removed empty duplicate headings.
+- Shortened `Map` calls in usage examples (type arguments are inferred).
+
 ---
 
 ## [1.6.7] - 2026
