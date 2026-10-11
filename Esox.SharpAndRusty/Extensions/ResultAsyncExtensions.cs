@@ -153,7 +153,7 @@ public static class ResultAsyncExtensions
 
     /// <param name="resultTask">The task containing the result to bind.</param>
     /// <typeparam name="T">The type of the original success value.</typeparam>
-    /// <typeparam name="Error">The type of the error value.</typeparam>
+    /// <typeparam name="E">The type of the error value.</typeparam>
     extension<T, E>(Task<Result<T, E>> resultTask)
     {
         /// <summary>
