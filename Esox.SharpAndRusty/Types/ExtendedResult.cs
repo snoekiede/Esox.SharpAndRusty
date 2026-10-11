@@ -20,9 +20,7 @@ public abstract record ExtendedResult<T, TE>
     public virtual bool Equals(ExtendedResult<T, TE>? other)
     {
         if (ReferenceEquals(this, other)) return true;
-        if (other is null) return false;
-
-        return (this, other) switch
+        return other is not null && (this, other) switch
         {
             (Success s1, Success s2) => EqualityComparer<T>.Default.Equals(s1.Value, s2.Value),
             (Failure f1, Failure f2) => EqualityComparer<TE>.Default.Equals(f1.Error, f2.Error),
@@ -156,7 +154,8 @@ public abstract record ExtendedResult<T, TE>
     /// <exception cref="ArgumentNullException">Thrown when alternative is null.</exception>
     public ExtendedResult<T, TE> OrElse(Func<TE, ExtendedResult<T, TE>> alternative)
     {
-        if (alternative is null) throw new ArgumentNullException(nameof(alternative));
+        ArgumentNullException.ThrowIfNull(alternative, nameof(alternative));
+        
         return this switch
         {
             Success => this,
@@ -174,7 +173,7 @@ public abstract record ExtendedResult<T, TE>
     /// <exception cref="ArgumentNullException">Thrown when action is null.</exception>
     public ExtendedResult<T, TE> Inspect(Action<T> action)
     {
-        if (action is null) throw new ArgumentNullException(nameof(action));
+        ArgumentNullException.ThrowIfNull(action, nameof(action));
         if (this is Success success) action(success.Value);
         return this;
     }
@@ -188,7 +187,7 @@ public abstract record ExtendedResult<T, TE>
     /// <exception cref="ArgumentNullException">Thrown when action is null.</exception>
     public ExtendedResult<T, TE> InspectErr(Action<TE> action)
     {
-        if (action is null) throw new ArgumentNullException(nameof(action));
+        ArgumentNullException.ThrowIfNull(action, nameof(action));
         if (this is Failure failure) action(failure.Error);
         return this;
     }
@@ -230,8 +229,8 @@ public abstract record ExtendedResult<T, TE>
     /// <exception cref="ArgumentNullException">Thrown when operation or errorHandler is null.</exception>
     public static async Task<ExtendedResult<T, TE>> TryAsync(Func<Task<T>> operation, Func<Exception, TE> errorHandler)
     {
-        if (operation is null) throw new ArgumentNullException(nameof(operation));
-        if (errorHandler is null) throw new ArgumentNullException(nameof(errorHandler));
+        ArgumentNullException.ThrowIfNull(operation, nameof(operation));
+        ArgumentNullException.ThrowIfNull(errorHandler, nameof(errorHandler));
 
         try
         {
@@ -254,8 +253,8 @@ public abstract record ExtendedResult<T, TE>
     /// <exception cref="ArgumentNullException">Thrown when operation or errorHandler is null.</exception>
     public static ExtendedResult<T, TE> Try(Func<T> operation, Func<Exception, TE> errorHandler)
     {
-        if (operation is null) throw new ArgumentNullException(nameof(operation));
-        if (errorHandler is null) throw new ArgumentNullException(nameof(errorHandler));
+        ArgumentNullException.ThrowIfNull(operation, nameof(operation));
+        ArgumentNullException.ThrowIfNull(errorHandler, nameof(errorHandler));
 
         try
         {
