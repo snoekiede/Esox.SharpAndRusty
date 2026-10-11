@@ -38,7 +38,7 @@ public static class ResultExtensions
         /// <exception cref="ArgumentNullException">Thrown when binder is null.</exception>
         public Result<U, E> Bind<U>(Func<T, Result<U, E>> binder)
         {
-            if (binder is null) throw new ArgumentNullException(nameof(binder));
+            ArgumentNullException.ThrowIfNull(binder, nameof(binder));
 
             return result.Match(
                 binder,
@@ -99,7 +99,7 @@ public static class ResultExtensions
         /// </example>
         public Result<T, E2> MapError<E2>(Func<E, E2> errorMapper)
         {
-            if (errorMapper is null) throw new ArgumentNullException(nameof(errorMapper));
+            ArgumentNullException.ThrowIfNull(errorMapper, nameof(errorMapper));
 
             return result.Match(
                 Result<T, E2>.Ok,
@@ -125,8 +125,8 @@ public static class ResultExtensions
         /// </example>
         public Result<T, E> Tap(Action<T> onSuccess, Action<E> onFailure)
         {
-            if (onSuccess is null) throw new ArgumentNullException(nameof(onSuccess));
-            if (onFailure is null) throw new ArgumentNullException(nameof(onFailure));
+            ArgumentNullException.ThrowIfNull(onSuccess, nameof(onSuccess));
+            ArgumentNullException.ThrowIfNull(onFailure, nameof(onFailure));
 
             return result
                 .Inspect(onSuccess)
@@ -151,8 +151,8 @@ public static class ResultExtensions
         /// </example>
         public Result<T, E> Ensure(Func<T, bool> predicate, Func<T, E> errorFactory)
         {
-            ArgumentNullException.ThrowIfNull(predicate);
-            ArgumentNullException.ThrowIfNull(errorFactory);
+            ArgumentNullException.ThrowIfNull(predicate, nameof(predicate));
+            ArgumentNullException.ThrowIfNull(errorFactory, nameof(errorFactory));
 
             var current = result;
             return current.Bind(value => predicate(value)
@@ -169,7 +169,7 @@ public static class ResultExtensions
         /// <exception cref="ArgumentNullException">Thrown when predicate is null.</exception>
         public Result<T, E> Ensure(Func<T, bool> predicate, E error)
         {
-            ArgumentNullException.ThrowIfNull(predicate);
+            ArgumentNullException.ThrowIfNull(predicate, nameof(predicate));
 
             return result.Ensure(predicate, _ => error);
         }
@@ -213,7 +213,7 @@ public static class ResultExtensions
         /// </example>
         public Result<U, E> Select<U>(Func<T, U> selector)
         {
-            ArgumentNullException.ThrowIfNull(selector);
+            ArgumentNullException.ThrowIfNull(selector, nameof(selector));
             return result.Map(selector);
         }
 
@@ -236,7 +236,7 @@ public static class ResultExtensions
         /// </example>
         public Result<U, E> SelectMany<U>(Func<T, Result<U, E>> selector)
         {
-            ArgumentNullException.ThrowIfNull(selector);
+            ArgumentNullException.ThrowIfNull(selector, nameof(selector));
             return result.Bind(selector);
         }
 
@@ -270,8 +270,8 @@ public static class ResultExtensions
         /// </example>
         public Result<V, E> SelectMany<U, V>(Func<T, Result<U, E>> selector, Func<T, U, V> projector)
         {
-            ArgumentNullException.ThrowIfNull(selector);
-            ArgumentNullException.ThrowIfNull(projector);
+            ArgumentNullException.ThrowIfNull(selector, nameof(selector));
+            ArgumentNullException.ThrowIfNull(projector, nameof(projector));
 
             return result.Bind(t => selector(t).Map(u => projector(t, u)));
         }
@@ -302,7 +302,7 @@ public static class ResultExtensions
         /// </example>
         public Result<IEnumerable<T>, E> Combine()
         {
-            if (results is null) throw new ArgumentNullException(nameof(results));
+            ArgumentNullException.ThrowIfNull(results, nameof(results));
 
             var values = new List<T>();
             foreach (var result in results)
@@ -331,7 +331,7 @@ public static class ResultExtensions
         /// </example>
         public (List<T> successes, List<E> failures) Partition()
         {
-            if (results is null) throw new ArgumentNullException(nameof(results));
+            ArgumentNullException.ThrowIfNull(results, nameof(results));
 
             var successes = new List<T>();
             var failures = new List<E>();

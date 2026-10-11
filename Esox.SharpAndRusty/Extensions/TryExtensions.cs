@@ -26,7 +26,7 @@ public static class TryExtensions
     /// </example>
     public static Result<T, Exception> Try<T>(Func<T> func)
     {
-        if (func is null) throw new ArgumentNullException(nameof(func));
+        ArgumentNullException.ThrowIfNull(func, nameof(func));
 
         try
         {
@@ -59,8 +59,8 @@ public static class TryExtensions
     /// </example>
     public static Result<T, E> Try<T, E>(Func<T> func, Func<Exception, E>? errorMapper)
     {
-        if (func is null) throw new ArgumentNullException(nameof(func));
-        if (errorMapper is null) throw new ArgumentNullException(nameof(errorMapper));
+        ArgumentNullException.ThrowIfNull(func, nameof(func));
+        ArgumentNullException.ThrowIfNull(errorMapper, nameof(errorMapper));
 
         try
         {
@@ -94,7 +94,7 @@ public static class TryExtensions
         Func<Task<T>> asyncFunc,
         CancellationToken cancellationToken = default)
     {
-        if (asyncFunc is null) throw new ArgumentNullException(nameof(asyncFunc));
+        ArgumentNullException.ThrowIfNull(asyncFunc, nameof(asyncFunc));
 
         try
         {
@@ -133,8 +133,8 @@ public static class TryExtensions
         Func<Exception, E> errorMapper,
         CancellationToken cancellationToken = default)
     {
-        if (asyncFunc is null) throw new ArgumentNullException(nameof(asyncFunc));
-        if (errorMapper is null) throw new ArgumentNullException(nameof(errorMapper));
+        ArgumentNullException.ThrowIfNull(asyncFunc, nameof(asyncFunc));
+        ArgumentNullException.ThrowIfNull(errorMapper, nameof(errorMapper));
 
         try
         {
@@ -166,7 +166,7 @@ public static class TryExtensions
     /// </example>
     public static Option<T> TryOption<T>(Func<T?> func) where T : class
     {
-        if (func is null) throw new ArgumentNullException(nameof(func));
+        ArgumentNullException.ThrowIfNull(func, nameof(func));
 
         try
         {
@@ -203,7 +203,7 @@ public static class TryExtensions
         Func<Task<T?>> asyncFunc,
         CancellationToken cancellationToken = default) where T : class
     {
-        if (asyncFunc is null) throw new ArgumentNullException(nameof(asyncFunc));
+        ArgumentNullException.ThrowIfNull(asyncFunc, nameof(asyncFunc));
 
         try
         {

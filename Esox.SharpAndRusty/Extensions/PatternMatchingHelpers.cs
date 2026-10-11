@@ -89,7 +89,7 @@ public static class PatternMatchingHelpers
         /// <returns>The original result for method chaining.</returns>
         public Result<T, E> OnSuccess(Action<T> action)
         {
-            if (action is null) throw new ArgumentNullException(nameof(action));
+            ArgumentNullException.ThrowIfNull(action, nameof(action));
 
             if (result.TryGetValue(out var value)) action(value);
 
@@ -105,7 +105,7 @@ public static class PatternMatchingHelpers
         /// <returns>The original result for method chaining.</returns>
         public Result<T, E> OnFailure(Action<E> action)
         {
-            if (action is null) throw new ArgumentNullException(nameof(action));
+            ArgumentNullException.ThrowIfNull(action, nameof(action));
 
             if (result.TryGetError(out var error)) action(error);
 
@@ -124,8 +124,8 @@ public static class PatternMatchingHelpers
             Action<T> onSuccess,
             Action<E> onFailure)
         {
-            if (onSuccess is null) throw new ArgumentNullException(nameof(onSuccess));
-            if (onFailure is null) throw new ArgumentNullException(nameof(onFailure));
+            ArgumentNullException.ThrowIfNull(onSuccess, nameof(onSuccess));
+            ArgumentNullException.ThrowIfNull(onFailure, nameof(onFailure));
 
             if (result.TryGetValue(out var value))
                 onSuccess(value);
@@ -153,13 +153,11 @@ public static class PatternMatchingHelpers
         /// <returns>The success value if successful, otherwise the value produced by <paramref name="defaultFactory" />.</returns>
         public T GetValueOrElse(Func<E, T> defaultFactory)
         {
-            if (defaultFactory is null) throw new ArgumentNullException(nameof(defaultFactory));
+            ArgumentNullException.ThrowIfNull(defaultFactory, nameof(defaultFactory));
 
-            return result.TryGetValue(out var value)
-                ? value
-                : result.TryGetError(out var error)
-                    ? defaultFactory(error)
-                    : throw new InvalidOperationException("Result is in an invalid state.");
+            return result.Match(
+                value => value,
+                defaultFactory);
         }
 
         /// <summary>
@@ -172,7 +170,8 @@ public static class PatternMatchingHelpers
         /// <exception cref="Exception">Thrown when the result is an error.</exception>
         public T GetValueOrThrow(Func<E, Exception> exceptionFactory)
         {
-            if (exceptionFactory is null) throw new ArgumentNullException(nameof(exceptionFactory));
+            ArgumentNullException.ThrowIfNull(exceptionFactory, nameof(exceptionFactory));
+            
 
             if (result.TryGetValue(out var value)) return value;
 

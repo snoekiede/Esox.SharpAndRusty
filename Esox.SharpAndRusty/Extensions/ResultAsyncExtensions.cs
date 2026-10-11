@@ -31,10 +31,11 @@ public static class ResultAsyncExtensions
             Func<T, U> mapper,
             CancellationToken cancellationToken = default)
         {
-            if (resultTask is null) throw new ArgumentNullException(nameof(resultTask));
-            if (mapper is null) throw new ArgumentNullException(nameof(mapper));
+            ArgumentNullException.ThrowIfNull(mapper, nameof(mapper));
+            ArgumentNullException.ThrowIfNull(resultTask, nameof(resultTask));
 
             var result = await resultTask.ConfigureAwait(false);
+
             cancellationToken.ThrowIfCancellationRequested();
             return result.Map(mapper);
         }
@@ -64,18 +65,16 @@ public static class ResultAsyncExtensions
             Func<T, Task<U>> asyncMapper,
             CancellationToken cancellationToken = default)
         {
-            if (asyncMapper is null) throw new ArgumentNullException(nameof(asyncMapper));
-
+            ArgumentNullException.ThrowIfNull(asyncMapper);
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (!result.IsSuccess)
+            if (!result.TryGetValue(out var value))
             {
                 result.TryGetError(out var error);
-                return Result<U, E>.Err(error!);
+                return Result<U, E>.Err(error);
             }
 
-            result.TryGetValue(out var value);
-            var mappedValue = await asyncMapper(value!).ConfigureAwait(false);
+            var mappedValue = await asyncMapper(value).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
             return Result<U, E>.Ok(mappedValue);
         }
@@ -103,18 +102,17 @@ public static class ResultAsyncExtensions
             CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(asyncBinder);
-
             cancellationToken.ThrowIfCancellationRequested();
 
-            return await result.Match(
-                async value =>
-                {
-                    var bindResult = await asyncBinder(value).ConfigureAwait(false);
-                    cancellationToken.ThrowIfCancellationRequested();
-                    return bindResult;
-                },
-                error => Task.FromResult(Result<U, E>.Err(error))
-            );
+            if (!result.TryGetValue(out var value))
+            {
+                result.TryGetError(out var error);
+                return Result<U, E>.Err(error);
+            }
+
+            var bindResult = await asyncBinder(value).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+            return bindResult;
         }
     }
 
@@ -178,8 +176,8 @@ public static class ResultAsyncExtensions
             Func<T, Task<Result<U, E>>> asyncBinder,
             CancellationToken cancellationToken = default)
         {
-            if (resultTask is null) throw new ArgumentNullException(nameof(resultTask));
-            if (asyncBinder is null) throw new ArgumentNullException(nameof(asyncBinder));
+            ArgumentNullException.ThrowIfNull(asyncBinder, nameof(asyncBinder));
+            ArgumentNullException.ThrowIfNull(resultTask, nameof(resultTask));
 
             var result = await resultTask.ConfigureAwait(false);
             return await result.BindAsync(asyncBinder, cancellationToken);
@@ -204,8 +202,8 @@ public static class ResultAsyncExtensions
             Func<E, E2> errorMapper,
             CancellationToken cancellationToken = default)
         {
-            if (resultTask is null) throw new ArgumentNullException(nameof(resultTask));
-            if (errorMapper is null) throw new ArgumentNullException(nameof(errorMapper));
+            ArgumentNullException.ThrowIfNull(errorMapper, nameof(errorMapper));
+            ArgumentNullException.ThrowIfNull(resultTask, nameof(resultTask));
 
             var result = await resultTask.ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
@@ -236,9 +234,9 @@ public static class ResultAsyncExtensions
             Func<E, Task> onFailure,
             CancellationToken cancellationToken = default)
         {
-            if (resultTask is null) throw new ArgumentNullException(nameof(resultTask));
-            if (onSuccess is null) throw new ArgumentNullException(nameof(onSuccess));
-            if (onFailure is null) throw new ArgumentNullException(nameof(onFailure));
+            ArgumentNullException.ThrowIfNull(resultTask, nameof(resultTask));
+            ArgumentNullException.ThrowIfNull(onSuccess, nameof(onSuccess));
+            ArgumentNullException.ThrowIfNull(onFailure, nameof(onFailure));
 
             var result = await resultTask.ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
@@ -278,9 +276,9 @@ public static class ResultAsyncExtensions
             Func<T, E> errorFactory,
             CancellationToken cancellationToken = default)
         {
-            if (resultTask is null) throw new ArgumentNullException(nameof(resultTask));
-            ArgumentNullException.ThrowIfNull(predicate);
-            ArgumentNullException.ThrowIfNull(errorFactory);
+            ArgumentNullException.ThrowIfNull(resultTask, nameof(resultTask));
+            ArgumentNullException.ThrowIfNull(predicate, nameof(predicate));
+            ArgumentNullException.ThrowIfNull(errorFactory, nameof(errorFactory));
 
             var result = await resultTask.ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
@@ -303,9 +301,9 @@ public static class ResultAsyncExtensions
             Func<T, E> errorFactory,
             CancellationToken cancellationToken = default)
         {
-            if (resultTask is null) throw new ArgumentNullException(nameof(resultTask));
-            ArgumentNullException.ThrowIfNull(predicate);
-            ArgumentNullException.ThrowIfNull(errorFactory);
+            ArgumentNullException.ThrowIfNull(resultTask, nameof(resultTask));
+            ArgumentNullException.ThrowIfNull(predicate, nameof(predicate));
+            ArgumentNullException.ThrowIfNull(errorFactory, nameof(errorFactory));
 
             var result = await resultTask.ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
@@ -337,9 +335,9 @@ public static class ResultAsyncExtensions
             Func<E, Task<Result<T, E>>> asyncAlternative,
             CancellationToken cancellationToken = default)
         {
-            if (resultTask is null) throw new ArgumentNullException(nameof(resultTask));
-            if (asyncAlternative is null) throw new ArgumentNullException(nameof(asyncAlternative));
-
+            ArgumentNullException.ThrowIfNull(asyncAlternative, nameof(asyncAlternative));
+            ArgumentNullException.ThrowIfNull(resultTask, nameof(resultTask));
+            
             var result = await resultTask.ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -379,10 +377,11 @@ public static class ResultAsyncExtensions
         public async Task<Result<IEnumerable<T>, E>> CombineAsync(
             CancellationToken cancellationToken = default)
         {
-            if (resultTasks is null) throw new ArgumentNullException(nameof(resultTasks));
+            ArgumentNullException.ThrowIfNull(resultTasks, nameof(resultTasks));
 
             var results = await Task.WhenAll(resultTasks).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
+
             return results.Combine();
         }
     }

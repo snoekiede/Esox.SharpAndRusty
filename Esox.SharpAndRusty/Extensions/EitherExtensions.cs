@@ -20,7 +20,7 @@ public static class EitherExtensions
         public Either<L, R2> BindRight<R2>(
             Func<R, Either<L, R2>> binder)
         {
-            if (binder is null) throw new ArgumentNullException(nameof(binder));
+            ArgumentNullException.ThrowIfNull(binder, nameof(binder));
 
             return either switch
             {

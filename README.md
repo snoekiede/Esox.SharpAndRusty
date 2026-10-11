@@ -29,8 +29,8 @@ This library is provided "as is" without warranty of any kind, either express or
 - ✅ **Inspection Methods**: Execute side effects with `Inspect`, `InspectErr`, and `Tap`
 - ✅ **LINQ Query Syntax**: Full support for C# LINQ query comprehension with `from`, `select`, and more
 - ✅ **Collection Operations**: `Combine` and `Partition` for batch processing
-- ✅ **Full Async Support**: Complete async/await integration with `MapAsync`, `BindAsync`, `TapAsync`, and more
-- ✅ **Cancellation Support**: All async methods support `CancellationToken` for graceful operation cancellation
+- ✅ **Full Async Support**: Async `Result<T, E>` composition with `MapAsync`, `BindAsync`, `EnsureAsync`, `TapAsync`, `OrElseAsync`, and `CombineAsync`, preserving any error type `E`
+- ✅ **Cancellation Support**: Async result operations accept `CancellationToken` and throw `OperationCanceledException` when cancellation is requested
 - ✅ **Multi-targeted**: Core and EF Core packages target .NET 8, .NET 9, and .NET 10; the analyzer targets .NET Standard 2.0
 - ✨ **Roslyn Analyzer**: Enforces proper Result/Option handling at compile-time (like Rust's `#[must_use]`)
 - 🧪 **Experimental: Mutex<T>**: Rust-inspired mutual exclusion primitive with Result-based locking, safe async disposal, and cooperative cancellation (works in both sync and async contexts)
@@ -618,6 +618,32 @@ var failedResult = ParseInt("100")
 // Result: Err("Division by zero") - ValidatePositive never executes
 ```
 
+### Async Result Composition
+
+Async result extensions work with any error type `E`, just like their synchronous counterparts. They preserve the original error type while mapping or binding, and cancellation is reported by throwing `OperationCanceledException` rather than creating a synthetic result error.
+
+```csharp
+Task<Result<int, string>> LoadCountAsync() =>
+    Task.FromResult(Result<int, string>.Ok(10));
+
+using var cancellation = new CancellationTokenSource();
+
+var result = await LoadCountAsync()
+    .MapAsync(count => count * 2, cancellation.Token)
+    .BindAsync(async count =>
+    {
+        await Task.Yield();
+        return Result<int, string>.Ok(count + 1);
+    }, cancellation.Token);
+// Result: Ok(21)
+
+var checkedResult = await LoadCountAsync()
+    .EnsureAsync(count => count > 0, count => $"Invalid count: {count}", cancellation.Token);
+// Result: Ok(10)
+```
+
+`MapAsync` is also available on `Result<T, E>` when the mapper itself is asynchronous. `BindAsync` skips its binder for a failed result, and `EnsureAsync` skips its predicate for a failed result. In all cases, the original error is propagated unchanged.
+
 ### LINQ Query Syntax
 
 Use familiar C# LINQ query syntax for elegant error handling:
@@ -810,6 +836,24 @@ if (error.Kind == ErrorKind.NotFound)
 var errorWithTrace = error.CaptureStackTrace(includeFileInfo: false);  // Fast
 var detailedError = error.CaptureStackTrace(includeFileInfo: true);    // Detailed
 ```
+
+#### Cancellation behavior for async error helpers
+
+`ContextAsync`, `WithContextAsync`, and both `WithMetadataAsync` overloads throw `OperationCanceledException` when their `CancellationToken` is cancelled. Previously, these methods returned a failed `Result` containing an `Error` with `ErrorKind.Interrupted`; this is a **breaking behavior change** for callers that handled cancellation by inspecting the returned result. Callers should handle cancellation with `try`/`catch` or allow it to propagate:
+
+```csharp
+try
+{
+    var result = await LoadUserAsync(userId)
+        .ContextAsync("Failed to load user", cancellationToken);
+}
+catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+{
+    // Handle or propagate cancellation.
+}
+```
+
+These helpers await the input result task before checking the token, so the token does not cancel an input task that is still running; cancellation is observed after that task completes.
 
 **Production Features:**
 - ✅ **ImmutableDictionary** - Efficient metadata storage with structural sharing

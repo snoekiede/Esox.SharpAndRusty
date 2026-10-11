@@ -86,8 +86,8 @@ public static class OptionLinqExtensions
             Func<T, Option<TCollection>> collectionSelector,
             Func<T, TCollection, TResult> resultSelector)
         {
-            if (collectionSelector is null) throw new ArgumentNullException(nameof(collectionSelector));
-            if (resultSelector is null) throw new ArgumentNullException(nameof(resultSelector));
+            ArgumentNullException.ThrowIfNull(collectionSelector, nameof(collectionSelector));
+            ArgumentNullException.ThrowIfNull(resultSelector, nameof(resultSelector));
 
             if (option is not Option<T>.Some some)
                 return new Option<TResult>.None();
@@ -124,7 +124,7 @@ public static class OptionLinqExtensions
         /// </code>
         /// </example>
         [SuppressMessage("ReSharper", "UnusedMember.Global",
-            Justification = "Will be used vy clients of this nuget package")]
+            Justification = "Will be used by clients of this nuget package")]
         public Option<TResult> SelectMany<TResult>(
             Func<T, Option<TResult>> selector)
         {
@@ -167,7 +167,7 @@ public static class OptionLinqExtensions
         public Option<T> Where(
             Func<T, bool> predicate)
         {
-            if (predicate is null) throw new ArgumentNullException(nameof(predicate));
+            ArgumentNullException.ThrowIfNull(predicate, nameof(predicate));
 
             return option is Option<T>.Some some && predicate(some.Value)
                 ? option

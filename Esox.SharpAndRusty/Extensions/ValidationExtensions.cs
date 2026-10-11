@@ -46,7 +46,7 @@ public static class ValidationExtensions
         Validation<T3, E> validation3,
         Func<T1, T2, T3, TResult> combiner)
     {
-        if (combiner is null) throw new ArgumentNullException(nameof(combiner));
+        ArgumentNullException.ThrowIfNull(combiner,nameof(combiner));
 
         var errors = ImmutableList<E>.Empty;
 
@@ -104,7 +104,7 @@ public static class ValidationExtensions
         Validation<T4, E> validation4,
         Func<T1, T2, T3, T4, TResult> combiner)
     {
-        if (combiner is null) throw new ArgumentNullException(nameof(combiner));
+        ArgumentNullException.ThrowIfNull(combiner,nameof(combiner));
 
         var errors = ImmutableList<E>.Empty;
         var values = new List<object?>();
@@ -185,7 +185,7 @@ public static class ValidationExtensions
         public Validation<TResult, E> Bind<TResult>(
             Func<T, Validation<TResult, E>> binder)
         {
-            if (binder is null) throw new ArgumentNullException(nameof(binder));
+            ArgumentNullException.ThrowIfNull(binder,nameof(binder));
 
             return validation switch
             {
@@ -202,7 +202,7 @@ public static class ValidationExtensions
         public Validation<T, E> OnSuccess(
             Action<T> action)
         {
-            if (action is null) throw new ArgumentNullException(nameof(action));
+            ArgumentNullException.ThrowIfNull(action,nameof(action));
 
             if (validation is Validation<T, E>.Success success) action(success.Value);
 
@@ -230,7 +230,7 @@ public static class ValidationExtensions
         ///     Converts a Result to a Validation.
         /// </summary>
         [SuppressMessage("ReSharper", "UnusedMember.Global",
-            Justification = "Will be used vy clients of this nuget package")]
+            Justification = "Will be used by clients of this nuget package")]
         public Validation<T, E> ToValidation() =>
             result.TryGetValue(out var value)
                 ? Validation<T, E>.Valid(value)

@@ -39,7 +39,7 @@ public class ResultAsyncExtensionsTests
     public async Task MapAsync_AsyncMapper_TransformsSuccessValue()
     {
         // Arrange
-        var result = Result<int, string>.Ok(42);
+        var result = Result<int,string>.Ok(42);
 
         // Act
         var mapped = await result.MapAsync(async x =>
@@ -57,7 +57,7 @@ public class ResultAsyncExtensionsTests
     public async Task MapAsync_AsyncMapper_PropagatesError()
     {
         // Arrange
-        var result = Result<int, string>.Err("Error");
+        var result = Result<int, Error>.Err(Error.New("Error",ErrorKind.Other));
 
         // Act
         var mapped = await result.MapAsync(async x =>
