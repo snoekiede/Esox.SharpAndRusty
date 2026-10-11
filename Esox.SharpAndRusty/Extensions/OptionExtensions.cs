@@ -7,6 +7,8 @@ namespace Esox.SharpAndRusty.Extensions;
 /// </summary>
 public static class OptionExtensions
 {
+    
+
     /// <summary>
     ///     Converts an option of a value type to a nullable value type.
     /// </summary>

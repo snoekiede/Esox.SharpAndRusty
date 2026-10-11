@@ -85,6 +85,7 @@ public abstract record Either<L, R>
     /// </summary>
     /// <param name="onLeft">The action to execute if the Either is Left.</param>
     /// <param name="onRight">The action to execute if the Either is Right.</param>
+    // ReSharper disable once UnusedMember.Global
     public void Match(Action<L> onLeft, Action<R> onRight)
     {
         ArgumentNullException.ThrowIfNull(onLeft);

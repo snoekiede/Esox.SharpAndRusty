@@ -90,6 +90,14 @@ public static class AsyncCollectionExtensions
 
     extension<T>(IEnumerable<T> source)
     {
+        /// <summary>
+        ///    Asynchronously maps each element of a collection through an async function that returns an option, 
+        ///    then sequences the results with parallel execution.
+        /// </summary>
+        /// <param name="asyncSelector"></param>
+        /// <param name="cancellationToken"></param>
+        /// <typeparam name="U"></typeparam>
+        /// <returns></returns>
         public async Task<Option<IEnumerable<U>>> TraverseAsync<U>(
             Func<T, Task<Option<U>>> asyncSelector,
             CancellationToken cancellationToken = default)
@@ -98,6 +106,7 @@ public static class AsyncCollectionExtensions
             foreach (var item in source)
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                
                 var option = await asyncSelector(item).ConfigureAwait(false);
                 if (option is Option<U>.Some some)
                     values.Add(some.Value);
@@ -198,7 +207,7 @@ public static class AsyncCollectionExtensions
         /// // Ok([1, 2, 3]) or Err("Parse error: ...")
         /// </code>
         /// </example>
-        public async Task<Result<IEnumerable<U>, E>> TraverseAsync<U, E>(
+        public async Task<Result<IEnumerable<U>, Error>> TraverseAsync<U, E>(
             Func<T, Task<Result<U, E>>> asyncSelector,
             CancellationToken cancellationToken = default)
         {
@@ -206,15 +215,18 @@ public static class AsyncCollectionExtensions
 
             foreach (var item in source)
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    return Result<IEnumerable<U>, Error>.Err(Error.New("Operation cancelled.",ErrorKind.Interrupted));
+                }
 
                 var result = await asyncSelector(item).ConfigureAwait(false);
                 if (result.TryGetValue(out var value))
                     values.Add(value);
-                else if (result.TryGetError(out var error)) return Result<IEnumerable<U>, E>.Err(error);
+                else if (result.TryGetError(out var error)) return Result<IEnumerable<U>, Error>.Err(Error.New(error.ToString(), ErrorKind.Other));
             }
 
-            return Result<IEnumerable<U>, E>.Ok(values);
+            return Result<IEnumerable<U>, Error>.Ok(values);
         }
 
         /// <summary>
@@ -247,7 +259,7 @@ public static class AsyncCollectionExtensions
         ///     maxDegreeOfParallelism: 10);
         /// </code>
         /// </example>
-        public async Task<Result<IEnumerable<U>, E>> TraverseParallelAsync<U, E>(
+        public async Task<Result<IEnumerable<U>, Error>> TraverseParallelAsync<U, E>(
             Func<T, Task<Result<U, E>>> asyncSelector,
             int maxDegreeOfParallelism = -1,
             CancellationToken cancellationToken = default)
@@ -275,10 +287,10 @@ public static class AsyncCollectionExtensions
             {
                 if (result.TryGetValue(out var value))
                     values.Add(value);
-                else if (result.TryGetError(out var error)) return Result<IEnumerable<U>, E>.Err(error);
+                else if (result.TryGetError(out var error)) return Result<IEnumerable<U>, Error>.Err(Error.New(error is null ? "Unknown error" : error.ToString()!, ErrorKind.Other));
             }
 
-            return Result<IEnumerable<U>, E>.Ok(values);
+            return Result<IEnumerable<U>, Error>.Ok(values);
         }
     }
 
@@ -349,22 +361,25 @@ public static class AsyncCollectionExtensions
         /// // Ok([1, 2]) or Err("error message")
         /// </code>
         /// </example>
-        public async Task<Result<IEnumerable<T>, E>> SequenceAsync(
+        public async Task<Result<IEnumerable<T>, Error>> SequenceAsync(
             CancellationToken cancellationToken = default)
         {
             var results = new List<T>();
 
             foreach (var task in resultTasks)
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    return Result<IEnumerable<T>, Error>.Err(Error.New("Operation cancelled.", ErrorKind.Interrupted));
+                }
 
                 var result = await task.ConfigureAwait(false);
                 if (result.TryGetValue(out var value))
                     results.Add(value);
-                else if (result.TryGetError(out var error)) return Result<IEnumerable<T>, E>.Err(error);
+                else if (result.TryGetError(out var error)) return Result<IEnumerable<T>, Error>.Err(Error.New(error is null? "Unknown error": error.ToString()!, ErrorKind.Other));
             }
 
-            return Result<IEnumerable<T>, E>.Ok(results);
+            return Result<IEnumerable<T>, Error>.Ok(results);
         }
 
         /// <summary>

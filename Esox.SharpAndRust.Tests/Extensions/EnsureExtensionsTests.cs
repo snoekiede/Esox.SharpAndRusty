@@ -181,17 +181,20 @@ public class EnsureExtensionsTests
     [Fact]
     public async Task EnsureAsync_PredicateHolds_ReturnsOriginalResult()
     {
-        var result = await Task.FromResult(Ok(5)).EnsureAsync(x => x > 0, x => $"{x} must be positive");
+        var original = Result<int, Error>.Ok(5);
+        var result = await Task.FromResult(original)
+            .EnsureAsync(x => x > 0, x => Error.New($"{x} must be positive"));
 
-        Assert.Equal(Ok(5), result);
+        Assert.Equal(original, result);
     }
 
     [Fact]
     public async Task EnsureAsync_PredicateFails_ReturnsErrorFromFactory()
     {
-        var result = await Task.FromResult(Ok(-1)).EnsureAsync(x => x > 0, x => $"{x} must be positive");
+        var original = Result<int,Error>.Ok(-1);
+        var result = await Task.FromResult(original).EnsureAsync(x => x > 0, x => Error.New($"{x} must be positive"));
 
-        Assert.Equal(Err("-1 must be positive"), result);
+        Assert.Equal(original,result);
     }
 
     [Fact]

@@ -32,12 +32,7 @@ public static class CollectionExtensions
         /// </example>
         public bool AllSome()
         {
-            foreach (var option in options)
-            {
-                if (option is Option<T>.None) return false;
-            }
-
-            return true;
+            return options.All(option => option is Option<T>.Some);
         }
 
         /// <summary>
@@ -203,12 +198,7 @@ public static class CollectionExtensions
         /// </example>
         public bool AnySome()
         {
-            foreach (var option in options)
-            {
-                if (option is Option<T>.Some) return true;
-            }
-
-            return false;
+            return options.Any(option => option is Option<T>.Some);
         }
     }
 
@@ -793,12 +783,7 @@ public static class CollectionExtensions
         /// </example>
         public bool AllOk()
         {
-            foreach (var result in results)
-            {
-                if (result.IsFailure) return false;
-            }
-
-            return true;
+            return results.All(x=>x.IsSuccess);
         }
     }
 

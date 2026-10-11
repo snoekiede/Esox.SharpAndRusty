@@ -7,18 +7,22 @@ namespace Esox.SharpAndRusty.Extensions;
 /// </summary>
 public static class ErrorExtensions
 {
-    /// <summary>
-    ///     Converts an exception to an Error and wraps it in a failed Result.
-    /// </summary>
-    /// <typeparam name="T">The type of the success value.</typeparam>
-    /// <param name="exception">The exception to convert.</param>
-    /// <returns>A failed Result containing the error.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when exception is null.</exception>
-    public static Result<T, Error> ToResult<T>(this Exception exception)
+    extension(Exception exception)
     {
-        if (exception is null) throw new ArgumentNullException(nameof(exception));
-        return Result<T, Error>.Err(Error.FromException(exception));
+        /// <summary>
+        ///     Converts an exception to an Error and wraps it in a failed Result.
+        /// </summary>
+        /// <typeparam name="T">The type of the success value.</typeparam>
+        /// <param name="exception">The exception to convert.</param>
+        /// <returns>A failed Result containing the error.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when exception is null.</exception>
+        public Result<T, Error> ToResult<T>()
+        {
+            if (exception is null) throw new ArgumentNullException(nameof(exception));
+            return Result<T, Error>.Err(Error.FromException(exception));
+        }    
     }
+    
 
     /// <summary>
     ///     Executes an operation and converts any exception to an Error.
@@ -39,8 +43,8 @@ public static class ErrorExtensions
     /// </example>
     public static Result<T, Error> Try<T>(Func<T> operation)
     {
-        if (operation is null) throw new ArgumentNullException(nameof(operation));
-
+        ArgumentNullException.ThrowIfNull(operation, nameof(operation));
+        
         try
         {
             return Result<T, Error>.Ok(operation());
@@ -103,7 +107,7 @@ public static class ErrorExtensions
         /// </example>
         public Result<T, Error> Context(string contextMessage)
         {
-            if (contextMessage is null) throw new ArgumentNullException(nameof(contextMessage));
+            ArgumentNullException.ThrowIfNull(contextMessage, nameof(contextMessage));
 
             return result.MapError(error => error.WithContext(contextMessage));
         }
@@ -123,7 +127,7 @@ public static class ErrorExtensions
         /// </example>
         public Result<T, Error> WithContext(Func<Error, string> contextFactory)
         {
-            if (contextFactory is null) throw new ArgumentNullException(nameof(contextFactory));
+            ArgumentNullException.ThrowIfNull(contextFactory, nameof(contextFactory));
 
             return result.MapError(error => error.WithContext(contextFactory(error)));
         }
@@ -145,8 +149,8 @@ public static class ErrorExtensions
         /// </example>
         public Result<T, Error> WithMetadata(string key, object value)
         {
-            if (key is null) throw new ArgumentNullException(nameof(key));
-            if (value is null) throw new ArgumentNullException(nameof(value));
+            ArgumentNullException.ThrowIfNull(key, nameof(key));
+            ArgumentNullException.ThrowIfNull(value, nameof(value));
 
             return result.MapError(error => error.WithMetadata(key, value));
         }
@@ -159,7 +163,7 @@ public static class ErrorExtensions
         /// <param name="key">The metadata key.</param>
         /// <param name="value">The metadata value.</param>
         /// <returns>The original result if successful; otherwise, a result with the error containing the metadata.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when key is null.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when key or value is null.</exception>
         /// <example>
         ///     <code>
         /// var result = GetUser(userId)
@@ -169,7 +173,8 @@ public static class ErrorExtensions
         /// </example>
         public Result<T, Error> WithMetadata<TValue>(string key, TValue value) where TValue : struct
         {
-            if (key is null) throw new ArgumentNullException(nameof(key));
+            ArgumentNullException.ThrowIfNull(key, nameof(key));
+            ArgumentNullException.ThrowIfNull(value, nameof(value));
 
             return result.MapError(error => error.WithMetadata(key, value));
         }
@@ -213,10 +218,14 @@ public static class ErrorExtensions
         public async Task<Result<T, Error>> ContextAsync(string contextMessage,
             CancellationToken cancellationToken = default)
         {
-            if (contextMessage is null) throw new ArgumentNullException(nameof(contextMessage));
+            ArgumentNullException.ThrowIfNull(contextMessage, nameof(contextMessage));
 
             var res = await result.ConfigureAwait(false);
-            cancellationToken.ThrowIfCancellationRequested();
+            
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return Result<T, Error>.Err(Error.New("Operation was cancelled.", ErrorKind.Interrupted));
+            }
 
             return res.MapError(error => error.WithContext(contextMessage));
         }
@@ -231,10 +240,13 @@ public static class ErrorExtensions
         public async Task<Result<T, Error>> WithContextAsync(Func<Error, string> contextFactory,
             CancellationToken cancellationToken = default)
         {
-            if (contextFactory is null) throw new ArgumentNullException(nameof(contextFactory));
+            ArgumentNullException.ThrowIfNull(contextFactory, nameof(contextFactory));
 
             var res = await result.ConfigureAwait(false);
-            cancellationToken.ThrowIfCancellationRequested();
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return Result<T, Error>.Err(Error.New("Operation was cancelled.", ErrorKind.Interrupted));
+            }
 
             return res.MapError(error => error.WithContext(contextFactory(error)));
         }
@@ -250,11 +262,14 @@ public static class ErrorExtensions
         public async Task<Result<T, Error>> WithMetadataAsync(string key, object value,
             CancellationToken cancellationToken = default)
         {
-            if (key is null) throw new ArgumentNullException(nameof(key));
-            if (value is null) throw new ArgumentNullException(nameof(value));
+            ArgumentNullException.ThrowIfNull(key, nameof(key));
+            ArgumentNullException.ThrowIfNull(value, nameof(value));
 
             var res = await result.ConfigureAwait(false);
-            cancellationToken.ThrowIfCancellationRequested();
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return Result<T, Error>.Err(Error.New("Operation was cancelled.", ErrorKind.Interrupted));
+            }
 
             return res.MapError(error => error.WithMetadata(key, value));
         }
@@ -271,10 +286,14 @@ public static class ErrorExtensions
         public async Task<Result<T, Error>> WithMetadataAsync<TValue>(string key, TValue value,
             CancellationToken cancellationToken = default) where TValue : struct
         {
-            if (key is null) throw new ArgumentNullException(nameof(key));
+            ArgumentNullException.ThrowIfNull(value, nameof(value));
+            ArgumentNullException.ThrowIfNull(key, nameof(key));
 
             var res = await result.ConfigureAwait(false);
-            cancellationToken.ThrowIfCancellationRequested();
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return Result<T, Error>.Err(Error.New("Operation was cancelled.", ErrorKind.Interrupted));
+            }
 
             return res.MapError(error => error.WithMetadata(key, value));
         }

@@ -16,7 +16,7 @@ public static class ExtendedResultExtensions
         /// <exception cref="ArgumentNullException">Thrown when mapper is null.</exception>
         public ExtendedResult<U, E> Map<U>(Func<T, U> mapper)
         {
-            if (mapper is null) throw new ArgumentNullException(nameof(mapper));
+            ArgumentNullException.ThrowIfNull(mapper, nameof(mapper));
 
             return result switch
             {
@@ -37,7 +37,7 @@ public static class ExtendedResultExtensions
         /// <exception cref="ArgumentNullException">Thrown when binder is null.</exception>
         public ExtendedResult<U, E> Bind<U>(Func<T, ExtendedResult<U, E>> binder)
         {
-            if (binder is null) throw new ArgumentNullException(nameof(binder));
+            ArgumentNullException.ThrowIfNull(binder, nameof(binder));
 
             return result switch
             {
@@ -79,7 +79,7 @@ public static class ExtendedResultExtensions
         /// </example>
         public T Expect(string message)
         {
-            if (message is null) throw new ArgumentNullException(nameof(message));
+            ArgumentNullException.ThrowIfNull(message, nameof(message));
 
             return result switch
             {
@@ -105,7 +105,7 @@ public static class ExtendedResultExtensions
         /// </example>
         public ExtendedResult<T, E2> MapError<E2>(Func<E, E2> errorMapper)
         {
-            if (errorMapper is null) throw new ArgumentNullException(nameof(errorMapper));
+            ArgumentNullException.ThrowIfNull(errorMapper, nameof(errorMapper));
 
             return result switch
             {
@@ -133,8 +133,8 @@ public static class ExtendedResultExtensions
         /// </example>
         public ExtendedResult<T, E> Tap(Action<T> onSuccess, Action<E> onFailure)
         {
-            if (onSuccess is null) throw new ArgumentNullException(nameof(onSuccess));
-            if (onFailure is null) throw new ArgumentNullException(nameof(onFailure));
+            ArgumentNullException.ThrowIfNull(onSuccess, nameof(onSuccess));
+            ArgumentNullException.ThrowIfNull(onFailure, nameof(onFailure));
 
             return result
                 .Inspect(onSuccess)
@@ -200,7 +200,7 @@ public static class ExtendedResultExtensions
         /// </example>
         public ExtendedResult<U, E> Select<U>(Func<T, U> selector)
         {
-            if (selector is null) throw new ArgumentNullException(nameof(selector));
+            ArgumentNullException.ThrowIfNull(selector, nameof(selector));
             return result.Map(selector);
         }
 
@@ -223,7 +223,7 @@ public static class ExtendedResultExtensions
         /// </example>
         public ExtendedResult<U, E> SelectMany<U>(Func<T, ExtendedResult<U, E>> selector)
         {
-            if (selector is null) throw new ArgumentNullException(nameof(selector));
+            ArgumentNullException.ThrowIfNull(selector, nameof(selector));
             return result.Bind(selector);
         }
 
@@ -257,8 +257,8 @@ public static class ExtendedResultExtensions
         /// </example>
         public ExtendedResult<V, E> SelectMany<U, V>(Func<T, ExtendedResult<U, E>> selector, Func<T, U, V> projector)
         {
-            if (selector is null) throw new ArgumentNullException(nameof(selector));
-            if (projector is null) throw new ArgumentNullException(nameof(projector));
+            ArgumentNullException.ThrowIfNull(selector, nameof(selector));
+            ArgumentNullException.ThrowIfNull(projector, nameof(projector));
 
             return result.Bind(t => selector(t).Map(u => projector(t, u)));
         }
@@ -289,7 +289,7 @@ public static class ExtendedResultExtensions
         /// </example>
         public ExtendedResult<IEnumerable<T>, E> Combine()
         {
-            if (results is null) throw new ArgumentNullException(nameof(results));
+            ArgumentNullException.ThrowIfNull(results, nameof(results));
 
             var values = new List<T>();
             foreach (var result in results)
@@ -318,7 +318,7 @@ public static class ExtendedResultExtensions
         /// </example>
         public (List<T> successes, List<E> failures) Partition()
         {
-            if (results is null) throw new ArgumentNullException(nameof(results));
+            ArgumentNullException.ThrowIfNull(results, nameof(results));
 
             var successes = new List<T>();
             var failures = new List<E>();
