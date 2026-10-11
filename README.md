@@ -837,6 +837,24 @@ var errorWithTrace = error.CaptureStackTrace(includeFileInfo: false);  // Fast
 var detailedError = error.CaptureStackTrace(includeFileInfo: true);    // Detailed
 ```
 
+#### Cancellation behavior for async error helpers
+
+`ContextAsync`, `WithContextAsync`, and both `WithMetadataAsync` overloads throw `OperationCanceledException` when their `CancellationToken` is cancelled. Previously, these methods returned a failed `Result` containing an `Error` with `ErrorKind.Interrupted`; this is a **breaking behavior change** for callers that handled cancellation by inspecting the returned result. Callers should handle cancellation with `try`/`catch` or allow it to propagate:
+
+```csharp
+try
+{
+    var result = await LoadUserAsync(userId)
+        .ContextAsync("Failed to load user", cancellationToken);
+}
+catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+{
+    // Handle or propagate cancellation.
+}
+```
+
+These helpers await the input result task before checking the token, so the token does not cancel an input task that is still running; cancellation is observed after that task completes.
+
 **Production Features:**
 - ✅ **ImmutableDictionary** - Efficient metadata storage with structural sharing
 - ✅ **Type-safe metadata API** - Generic overloads for compile-time type safety

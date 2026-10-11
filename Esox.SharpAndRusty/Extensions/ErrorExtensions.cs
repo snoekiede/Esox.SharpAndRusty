@@ -209,6 +209,7 @@ public static class ErrorExtensions
         /// <param name="cancellationToken">Optional cancellation token.</param>
         /// <returns>The original result if successful; otherwise, a result with the contextualized error.</returns>
         /// <exception cref="ArgumentNullException">Thrown when contextMessage is null.</exception>
+        /// <exception cref="OperationCanceledException">Thrown when cancellation is requested.</exception>
         /// <example>
         ///     <code>
         /// var result = await LoadUserAsync(userId)
@@ -221,11 +222,7 @@ public static class ErrorExtensions
             ArgumentNullException.ThrowIfNull(contextMessage, nameof(contextMessage));
 
             var res = await result.ConfigureAwait(false);
-            
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return Result<T, Error>.Err(Error.New("Operation was cancelled.", ErrorKind.Interrupted));
-            }
+            cancellationToken.ThrowIfCancellationRequested();
 
             return res.MapError(error => error.WithContext(contextMessage));
         }
@@ -237,16 +234,14 @@ public static class ErrorExtensions
         /// <param name="cancellationToken">Optional cancellation token.</param>
         /// <returns>The original result if successful; otherwise, a result with the contextualized error.</returns>
         /// <exception cref="ArgumentNullException">Thrown when contextFactory is null.</exception>
+        /// <exception cref="OperationCanceledException">Thrown when cancellation is requested.</exception>
         public async Task<Result<T, Error>> WithContextAsync(Func<Error, string> contextFactory,
             CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(contextFactory, nameof(contextFactory));
 
             var res = await result.ConfigureAwait(false);
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return Result<T, Error>.Err(Error.New("Operation was cancelled.", ErrorKind.Interrupted));
-            }
+            cancellationToken.ThrowIfCancellationRequested();
 
             return res.MapError(error => error.WithContext(contextFactory(error)));
         }
@@ -259,6 +254,7 @@ public static class ErrorExtensions
         /// <param name="cancellationToken">Optional cancellation token.</param>
         /// <returns>The original result if successful; otherwise, a result with the error containing the metadata.</returns>
         /// <exception cref="ArgumentNullException">Thrown when key or value is null.</exception>
+        /// <exception cref="OperationCanceledException">Thrown when cancellation is requested.</exception>
         public async Task<Result<T, Error>> WithMetadataAsync(string key, object value,
             CancellationToken cancellationToken = default)
         {
@@ -266,10 +262,7 @@ public static class ErrorExtensions
             ArgumentNullException.ThrowIfNull(value, nameof(value));
 
             var res = await result.ConfigureAwait(false);
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return Result<T, Error>.Err(Error.New("Operation was cancelled.", ErrorKind.Interrupted));
-            }
+            cancellationToken.ThrowIfCancellationRequested();
 
             return res.MapError(error => error.WithMetadata(key, value));
         }
@@ -283,6 +276,7 @@ public static class ErrorExtensions
         /// <param name="cancellationToken">Optional cancellation token.</param>
         /// <returns>The original result if successful; otherwise, a result with the error containing the metadata.</returns>
         /// <exception cref="ArgumentNullException">Thrown when key is null.</exception>
+        /// <exception cref="OperationCanceledException">Thrown when cancellation is requested.</exception>
         public async Task<Result<T, Error>> WithMetadataAsync<TValue>(string key, TValue value,
             CancellationToken cancellationToken = default) where TValue : struct
         {
@@ -290,10 +284,7 @@ public static class ErrorExtensions
             ArgumentNullException.ThrowIfNull(key, nameof(key));
 
             var res = await result.ConfigureAwait(false);
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return Result<T, Error>.Err(Error.New("Operation was cancelled.", ErrorKind.Interrupted));
-            }
+            cancellationToken.ThrowIfCancellationRequested();
 
             return res.MapError(error => error.WithMetadata(key, value));
         }
