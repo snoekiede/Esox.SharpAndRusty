@@ -7,11 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased]
+## [1.7.2] - 2026
+
+### Deprecated
+
+- **`Mutex<T>` and `RwLock<T>`**, including their guard types (`MutexGuard<T>`, `ReadGuard<T>`, and `WriteGuard<T>`), are now marked obsolete with diagnostic ID `ESOX2001` and are scheduled for removal in 2.0.0. `Mutex<T>` is no longer maintained; use `lock` (or `System.Threading.Lock` on .NET 9+) for synchronous mutual exclusion, or `SemaphoreSlim` for asynchronous code. `RwLock<T>` is no longer maintained due to known thread-affinity and disposal problems; use `ReaderWriterLockSlim` directly for synchronous code and never hold it across an `await`.
 
 ### Added
 
 - **`Ensure` / `EnsureAsync`** for `Result<T, E>` (and synchronous `Ensure` for `ExtendedResult<T, E>`): check a condition on the success value and switch to the failure track when it does not hold, either with an error factory (`Func<T, E>`) or a fixed error. `EnsureAsync` supports both synchronous and asynchronous predicates and a `CancellationToken`. A failed result is returned unchanged and the predicate is not called.
+
+### Changed
+
+- **Async error helpers now throw on cancellation**: `ContextAsync`, `WithContextAsync`, and both `WithMetadataAsync` overloads throw `OperationCanceledException` when their `CancellationToken` is cancelled, instead of returning a failed result with `ErrorKind.Interrupted`. This is a breaking behavior change for callers that handled cancellation by inspecting the result. The helpers observe cancellation after awaiting the input result task; they do not cancel that task.
 
 ### Fixed
 
@@ -20,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Documentation
 
 - Added a "Railway-Oriented Programming" section that maps the pattern onto the API, and documented `Validation<T, E>` (error accumulation), `TraverseValidation`, and `Ensure`.
+- Added a library philosophy section explaining expected failures versus exceptions, validation strategies, structured errors, analyzer strictness, and gradual adoption.
 - Fixed the duplicate `message` variable in the Quick Start example, removed links to documents that do not exist, and removed empty duplicate headings.
 - Shortened `Map` calls in usage examples (type arguments are inferred).
 

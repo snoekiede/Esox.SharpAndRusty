@@ -19,6 +19,12 @@ namespace Esox.SharpAndRusty.Sync;
 ///     The mutex uses SemaphoreSlim internally for async-compatible locking and proper disposal semantics.
 ///     Both synchronous (Lock, TryLock) and asynchronous (LockAsync, LockAsyncTimeout) methods are available.
 /// </remarks>
+[Obsolete(
+    "Mutex<T> is deprecated and will be removed in 2.0.0. It is no longer maintained. " +
+    "Use 'lock' (or System.Threading.Lock on .NET 9+) for synchronous code, or SemaphoreSlim for async code.",
+    false,
+    DiagnosticId = "ESOX2001",
+    UrlFormat = "https://github.com/snoekiede/Esox.SharpAndRusty/blob/main/CHANGELOG.md")]
 public sealed class Mutex<T> : IDisposable
 {
     private readonly SemaphoreSlim _semaphore;
@@ -98,6 +104,11 @@ public sealed class Mutex<T> : IDisposable
     /// }
     /// </code>
     /// </example>
+    [Obsolete(
+        "MutexGuard<T> is deprecated together with Mutex<T> and will be removed in 2.0.0.",
+        false,
+        DiagnosticId = "ESOX2001",
+        UrlFormat = "https://github.com/snoekiede/Esox.SharpAndRusty/blob/main/CHANGELOG.md")]
     public Result<MutexGuard<T>, Error> Lock()
     {
         if (Volatile.Read(ref _disposed) == 1)

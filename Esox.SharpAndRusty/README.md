@@ -41,8 +41,7 @@ environment before deploying to production.
 - ✅ **Full Async Support**: Complete async/await integration with `MapAsync`, `BindAsync`, `TapAsync`, and more
 - ✅ **Cancellation Support**: All async methods support `CancellationToken` for graceful operation cancellation
 - ✅ **.NET 10 Compatible**: Built for the latest .NET platform with C# 14
-- 🧪 **Experimental: Mutex<T>**: Rust-inspired mutual exclusion primitive with Result-based locking, safe async disposal, and cooperative cancellation (works in both sync and async contexts)
-- 🧪 **Experimental: RwLock<T>**: Rust-inspired reader-writer lock for shared data access (synchronous only — **guards must not be held across an `await`**)
+- ⚠️ **Deprecated: Mutex<T> and RwLock<T>**: Unmaintained and scheduled for removal in 2.0.0 (see the [Changelog](CHANGELOG.md))
 
 ## Philosophy
 Esox.SharpAndRusty is meant to make error handling something you design rather than something that happens to you. It is not meant to replace exceptions or to turn C# into Rust. The guidelines I follow, and built the library around:

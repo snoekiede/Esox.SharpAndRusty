@@ -45,6 +45,12 @@ namespace Esox.SharpAndRusty.Sync;
 ///         acquire" case that cannot be handled safely with this primitive.
 ///     </para>
 /// </remarks>
+[Obsolete(
+    "RwLock<T> is deprecated and will be removed in 2.0.0. It has known thread-affinity and disposal " +
+    "problems that will not be fixed. Use ReaderWriterLockSlim directly (synchronous code only; never hold it across an await).",
+    false,
+    DiagnosticId = "ESOX2001",
+    UrlFormat = "https://github.com/snoekiede/Esox.SharpAndRusty/blob/main/CHANGELOG.md")]
 public sealed class RwLock<T> : IDisposable
 {
     private readonly ReaderWriterLockSlim _lock;
@@ -77,7 +83,7 @@ public sealed class RwLock<T> : IDisposable
     ///     Useful for diagnostics and debugging deadlock situations.
     /// </summary>
     [SuppressMessage("ReSharper", "UnusedMember.Global",
-        Justification = "Will be used vy clients of this nuget package")]
+        Justification = "Will be used by clients of this nuget package")]
     public bool IsReadLockHeld => Volatile.Read(ref _disposed) == 0 && _lock.IsReadLockHeld;
 
     /// <summary>
@@ -85,7 +91,7 @@ public sealed class RwLock<T> : IDisposable
     ///     Useful for diagnostics and debugging deadlock situations.
     /// </summary>
     [SuppressMessage("ReSharper", "UnusedMember.Global",
-        Justification = "Will be used vy clients of this nuget package")]
+        Justification = "Will be used by clients of this nuget package")]
     public bool IsWriteLockHeld => Volatile.Read(ref _disposed) == 0 && _lock.IsWriteLockHeld;
 
     /// <summary>
@@ -635,6 +641,11 @@ public sealed class RwLock<T> : IDisposable
 ///     pattern.
 ///     Always use within a using statement or dispose explicitly to ensure the lock is released.
 /// </remarks>
+[Obsolete(
+    "ReadGuard<T> is deprecated together with RwLock<T> and will be removed in 2.0.0.",
+    false,
+    DiagnosticId = "ESOX2001",
+    UrlFormat = "https://github.com/snoekiede/Esox.SharpAndRusty/blob/main/CHANGELOG.md")]
 public sealed class ReadGuard<T> : IDisposable
 {
     private readonly ReaderWriterLockSlim _lock;
@@ -737,6 +748,11 @@ public sealed class ReadGuard<T> : IDisposable
 ///     pattern.
 ///     Always use within a using statement or dispose explicitly to ensure the lock is released.
 /// </remarks>
+[Obsolete(
+    "WriteGuard<T> is deprecated together with RwLock<T> and will be removed in 2.0.0.",
+    false,
+    DiagnosticId = "ESOX2001",
+    UrlFormat = "https://github.com/snoekiede/Esox.SharpAndRusty/blob/main/CHANGELOG.md")]
 public sealed class WriteGuard<T> : IDisposable
 {
     private readonly ReaderWriterLockSlim _lock;
