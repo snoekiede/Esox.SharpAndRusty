@@ -44,4 +44,9 @@
         <ProjectReference Include="..\Esox.SharpAndRusty\Esox.SharpAndRusty.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Async\" />
+      <Folder Include="Sync\" />
+    </ItemGroup>
+
 </Project>

@@ -280,8 +280,8 @@ public readonly struct Result<T, E> : IEquatable<Result<T, E>>
     /// <exception cref="ArgumentNullException">Thrown when operation or errorHandler is null.</exception>
     public static Result<T, E> Try(Func<T> operation, Func<Exception, E> errorHandler)
     {
-        if (operation is null) throw new ArgumentNullException(nameof(operation));
-        if (errorHandler is null) throw new ArgumentNullException(nameof(errorHandler));
+        ArgumentNullException.ThrowIfNull(operation, nameof(operation));
+        ArgumentNullException.ThrowIfNull(errorHandler, nameof(errorHandler));
 
         try
         {
