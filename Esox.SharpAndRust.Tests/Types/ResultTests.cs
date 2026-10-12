@@ -27,6 +27,82 @@ public class ResultTests
     }
 
     [Fact]
+    public void Default_HasUninitializedState()
+    {
+        var result = default(Result<int, string>);
+
+        Assert.False(result.IsSuccess);
+        Assert.True(result.IsFailure);
+        Assert.True(result.IsDefault);
+    }
+
+    [Fact]
+    public void OkAndErr_DefaultPayloadsAreInitialized()
+    {
+        var success = Result<int, string>.Ok(default);
+        var failure = Result<int, string>.Err(default);
+
+        Assert.False(success.IsDefault);
+        Assert.False(failure.IsDefault);
+    }
+
+    [Fact]
+    public void Match_OnDefault_ThrowsWithoutInvokingCallbacks()
+    {
+        var result = default(Result<int, string>);
+        var successInvoked = false;
+        var failureInvoked = false;
+
+        Assert.Throws<InvalidOperationException>(() => result.Match(
+            _ =>
+            {
+                successInvoked = true;
+                return 0;
+            },
+            _ =>
+            {
+                failureInvoked = true;
+                return 0;
+            }));
+
+        Assert.False(successInvoked);
+        Assert.False(failureInvoked);
+    }
+
+    [Fact]
+    public void ActionMatch_OnDefault_ThrowsWithoutInvokingCallbacks()
+    {
+        var result = default(Result<int, string>);
+        var successInvoked = false;
+        var failureInvoked = false;
+
+        Assert.Throws<InvalidOperationException>(() => result.Match(
+            _ => successInvoked = true,
+            _ => failureInvoked = true));
+
+        Assert.False(successInvoked);
+        Assert.False(failureInvoked);
+    }
+
+    [Fact]
+    public void Equality_DefaultResultIsEqualOnlyToDefaultResult()
+    {
+        var result = default(Result<int, string>);
+
+        Assert.True(result == default);
+        Assert.False(result != default);
+        Assert.NotEqual(result, Result<int, string>.Ok(0));
+    }
+
+    [Fact]
+    public void NewResultArray_ContainsDefaultElements()
+    {
+        var results = new Result<int, Error>[3];
+
+        Assert.All(results, result => Assert.True(result.IsDefault));
+    }
+
+    [Fact]
     public void Ok_WithNullValue_CreatesSuccessfulResult()
     {
         // Arrange & Act

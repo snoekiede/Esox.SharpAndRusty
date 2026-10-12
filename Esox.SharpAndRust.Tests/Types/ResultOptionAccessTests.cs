@@ -46,4 +46,15 @@ public class ResultOptionAccessTests
 
         Assert.True(errorOption.IsNone());
     }
+
+    [Fact]
+    public void DefaultResult_HasNoValueOrError()
+    {
+        var result = default(Result<int, string>);
+
+        Assert.False(result.TryGetError(out var error));
+        Assert.Null(error);
+        Assert.True(result.ErrorOption().IsNone());
+        Assert.True(result.ValueOption().IsNone());
+    }
 }

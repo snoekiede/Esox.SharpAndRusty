@@ -8,24 +8,31 @@
 /// <typeparam name="E">The type of the error value.</typeparam>
 public readonly struct Result<T, E> : IEquatable<Result<T, E>>
 {
+    private enum State: byte { Default = 0, Ok = 1, Err = 2 }
     private readonly T _value;
     private readonly E _error;
+    private readonly State _state;
 
     /// <summary>
     ///     Gets a value indicating whether this result represents a successful operation.
     /// </summary>
-    public bool IsSuccess { get; }
+    public bool IsSuccess => _state == State.Ok;
 
     /// <summary>
     ///     Gets a value indicating whether this result represents a failed operation.
     /// </summary>
     public bool IsFailure => !IsSuccess;
 
-    private Result(T value, E error, bool isSuccess)
+    /// <summary>
+    ///    Gets a value indicating whether this result is in its default state (neither success nor failure).
+    /// </summary>
+    public bool IsDefault => _state == State.Default;
+
+    private Result(T value, E error, State state)
     {
         _value = value;
         _error = error;
-        IsSuccess = isSuccess;
+        _state = state;
     }
 
     /// <summary>
@@ -33,14 +40,24 @@ public readonly struct Result<T, E> : IEquatable<Result<T, E>>
     /// </summary>
     /// <param name="value">The success value.</param>
     /// <returns>A <see cref="Result{T,E}" /> representing success.</returns>
-    public static Result<T, E> Ok(T value) => new(value, default!, true);
+    public static Result<T, E> Ok(T value) => new(value, default!, State.Ok);
 
     /// <summary>
     ///     Creates a failed result containing the specified error.
     /// </summary>
     /// <param name="error">The error value.</param>
     /// <returns>A <see cref="Result{T,E}" /> representing failure.</returns>
-    public static Result<T, E> Err(E error) => new(default!, error, false);
+    public static Result<T, E> Err(E error) => new(default!, error, State.Err);
+
+    internal E ErrorOrThrow() => _state == State.Err
+    ? _error
+    : throw new InvalidOperationException("This Result is uninitialized (default). Create it with Result<T, E>.Ok or Result<T, E>.Err.");
+
+    private void ThrowIfDefault()
+    {
+        if (IsDefault)
+            throw new InvalidOperationException("This Result is uninitialized (default). Create it with Result<T, E>.Ok or Result<T, E>.Err.");
+    }
 
     /// <summary>
     ///     Matches the result and executes the appropriate function based on whether it's a success or failure.
@@ -55,6 +72,8 @@ public readonly struct Result<T, E> : IEquatable<Result<T, E>>
         ArgumentNullException.ThrowIfNull(success);
         ArgumentNullException.ThrowIfNull(failure);
 
+        ThrowIfDefault();
+
         return IsSuccess ? success(_value) : failure(_error);
     }
     /// <summary>
@@ -66,6 +85,8 @@ public readonly struct Result<T, E> : IEquatable<Result<T, E>>
     {
         ArgumentNullException.ThrowIfNull(success);
         ArgumentNullException.ThrowIfNull(failure);
+        ThrowIfDefault();
+
         if (IsSuccess)
             success(_value);
         else
@@ -102,7 +123,7 @@ public readonly struct Result<T, E> : IEquatable<Result<T, E>>
     /// <returns>true if the result is a failure; otherwise, false.</returns>
     public bool TryGetError(out E error)
     {
-        if (IsFailure)
+        if (_state == State.Err)
         {
             error = _error;
             return true;
@@ -126,7 +147,7 @@ public readonly struct Result<T, E> : IEquatable<Result<T, E>>
     ///     Returns <c>Some</c> when failed; otherwise <c>None</c>.
     /// </summary>
     public Option<E> ErrorOption() =>
-        IsFailure
+        _state == State.Err
             ? new Option<E>.Some(_error)
             : new Option<E>.None();
 
@@ -192,15 +213,12 @@ public readonly struct Result<T, E> : IEquatable<Result<T, E>>
     /// <summary>
     ///     Determines whether the specified result is equal to the current result.
     /// </summary>
-    public bool Equals(Result<T, E> other)
+    public bool Equals(Result<T, E> other) => _state == other._state && _state switch
     {
-        if (IsSuccess != other.IsSuccess)
-            return false;
-
-        if (IsSuccess)
-            return EqualityComparer<T>.Default.Equals(_value, other._value);
-        return EqualityComparer<E>.Default.Equals(_error, other._error);
-    }
+        State.Ok => EqualityComparer<T>.Default.Equals(_value, other._value),
+        State.Err => EqualityComparer<E>.Default.Equals(_error, other._error),
+        _ => true
+    };
 
     /// <summary>
     ///     Determines whether the specified object is equal to the current result.
@@ -210,17 +228,22 @@ public readonly struct Result<T, E> : IEquatable<Result<T, E>>
     /// <summary>
     ///     Returns the hash code for this result.
     /// </summary>
-    public override int GetHashCode()
+    public override int GetHashCode() => _state switch
     {
-        if (IsSuccess)
-            return HashCode.Combine(IsSuccess, _value);
-        return HashCode.Combine(IsSuccess, _error);
-    }
+        State.Ok => HashCode.Combine(_state, _value),
+        State.Err => HashCode.Combine(_state, _error),
+        _ => 0,
+    };
 
     /// <summary>
     ///     Returns a string representation of this result.
     /// </summary>
-    public override string ToString() => IsSuccess ? $"Ok({_value})" : $"Err({_error})";
+    public override string ToString() => _state switch
+    {
+        State.Ok => $"Ok({_value})",
+        State.Err => $"Err({_error})",
+        _ => "Default"
+    };
 
     /// <summary>
     ///     Determines whether two results are equal.
@@ -256,8 +279,8 @@ public readonly struct Result<T, E> : IEquatable<Result<T, E>>
     /// <exception cref="ArgumentNullException">Thrown when operation or errorHandler is null.</exception>
     public static async Task<Result<T, E>> TryAsync(Func<Task<T>> operation, Func<Exception, E> errorHandler)
     {
-        if (operation is null) throw new ArgumentNullException(nameof(operation));
-        if (errorHandler is null) throw new ArgumentNullException(nameof(errorHandler));
+        ArgumentNullException.ThrowIfNull(operation, nameof(operation));
+        ArgumentNullException.ThrowIfNull(errorHandler, nameof(errorHandler));
 
         try
         {
