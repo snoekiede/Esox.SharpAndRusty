@@ -44,6 +44,16 @@ environment before deploying to production.
 - 🧪 **Experimental: Mutex<T>**: Rust-inspired mutual exclusion primitive with Result-based locking, safe async disposal, and cooperative cancellation (works in both sync and async contexts)
 - 🧪 **Experimental: RwLock<T>**: Rust-inspired reader-writer lock for shared data access (synchronous only — **guards must not be held across an `await`**)
 
+## Philosophy
+Esox.SharpAndRusty is meant to make error handling something you design rather than something that happens to you. It is not meant to replace exceptions or to turn C# into Rust. The guidelines I follow, and built the library around:
+- **Expected failures are values, bugs are exceptions:** Bad input, a missing record or a rejected request belong in a `Result`. A null reference from a programming mistake or a corrupted state should still throw.
+- **Fail fast or collect everything, depending on the situation:** Use `Result` when steps depend on each other. Use `Validation<T,E>` when they are independent and the caller benefits from seeing every problem at once.
+- **Errors should explain themselves:** `Error` carries a kind, context and metadata, so a failure that reaches your logs says what wrong and where.
+- **Strictness is opt-in:** The analyzer warns when a `Result` or `Option` is silently ignored. You can raise it to an error when your team is ready or turn it off. `Unwrap()` and `Expect()` exist because sometimes they are the right call.
+- **Adopt it gradually:** Start with one service boundary or one endpoint. Nothing requires rewriting the codebase and `Try` / `TryAsync` let you wrap code that throws.
+
+**When not to use it:** for a trivial two-step operation, plain code is often clearer. Result types add ceremony, so use them where explicit failure handling pays for itself.
+
 ## Installation
 
 ```bash
