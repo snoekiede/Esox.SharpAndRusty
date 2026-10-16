@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Parameterless `Ok()`** for `Result<Unit, E>` and `ExtendedResult<Unit, E>`, matching Rust's `Ok(())`. It is only available when the success type is `Unit`, so `Result<int, string>.Ok()` is a compile-time error.
 - **`Ensure` / `EnsureAsync`** for `Result<T, E>` (and synchronous `Ensure` for `ExtendedResult<T, E>`): check a condition on the success value and switch to the failure track when it does not hold, either with an error factory (`Func<T, E>`) or a fixed error. `EnsureAsync` supports both synchronous and asynchronous predicates and a `CancellationToken`. A failed result is returned unchanged and the predicate is not called.
 
 ### Changed

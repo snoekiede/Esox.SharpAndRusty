@@ -425,4 +425,43 @@ public class UnitTests
         Assert.Single(set);
         Assert.Contains(Unit.Value, set);
     }
+
+    [Fact]
+    public void Result_ParameterlessOk_CreatesSuccessWithUnit()
+    {
+        var result = Result<Unit, string>.Ok();
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(Result<Unit, string>.Ok(Unit.Value), result);
+        Assert.Equal(Unit.Value, result.Match(v => v, _ => throw new InvalidOperationException()));
+    }
+
+    [Fact]
+    public void Result_ParameterlessOk_ErrStillFails()
+    {
+        var result = Result<Unit, string>.Err("boom");
+
+        Assert.True(result.IsFailure);
+        Assert.NotEqual(Result<Unit, string>.Ok(), result);
+    }
+
+    [Fact]
+    public void ExtendedResult_ParameterlessOk_CreatesSuccessWithUnit()
+    {
+        var result = ExtendedResult<Unit, string>.Ok();
+
+        Assert.True(result.IsSuccess);
+        Assert.True(result.TryGetValue(out var value));
+        Assert.Equal(Unit.Value, value);
+        Assert.Equal(ExtendedResult<Unit, string>.Ok(Unit.Value), result);
+    }
+
+    [Fact]
+    public void ExtendedResult_ParameterlessOk_ErrStillFails()
+    {
+        var result = ExtendedResult<Unit, string>.Err("boom");
+
+        Assert.True(result.IsFailure);
+        Assert.NotEqual(ExtendedResult<Unit, string>.Ok(), result);
+    }
 }

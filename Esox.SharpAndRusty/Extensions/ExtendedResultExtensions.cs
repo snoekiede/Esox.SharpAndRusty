@@ -4,6 +4,20 @@ namespace Esox.SharpAndRusty.Extensions;
 
 public static class ExtendedResultExtensions
 {
+    /// <summary>
+    ///    Creates a successful ExtendedResult with a Unit value, representing a successful operation that does not return a meaningful value.
+    /// </summary>
+    /// <param name="result">The ExtendedResult to create a successful result from.</param>
+    /// <typeparam name="E">The type of the error value.</typeparam>
+    extension<E>(ExtendedResult<Unit, E> result)
+    {
+        /// <summary>
+        ///   Creates a successful ExtendedResult with a Unit value, representing a successful operation that does not return a meaningful value.
+        /// </summary>
+        /// <returns>A successful ExtendedResult with a Unit value.</returns>
+        public static ExtendedResult<Unit, E> Ok() => ExtendedResult<Unit, E>.Ok(Unit.Value);
+    }
+    
     extension<T, E>(ExtendedResult<T, E> result)
     {
         /// <summary>

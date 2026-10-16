@@ -28,7 +28,19 @@ public abstract record ExtendedResult<T, TE>
         };
     }
 
+    /// <summary>
+    ///     Creates a successful result containing the specified value.
+    /// </summary>
+    /// <param name="value">The success value.</param>
+    /// <returns>An <see cref="ExtendedResult{T,TE}" /> representing success.</returns>
     public static ExtendedResult<T, TE> Ok(T value) => new Success(value);
+
+
+    /// <summary>
+    ///     Creates a failed result containing the specified error.
+    /// </summary>
+    /// <param name="error">The error value.</param>
+    /// <returns>An <see cref="ExtendedResult{T,TE}" /> representing failure.</returns>
     public static ExtendedResult<T, TE> Err(TE error) => new Failure(error);
 
     /// <summary>

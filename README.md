@@ -460,6 +460,22 @@ Console.WriteLine(success); // Output: Ok(42)
 Console.WriteLine(failure); // Output: Err(Not found)
 ```
 
+#### Success without a value: `Ok()` (Rust's `Ok(())`)
+
+For operations that either succeed or fail without producing a value, use `Unit` as the success type and the parameterless `Ok()`:
+
+```csharp
+Result<Unit, string> Validate(string input) =>
+    string.IsNullOrEmpty(input)
+        ? Result<Unit, string>.Err("Input cannot be empty")
+        : Result<Unit, string>.Ok(); // same as Ok(Unit.Value)
+
+// Also available on ExtendedResult
+ExtendedResult<Unit, string> done = ExtendedResult<Unit, string>.Ok();
+```
+
+`Ok()` is only available when the success type is `Unit`; `Result<int, string>.Ok()` does not compile.
+
 ### Safe Value Extraction
 
 ```csharp
@@ -1124,6 +1140,7 @@ var validValues = options
 
 #### Static Factory Methods
 - `Result<T, E> Ok(T value)` - Creates a successful result
+- `Result<Unit, E> Ok()` - Creates a successful result with no value (like Rust's `Ok(())`); only available when `T` is `Unit`
 - `Result<T, E> Err(E error)` - Creates a failed result
 - `Result<T, E> Try(Func<T> operation, Func<Exception, E> errorHandler)` - Execute operation with exception handling
 - `Task<Result<T, E>> TryAsync(Func<Task<T>> operation, Func<Exception, E> errorHandler)` - Async version of Try
@@ -1163,6 +1180,7 @@ Record-based result type. `Success` and `Failure` are sealed records, enabling e
 
 #### Static Factory Methods
 - `ExtendedResult<T, TE> Ok(T value)` - Creates a `Success` result
+- `ExtendedResult<Unit, TE> Ok()` - Creates a `Success` with no value (like Rust's `Ok(())`); only available when `T` is `Unit`
 - `ExtendedResult<T, TE> Err(TE error)` - Creates a `Failure` result
 - `ExtendedResult<T, TE> Try(Func<T> operation, Func<Exception, TE> errorHandler)` - Wraps a synchronous operation; throws `ArgumentNullException` when either argument is null
 - `Task<ExtendedResult<T, TE>> TryAsync(Func<Task<T>> operation, Func<Exception, TE> errorHandler)` - Async version of `Try`

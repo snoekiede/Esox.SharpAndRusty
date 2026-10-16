@@ -35,6 +35,8 @@ public readonly struct Result<T, E> : IEquatable<Result<T, E>>
     /// <returns>A <see cref="Result{T,E}" /> representing success.</returns>
     public static Result<T, E> Ok(T value) => new(value, default!, true);
 
+
+    
     /// <summary>
     ///     Creates a failed result containing the specified error.
     /// </summary>

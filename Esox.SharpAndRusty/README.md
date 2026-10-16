@@ -1,47 +1,48 @@
 ﻿# Esox.SharpAndRusty
 
-A production-ready C# library that brings Rust-inspired patterns to .NET, including `Result<T, E>` for type-safe error
-handling and `Option<T>` for representing optional values without null references.
+A production-focused C# library that brings Rust-inspired patterns to .NET, including `Result<T, E>` for type-safe error handling and `Option<T>` for representing optional values without null references.
 
 ## ⚠️ Disclaimer
 
-This library is provided "as is" without warranty of any kind, either express or implied, including but not limited to
-the warranties of merchantability, fitness for a particular purpose, and non-infringement. In no event shall the authors
-or copyright holders be liable for any claim, damages, or other liability, whether in an action of contract, tort, or
-otherwise, arising from, out of, or in connection with the software or the use or other dealings in the software.
+This library is provided "as is" without warranty of any kind, either express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose, and non-infringement. In no event shall the authors or copyright holders be liable for any claim, damages, or other liability, whether in an action of contract, tort, or otherwise, arising from, out of, or in connection with the software or the use or other dealings in the software.
 
-**Use at your own risk.** While this library has been designed to be production-ready with comprehensive test coverage,
-it is your responsibility to evaluate its suitability for your specific use case and to test it thoroughly in your
-environment before deploying to production.
+**Use at your own risk.** The library is maintained and tested for production use, but it is your responsibility to evaluate its suitability for your specific use case and test it in your environment before deployment.
 
 ## Features
 
 - ✅ **Type-Safe Error Handling**: Explicitly represent success and failure states in your type signatures
 - ✅ **Option Type**: Rust-inspired `Option<T>` for representing optional values without null references
-- ✅ **Automatic Null Handling**: Implicit conversion operator converts null values to `None`, preventing `Some(null)`
-  anti-pattern
 - ✅ **Rust-Inspired API**: Familiar patterns for developers coming from Rust or functional programming
 - ✅ **Rich Error Type**: Rust-inspired `Error` type with context chaining, metadata, and error categorization
-- ✅ **Zero Overhead**: Implemented as a `readonly struct` for optimal performance
+- ✅ **Zero Overhead**: `Result<T,E>` is a `readonly struct` for minimal allocation pressure
+- ✅ **ExtendedResult<T,TE>**: Record-based alternative with sealed `Success`/`Failure` subtypes for exhaustive C# switch expressions and structural equality
 - ✅ **Functional Composition**: Chain operations with `Map`, `Bind`, `MapError`, and `OrElse`
 - ✅ **Railway-Oriented Programming**: Build flat success/failure pipelines with `Bind`, `Map`, `Ensure`, `Tap`, `MapError`, and `OrElse` (see [Railway-Oriented Programming](#-railway-oriented-programming))
 - ✅ **Error Accumulation**: `Validation<T,E>` with `Apply`, `TraverseValidation`, and `Sequence` collects *all* errors instead of stopping at the first
 - ✅ **Either and Collection Helpers**: `Either<L,R>`, plus `Traverse`, `Sequence`, `SequenceAll`, and `Partition` for working with collections of results
 - ✅ **Pattern Matching**: Use the `Match` method for elegant success/failure handling
 - ✅ **Full Equality Support**: Implements `IEquatable<T>` with proper `==`, `!=`, and `GetHashCode()`
-- ✅ **Implicit Conversions**: Concise result and option creation with `Result<int, string> r = 42;` and
-  `Option<int> o = 42;`
-- ✅ **Safe Value Extraction**: `ValueOption`, `ErrorOption`, `TryGetValue`, `UnwrapOr`, `UnwrapOrElse`, `Expect`, and
-  `Contains` methods
+- ✅ **Implicit Conversions**: Concise result and option creation with `Result<int, string> r = 42;` and `Option<int> o = 42;`
+- ✅ **Safe Value Extraction**: `ValueOption`, `ErrorOption`, `TryGetValue`, `UnwrapOr`, `UnwrapOrElse`, `Expect`, and `Contains` methods
 - ✅ **Out-Free Parsing**: `"123".TryParse<int>()` and delegate-based `TryParse` helpers that return `Result<T, Error>`
-- ✅ **Exception Handling Helpers**: Built-in `Try` and `TryAsync` for wrapping operations
+- ✅ **Exception Handling Helpers**: Built-in `Try` and `TryAsync` for wrapping exception-prone operations in both `Result<T,E>` and `ExtendedResult<T,TE>`
 - ✅ **Inspection Methods**: Execute side effects with `Inspect`, `InspectErr`, and `Tap`
 - ✅ **LINQ Query Syntax**: Full support for C# LINQ query comprehension with `from`, `select`, and more
 - ✅ **Collection Operations**: `Combine` and `Partition` for batch processing
-- ✅ **Full Async Support**: Complete async/await integration with `MapAsync`, `BindAsync`, `TapAsync`, and more
-- ✅ **Cancellation Support**: All async methods support `CancellationToken` for graceful operation cancellation
-- ✅ **.NET 10 Compatible**: Built for the latest .NET platform with C# 14
-- ⚠️ **Deprecated: Mutex<T> and RwLock<T>**: Unmaintained and scheduled for removal in 2.0.0 (see the [Changelog](CHANGELOG.md))
+- ✅ **Full Async Support**: Async `Result<T, E>` composition with `MapAsync`, `BindAsync`, `EnsureAsync`, `TapAsync`, `OrElseAsync`, and `CombineAsync`, preserving any error type `E`
+- ✅ **Cancellation Support**: Async result operations accept `CancellationToken` and throw `OperationCanceledException` when cancellation is requested
+- ✅ **Multi-targeted**: Core and EF Core packages target .NET 8, .NET 9, and .NET 10; the analyzer targets .NET Standard 2.0
+- ✨ **Roslyn Analyzer**: Enforces proper Result/Option handling at compile-time (like Rust's `#[must_use]`)
+- 🧪 **Experimental: Mutex<T>**: Rust-inspired mutual exclusion primitive with Result-based locking, safe async disposal, and cooperative cancellation (works in both sync and async contexts)
+- 🧪 **Experimental: RwLock<T>**: Rust-inspired reader-writer lock for shared data access (synchronous only — **guards must not be held across an `await`**)
+
+## Documentation
+
+- 📖 **[Feature Documentation](https://github.com/snoekiede/Esox.SharpAndRusty/blob/main/docs/README.md)** - Detailed guides and API reference
+- 🚀 **[Advanced Features](https://github.com/snoekiede/Esox.SharpAndRusty/blob/main/Esox.SharpAndRusty/ADVANCED_FEATURES.md)** - Advanced patterns and techniques
+- 🔍 **[Analyzers](https://github.com/snoekiede/Esox.SharpAndRusty/blob/main/Esox.SharpAndRusty.Analyzers/README.md)** - Roslyn analyzer documentation
+- 📝 **[Changelog](https://github.com/snoekiede/Esox.SharpAndRusty/blob/main/CHANGELOG.md)** - Version history and breaking changes
+- 🤝 **[Contributing](https://github.com/snoekiede/Esox.SharpAndRusty/blob/main/CONTRIBUTING.md)** - How to contribute to the project
 
 ## Philosophy
 Esox.SharpAndRusty is meant to make error handling something you design rather than something that happens to you. It is not meant to replace exceptions or to turn C# into Rust. The guidelines I follow, and built the library around:
@@ -55,15 +56,56 @@ Esox.SharpAndRusty is meant to make error handling something you design rather t
 
 ## Installation
 
+Install the core package from NuGet:
+
+```bash
+dotnet add package Esox.SharpAndRusty
+```
+
+For Entity Framework Core integrations, install the optional package:
+
+```bash
+dotnet add package Esox.SharpAndRusty.EntityFrameworkCore
+```
+
+The analyzer is optional and can be added when compile-time warnings for ignored `Result` and `Option` values are desired:
+
+```bash
+dotnet add package Esox.SharpAndRusty.Analyzers
+```
+
+### Build and test from source
+
 ```bash
 # Clone the repository
 git clone https://github.com/snoekiede/Esox.SharpAndRusty.git
+cd Esox.SharpAndRusty
 
-# Build the project
-dotnet build
+# Build the solution
+dotnet build Esox.SharpAndRusty.slnx
 
 # Run tests
-dotnet test
+dotnet test Esox.SharpAndRusty.slnx
+```
+
+### Release validation
+
+The release validation workflow builds all configured target frameworks, runs the tests, scans dependencies for known vulnerabilities, and creates the NuGet packages:
+
+```bash
+dotnet restore Esox.SharpAndRusty.slnx
+dotnet build Esox.SharpAndRusty.slnx --configuration Release
+dotnet test Esox.SharpAndRusty.slnx --configuration Release -p:ContinuousIntegrationBuild=true
+dotnet list Esox.SharpAndRusty.slnx package --vulnerable --include-transitive
+dotnet pack Esox.SharpAndRusty.slnx --configuration Release --no-build
+```
+
+Assembly signing is optional for local builds. Configure a secure key path for signed releases:
+
+```bash
+dotnet pack Esox.SharpAndRusty.slnx --configuration Release \
+  -p:SignAssembly=true \
+  -p:EsoxSigningKeyFile=/secure/path/Esox.SharpAndRusty.snk
 ```
 
 ## Quick Start
@@ -113,8 +155,10 @@ var optionMessage = userOption switch
     _ => "Unknown"
 };
 
-// Out-free parsing and extraction
+// Out-free parsing with rich errors
 Result<int, Error> parsedAge = "42".TryParse<int>();
+
+// Value and error extraction without out parameters
 Option<int> ageOption = parsedAge.ValueOption();
 Option<Error> parseErrorOption = parsedAge.ErrorOption();
 ```
@@ -219,12 +263,83 @@ var parsed = new[] { "1", "x", "3", "y" }.TraverseValidation(s =>
 
 **When not to use it:** Result types model *expected* failures (bad input, missing data, a rejected request). Programming errors and unrecoverable conditions are still best expressed as exceptions, and a pipeline of two trivial steps is often clearer as plain code.
 
+## 🔍 Roslyn Analyzer - Compile-Time Safety (Optional)
+
+An **optional Roslyn analyzer** is available as a separate package that enforces proper handling of `Result<T, E>` and `Option<T>` types at compile-time, similar to Rust's `#[must_use]` attribute. This prevents accidentally ignoring potential errors or missing values.
+
+### Installation
+
+```bash
+# Install the core library (required)
+dotnet add package Esox.SharpAndRusty
+
+# Optionally install the analyzer for compile-time warnings
+dotnet add package Esox.SharpAndRusty.Analyzers
+```
+
+### Compile-Time Warnings
+
+Once the analyzer is installed, it will warn you when Result or Option values are not properly handled:
+
+```csharp
+// ❌ This triggers warning ESOX1001
+public void ProcessData()
+{
+    GetResult(); // warning: Result<int, string> returned by 'GetResult' must be used
+}
+
+// ✅ This is properly handled - no warning
+public void ProcessData()
+{
+    var result = GetResult();
+    result.Match(
+        ok => Console.WriteLine($"Success: {ok}"),
+        err => Console.WriteLine($"Error: {err}"));
+}
+```
+
+### Analyzer Warnings
+
+**ESOX1001**: Result value must be used
+- Triggered when: A method returning `Result<T, E>` is called but its value is ignored
+- Severity: Warning (configurable)
+- Help: https://github.com/snoekiede/Esox.SharpAndRusty/wiki/ESOX1001
+
+**ESOX1002**: Option value must be used
+- Triggered when: A method returning `Option<T>` is called but its value is ignored
+- Severity: Warning (configurable)
+- Help: https://github.com/snoekiede/Esox.SharpAndRusty/wiki/ESOX1002
+
+### Configuration
+
+Configure the analyzer in your `.editorconfig`:
+
+```ini
+# Promote to errors (recommended for new projects)
+dotnet_diagnostic.ESOX1001.severity = error
+dotnet_diagnostic.ESOX1002.severity = error
+
+# Or disable (not recommended)
+dotnet_diagnostic.ESOX1001.severity = none
+```
+
+### Explicit Intent
+
+If you genuinely need to ignore a Result or Option, make it explicit:
+
+```csharp
+// Shows explicit intent - no warning
+_ = GetResult();
+```
+
+**Learn More:**
+- [Analyzer README](https://github.com/snoekiede/Esox.SharpAndRusty/blob/main/Esox.SharpAndRusty.Analyzers/README.md)
+
 ## Usage Examples
 
 ### Option<T> - Type-Safe Optional Values
 
-The `Option<T>` type represents an optional value - either `Some(value)` or `None`. This provides a type-safe
-alternative to nullable reference types and eliminates null reference exceptions.
+The `Option<T>` type represents an optional value - either `Some(value)` or `None`. This provides a type-safe alternative to nullable reference types and eliminates null reference exceptions.
 
 #### Creating Options
 
@@ -234,38 +349,18 @@ using Esox.SharpAndRusty.Types;
 // Create Some with a value
 var someOption = new Option<int>.Some(42);
 
-// Create None (no value)
+// Or use implicit conversion
+Option<int> someOption2 = 42;  // Equivalent to new Option<int>.Some(42)
+
+// Create None (no value) — must be explicit
 var noneOption = new Option<int>.None();
-
-// Use implicit conversion for concise syntax
-Option<int> value = 42;              // Implicitly converts to Some(42)
-Option<string> name = "Alice";       // Implicitly converts to Some("Alice")
-
-// Null handling: null values automatically convert to None
-string? nullString = null;
-Option<string> empty = nullString!;  // Converts to None (not Some(null))
-
-// This prevents the anti-pattern of Some(null)
-int? nullableInt = null;
-Option<int?> option = nullableInt;   // Converts to None
-
-// Non-null nullable values convert to Some
-int? hasValue = 42;
-Option<int?> someValue = hasValue;   // Converts to Some(42)
 
 // Real-world example: Safe dictionary lookup
 Option<string> GetConfigValue(Dictionary<string, string> config, string key)
 {
     return config.TryGetValue(key, out var value)
-        ? value                         // Implicit conversion to Some
+        ? new Option<string>.Some(value)
         : new Option<string>.None();
-}
-
-// Real-world example: Database query that might return null
-Option<User> FindUser(int userId)
-{
-    var user = _db.Users.Find(userId);  // Might return null
-    return user;  // Null automatically converts to None, non-null to Some
 }
 ```
 
@@ -345,13 +440,6 @@ var length = nameOption switch
     _ => 0
 };
 // No risk of NullReferenceException!
-
-// Automatic null conversion makes this even easier
-Option<string> WrapNullable(string? possiblyNull) => possiblyNull; // Automatically handles null!
-
-// Works seamlessly with nullable reference types
-string? DatabaseQuery(int id) => /* might return null */;
-Option<string> SafeQuery(int id) => DatabaseQuery(id); // Null becomes None
 ```
 
 ### Result<T, E> - Basic Operations
@@ -381,6 +469,22 @@ Console.WriteLine(result1 == result2); // True
 Console.WriteLine(success); // Output: Ok(42)
 Console.WriteLine(failure); // Output: Err(Not found)
 ```
+
+#### Success without a value: `Ok()` (Rust's `Ok(())`)
+
+For operations that either succeed or fail without producing a value, use `Unit` as the success type and the parameterless `Ok()`:
+
+```csharp
+Result<Unit, string> Validate(string input) =>
+    string.IsNullOrEmpty(input)
+        ? Result<Unit, string>.Err("Input cannot be empty")
+        : Result<Unit, string>.Ok(); // same as Ok(Unit.Value)
+
+// Also available on ExtendedResult
+ExtendedResult<Unit, string> done = ExtendedResult<Unit, string>.Ok();
+```
+
+`Ok()` is only available when the success type is `Unit`; `Result<int, string>.Ok()` does not compile.
 
 ### Safe Value Extraction
 
@@ -413,6 +517,11 @@ if (result.TryGetError(out var error))
 var maybeAge = result.ValueOption();
 var maybeError = result.ErrorOption();
 
+maybeAge.Match(
+    onSome: age => Console.WriteLine($"User is {age} years old"),
+    onNone: () => Console.WriteLine("No age available")
+);
+
 // Option 5: Expect a value or throw
 var age = result.Expect("Age not available");
 // Throws InvalidOperationException with message "Age not available" if error
@@ -422,13 +531,31 @@ if (result.Contains(42))
 {
     Console.WriteLine("User is 42 years old");
 }
+
+// Keep TryGetValue/TryGetError for .NET interop and tight loops,
+// prefer ValueOption/ErrorOption for fluent pipelines.
 ```
 
 ### Out-Free Parsing with Result
 
+Use parsing helpers that return `Result<T, Error>` instead of `bool + out`:
+
 ```csharp
-Result<int, Error> count = "10".TryParse<int>();
-Result<int, Error> count2 = "10".TryParse<int>(int.TryParse, nameof(int.TryParse));
+using Esox.SharpAndRusty.Extensions;
+using Esox.SharpAndRusty.Types;
+
+Result<int, Error> id = "123".TryParse<int>();
+
+Result<Guid, Error> correlationId =
+    "6f9619ff-8b86-d011-b42d-00cf4fc964ff".TryParse<Guid>();
+
+// Delegate overload for TryParse-style APIs
+Result<int, Error> count = "10".TryParse<int>(int.TryParse, nameof(int.TryParse));
+
+var message = id.Match(
+    success: value => $"Parsed: {value}",
+    failure: error => $"Parse failed: {error.Message}"
+);
 ```
 
 ### Pattern Matching
@@ -448,6 +575,15 @@ public int GetLengthOrZero(Result<string, int> result)
     return result.Match(
         success: text => text.Length,
         failure: errorCode => 0
+    );
+}
+
+// Void overload — use when you only need side effects, not a return value
+public void LogResult(Result<User, string> result)
+{
+    result.Match(
+        success: user  => logger.Info($"Authenticated: {user.Name}"),
+        failure: error => logger.Warn($"Auth failed: {error}")
     );
 }
 ```
@@ -508,6 +644,32 @@ var failedResult = ParseInt("100")
 // Result: Err("Division by zero") - ValidatePositive never executes
 ```
 
+### Async Result Composition
+
+Async result extensions work with any error type `E`, just like their synchronous counterparts. They preserve the original error type while mapping or binding, and cancellation is reported by throwing `OperationCanceledException` rather than creating a synthetic result error.
+
+```csharp
+Task<Result<int, string>> LoadCountAsync() =>
+    Task.FromResult(Result<int, string>.Ok(10));
+
+using var cancellation = new CancellationTokenSource();
+
+var result = await LoadCountAsync()
+    .MapAsync(count => count * 2, cancellation.Token)
+    .BindAsync(async count =>
+    {
+        await Task.Yield();
+        return Result<int, string>.Ok(count + 1);
+    }, cancellation.Token);
+// Result: Ok(21)
+
+var checkedResult = await LoadCountAsync()
+    .EnsureAsync(count => count > 0, count => $"Invalid count: {count}", cancellation.Token);
+// Result: Ok(10)
+```
+
+`MapAsync` is also available on `Result<T, E>` when the mapper itself is asynchronous. `BindAsync` skips its binder for a failed result, and `EnsureAsync` skips its predicate for a failed result. In all cases, the original error is propagated unchanged.
+
 ### LINQ Query Syntax
 
 Use familiar C# LINQ query syntax for elegant error handling:
@@ -540,8 +702,7 @@ var result = from name in GetUserName(userId)
              select $"{name} is {age} years old";
 ```
 
-**Note on Validation:** LINQ `where` clauses are not supported for Result types because predicates cannot provide
-meaningful error messages. Instead, use `Bind` with explicit validation:
+**Note on Validation:** LINQ `where` clauses are not supported for Result types because predicates cannot provide meaningful error messages. Instead, use `Bind` with explicit validation:
 
 ```csharp
 // ❌ where is not available (by design)
@@ -702,8 +863,25 @@ var errorWithTrace = error.CaptureStackTrace(includeFileInfo: false);  // Fast
 var detailedError = error.CaptureStackTrace(includeFileInfo: true);    // Detailed
 ```
 
-**Production Features:**
+#### Cancellation behavior for async error helpers
 
+`ContextAsync`, `WithContextAsync`, and both `WithMetadataAsync` overloads throw `OperationCanceledException` when their `CancellationToken` is cancelled. Previously, these methods returned a failed `Result` containing an `Error` with `ErrorKind.Interrupted`; this is a **breaking behavior change** for callers that handled cancellation by inspecting the returned result. Callers should handle cancellation with `try`/`catch` or allow it to propagate:
+
+```csharp
+try
+{
+    var result = await LoadUserAsync(userId)
+        .ContextAsync("Failed to load user", cancellationToken);
+}
+catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+{
+    // Handle or propagate cancellation.
+}
+```
+
+These helpers await the input result task before checking the token, so the token does not cancel an input task that is still running; cancellation is observed after that task completes.
+
+**Production Features:**
 - ✅ **ImmutableDictionary** - Efficient metadata storage with structural sharing
 - ✅ **Type-safe metadata API** - Generic overloads for compile-time type safety
 - ✅ **Metadata type validation** - Validates at addition time, not serialization
@@ -714,7 +892,6 @@ var detailedError = error.CaptureStackTrace(includeFileInfo: true);    // Detail
 - ✅ **Metadata Type Validation** - Validates types at addition time, not serialization
 
 **Error Kind Categories:**
-
 - `NotFound` - Entity not found
 - `InvalidInput` - Invalid data
 - `PermissionDenied` - Insufficient privileges
@@ -727,7 +904,6 @@ var detailedError = error.CaptureStackTrace(includeFileInfo: true);    // Detail
 - And more... (14 categories total)
 
 **Exception to ErrorKind Mapping:**
-
 - `FileNotFoundException`, `DirectoryNotFoundException` → `NotFound`
 - `TaskCanceledException`, `OperationCanceledException` → `Interrupted`
 - `FormatException` → `ParseError`
@@ -737,6 +913,214 @@ var detailedError = error.CaptureStackTrace(includeFileInfo: true);    // Detail
 - And more...
 
 
+---
+
+## Either<L, R> and Unit
+
+### `Either<L, R>`
+
+`Either<L, R>` is a neutral two-case union (`Left` or `Right`) for when neither side means "error". It is a record with sealed `Left` and `Right` subtypes, so it works with C# switch expressions and has structural equality.
+
+```csharp
+Either<string, int> left  = new Either<string, int>.Left("not a number");
+Either<string, int> right = new Either<string, int>.Right(42);
+
+string text = right.Match(l => $"Left: {l}", r => $"Right: {r}"); // "Right: 42"
+
+var doubled = right.MapRight(x => x * 2);   // Right(84)
+var swapped = right.Swap();                  // Left(42) as Either<int, string>
+
+if (right.TryGetRight(out var value)) { /* value == 42 */ }
+
+// Collections
+var items = new[] { left, right };
+var (lefts, rights) = items.Partition();
+IEnumerable<int> onlyRights = items.Rights();
+```
+
+API: `IsLeft`, `IsRight`, `TryGetLeft`, `TryGetRight`, `Match` (value and `Action` overloads), `MapLeft`, `MapRight`, `Map`, `Swap`, `LeftOption`, `RightOption`; extensions `BindLeft`, `BindRight`, `IfLeft`, `IfRight`, `GetLeftOrDefault`, `GetRightOrDefault`, `Partition`, `Lefts`, `Rights`.
+
+### `Unit`
+
+`Unit` is the equivalent of Rust's `()`: use it as the success type when an operation has no meaningful result. All `Unit` values are equal, `Unit.Value` is the singleton, and `ToString()` returns `"()"`. Use the parameterless `Ok()` to create a successful `Result<Unit, E>` or `ExtendedResult<Unit, TE>` (see [Success without a value](#success-without-a-value-ok-rusts-ok)).
+## ExtendedResult&lt;T, TE&gt;
+
+`ExtendedResult<T, TE>` is the **record-based** sibling of `Result<T, E>`. Its `Success` and `Failure` subtypes are sealed records, which enables
+- **exhaustive C# switch expressions** without a catch-all `_ =>` arm, and
+- **structural equality** out-of-the-box via the record mechanism.
+
+### When to choose ExtendedResult vs Result
+
+| | `Result<T, E>` | `ExtendedResult<T, TE>` |
+|---|---|---|
+| **Memory** | Stack (`readonly struct`, zero heap alloc) | Heap (record class) |
+| **Switch exhaustiveness** | Requires `IsSuccess`/`IsFailure` guards | Native sealed subtypes — compiler enforces exhaustiveness |
+| **Equality** | Manual `IEquatable<T>` | Record structural equality |
+| **LINQ / Map / Bind** | Full extension-method support | Full extension-method support |
+| **Implicit conversions** | ✅ | ✅ |
+| **Best for** | Hot paths, high-throughput APIs | Domain models, large payloads, DDD aggregates |
+
+### Creating an ExtendedResult
+
+```csharp
+using Esox.SharpAndRusty.Types;
+
+// Explicit factory methods
+var ok  = ExtendedResult<int, string>.Ok(42);
+var err = ExtendedResult<int, string>.Err("Something went wrong");
+
+// Implicit conversions — same ergonomics as Result<T, E>
+ExtendedResult<int, string> quick    = 42;                     // Ok(42)
+ExtendedResult<int, string> quickErr = "Something went wrong"; // Err(...)
+
+// Tip: when T and TE are the same type, use explicit Ok()/Err() to avoid CS0457
+var explicit1 = ExtendedResult<string, string>.Ok("hello");
+var explicit2 = ExtendedResult<string, string>.Err("oops");
+```
+
+### Pattern matching
+
+Because `Success` and `Failure` are sealed records, the compiler can verify exhaustiveness at compile time:
+
+```csharp
+var result = ExtendedResult<int, string>.Ok(42);
+
+// Exhaustive switch expression — no _ => required
+var message = result switch
+{
+    ExtendedResult<int, string>.Success(var value) => $"Value: {value}",
+    ExtendedResult<int, string>.Failure(var error) => $"Error: {error}"
+};
+
+// Match helper — functional style
+var display = result.Match(
+    success: value => $"Got: {value}",
+    failure: error => $"Failed: {error}"
+);
+
+// Single-branch if-pattern
+if (result is ExtendedResult<int, string>.Success(var n))
+    Console.WriteLine($"Processing {n}");
+```
+
+### Functional composition
+
+```csharp
+// Map — transform the success value
+ExtendedResult<int, string> lengthResult =
+    ExtendedResult<string, string>.Ok("hello")
+        .Map(s => s.Length);
+// Success(5)
+
+// Bind — chain operations that can themselves fail
+ExtendedResult<int, string> parsed =
+    ExtendedResult<string, string>.Ok("42")
+        .Bind(s => int.TryParse(s, out var n)
+            ? ExtendedResult<int, string>.Ok(n)
+            : ExtendedResult<int, string>.Err($"Cannot parse '{s}'"));
+// Success(42)
+
+// OrElse — recover from failure with an alternative result
+var recovered = ExtendedResult<int, string>.Err("cache miss")
+    .OrElse(_ => ExtendedResult<int, string>.Ok(0));
+// Success(0)
+
+// Chain multiple fallbacks
+var chained = ExtendedResult<int, string>.Err("first")
+    .OrElse(_ => ExtendedResult<int, string>.Err("second"))
+    .OrElse(_ => ExtendedResult<int, string>.Ok(99));
+// Success(99)
+```
+
+### Value extraction
+
+```csharp
+var result = ExtendedResult<int, string>.Ok(42);
+
+// Safe extraction
+if (result.TryGetValue(out var value)) Console.WriteLine($"Value: {value}");   // 42
+if (result.TryGetError(out var error)) Console.WriteLine($"Error: {error}");   // (never reached)
+
+// Fallback when failure
+int v1 = result.UnwrapOr(-1);                              // 42
+int v2 = result.UnwrapOrElse(err => err.Length);           // 42 (factory ignored)
+
+var failed = ExtendedResult<int, string>.Err("oops");
+int v3 = failed.UnwrapOr(-1);                              // -1
+int v4 = failed.UnwrapOrElse(err => err.Length);           // 4
+```
+
+### Side effects with Inspect
+
+```csharp
+var result = ExtendedResult<User, string>.Ok(new User { Id = 1 })
+    .Inspect(user  => logger.Info($"Found: {user.Id}"))
+    .InspectErr(err => logger.Warn($"Lookup failed: {err}"));
+// Returns the original result unchanged
+```
+
+### Void Match — side-effect-only pattern dispatch
+
+Both `Result<T,E>` and `ExtendedResult<T,TE>` provide a **`void Match(Action<T>, Action<E>)`** overload for when you need to branch on success/failure purely for side effects (logging, metrics, UI updates) without producing a return value:
+
+```csharp
+// Result<T,E> — void overload
+Result<int, string> result = ParseInput(raw);
+result.Match(
+    value => metrics.RecordSuccess(value),
+    error => metrics.RecordFailure(error)
+);
+
+// ExtendedResult<T,TE> — void overload (same ergonomics)
+ExtendedResult<Order, string> orderResult = PlaceOrder(cart);
+orderResult.Match(
+    order => { Console.WriteLine($"Order {order.Id} confirmed."); SendConfirmationEmail(order); },
+    error => { Console.WriteLine($"Order failed: {error}"); NotifySupport(error); }
+);
+
+// Both overloads throw ArgumentNullException when either action is null
+```
+
+### Exception wrapping with Try / TryAsync
+
+```csharp
+// Synchronous
+var result = ExtendedResult<int, string>.Try(
+    operation:    () => int.Parse("42"),
+    errorHandler: ex => $"Parse failed: {ex.Message}"
+);
+// Success(42)
+
+// Asynchronous
+var asyncResult = await ExtendedResult<string, string>.TryAsync(
+    operation:    async () => await File.ReadAllTextAsync("config.json"),
+    errorHandler: ex => $"IO error: {ex.Message}"
+);
+
+// Error result when parsing fails
+var bad = ExtendedResult<int, string>.Try(
+    operation:    () => int.Parse("not-a-number"),
+    errorHandler: ex => $"Parse failed: {ex.Message}"
+);
+// Failure("Parse failed: Input string was not in a correct format.")
+```
+
+### Equality — record semantics
+
+```csharp
+var a = ExtendedResult<int, string>.Ok(42);
+var b = ExtendedResult<int, string>.Ok(42);
+Console.WriteLine(a == b);   // True  — value equality via record
+
+var c = ExtendedResult<int, string>.Err("error");
+var d = ExtendedResult<int, string>.Err("error");
+Console.WriteLine(c == d);   // True
+
+Console.WriteLine(a == c);   // False — Success ≠ Failure
+```
+
+---
+
 ## API Reference
 
 ### `Option<T>` Type
@@ -744,12 +1128,11 @@ var detailedError = error.CaptureStackTrace(includeFileInfo: true);    // Detail
 A type-safe way to represent optional values, eliminating null reference exceptions.
 
 #### Creating Options
-
 - `new Option<T>.Some(T value)` - Creates an option containing a value
 - `new Option<T>.None()` - Creates an empty option
+- `Option<T> opt = value` - Implicit conversion creates `Some(value)`
 
 #### Pattern Matching
-
 ```csharp
 var result = option switch
 {
@@ -760,20 +1143,17 @@ var result = option switch
 ```
 
 #### Type Checks
-
 - `option is Option<T>.Some` - Check if option contains a value
 - `option is Option<T>.None` - Check if option is empty
 - `option is Option<T>.Some(var value)` - Extract value with pattern matching
 
 #### Record Features
-
 - **Equality**: Options support value-based equality
 - **Hash Code**: Safe to use in collections (HashSet, Dictionary)
 - **With Expressions**: Create modified copies with `with { Value = newValue }`
 - **ToString**: Automatically formatted as `"Some { Value = ... }"` or `"None { }"`
 
 #### Example Usage
-
 ```csharp
 // Type-safe dictionary lookup
 Option<string> GetConfig(string key)
@@ -793,20 +1173,24 @@ var validValues = options
 ### `Result<T, E>` Type
 
 #### Properties
-
 - `bool IsSuccess` - Returns `true` if the result represents success
 - `bool IsFailure` - Returns `true` if the result represents failure
 
 #### Static Factory Methods
-
 - `Result<T, E> Ok(T value)` - Creates a successful result
+- `Result<Unit, E> Ok()` - Creates a successful result with no value (like Rust's `Ok(())`); only available when `T` is `Unit`
 - `Result<T, E> Err(E error)` - Creates a failed result
 - `Result<T, E> Try(Func<T> operation, Func<Exception, E> errorHandler)` - Execute operation with exception handling
 - `Task<Result<T, E>> TryAsync(Func<Task<T>> operation, Func<Exception, E> errorHandler)` - Async version of Try
 
-#### Instance Methods
+#### Implicit Conversions
+- `implicit operator Result<T, E>(T value)` - Implicitly creates a successful result from a value
+- `implicit operator Result<T, E>(E error)` - Implicitly creates a failed result from an error
+- **Note**: When `T` and `E` are the same type, the compiler reports an ambiguous conversion. Use explicit `Ok()` / `Err()` in that case.
 
-- `R Match<R>(Func<T, R> success, Func<E, R> failure)` - Pattern match on the result
+#### Instance Methods
+- `R Match<R>(Func<T, R> success, Func<E, R> failure)` - Pattern match on the result, returning a value
+- `void Match(Action<T> success, Action<E> failure)` - Pattern match for side effects only; throws `ArgumentNullException` for null actions
 - `Option<T> ValueOption()` - Get success value as `Option<T>` (out-free)
 - `Option<E> ErrorOption()` - Get error value as `Option<E>` (out-free)
 - `bool TryGetValue(out T value)` - Try to get the success value
@@ -818,14 +1202,53 @@ var validValues = options
 - `Result<T, E> InspectErr(Action<E> action)` - Execute action on error value
 
 #### Equality Methods
-
 - `bool Equals(Result<T, E> other)` - Check equality
 - `int GetHashCode()` - Get hash code
 - `bool operator ==(Result<T, E> left, Result<T, E> right)` - Equality operator
 - `bool operator !=(Result<T, E> left, Result<T, E> right)` - Inequality operator
 - `string ToString()` - Returns `"Ok(value)"` or `"Err(error)"`
 
+### `ExtendedResult<T, TE>` Type
+
+Record-based result type. `Success` and `Failure` are sealed records, enabling exhaustive pattern matching and structural equality.
+
+#### Properties
+- `bool IsSuccess` - `true` if the result is a `Success`
+- `bool IsFailure` - `true` if the result is a `Failure`
+
+#### Static Factory Methods
+- `ExtendedResult<T, TE> Ok(T value)` - Creates a `Success` result
+- `ExtendedResult<Unit, TE> Ok()` - Creates a `Success` with no value (like Rust's `Ok(())`); only available when `T` is `Unit`
+- `ExtendedResult<T, TE> Err(TE error)` - Creates a `Failure` result
+- `ExtendedResult<T, TE> Try(Func<T> operation, Func<Exception, TE> errorHandler)` - Wraps a synchronous operation; throws `ArgumentNullException` when either argument is null
+- `Task<ExtendedResult<T, TE>> TryAsync(Func<Task<T>> operation, Func<Exception, TE> errorHandler)` - Async version of `Try`
+
+#### Implicit Conversions
+- `implicit operator ExtendedResult<T, TE>(T value)` - Converts a value to `Success`
+- `implicit operator ExtendedResult<T, TE>(TE error)` - Converts an error to `Failure`
+- **Note**: When `T` and `TE` are the same type, use explicit `Ok()` / `Err()` to avoid a CS0457 ambiguous conversion error.
+
+#### Instance Methods
+- `TR Match<TR>(Func<T, TR> success, Func<TE, TR> failure)` - Functional pattern match, returning a value; throws `ArgumentNullException` for null delegates
+- `void Match(Action<T> success, Action<TE> failure)` - Pattern match for side effects only; throws `ArgumentNullException` for null actions
+- `bool TryGetValue(out T value)` - Try to get the success value
+- `bool TryGetError(out TE error)` - Try to get the error value
+- `T UnwrapOr(T defaultValue)` - Get value or return default
+- `T UnwrapOrElse(Func<TE, T> defaultFactory)` - Get value or compute default
+- `ExtendedResult<T, TE> OrElse(Func<TE, ExtendedResult<T, TE>> alternative)` - Provide alternative result on failure; throws `ArgumentNullException` for null alternative
+- `ExtendedResult<T, TE> Inspect(Action<T> action)` - Execute side effect on success value; throws `ArgumentNullException` for null action
+- `ExtendedResult<T, TE> InspectErr(Action<TE> action)` - Execute side effect on error value; throws `ArgumentNullException` for null action
+
+#### Equality — Record Semantics
+- `Success` values are equal when their `Value` fields are equal (via `EqualityComparer<T>.Default`)
+- `Failure` values are equal when their `Error` fields are equal (via `EqualityComparer<TE>.Default`)
+- `Success` and `Failure` are never equal to each other
+- `int GetHashCode()` - Hash combines a discriminant (1 for Success, 2 for Failure) with the inner value
+- `string ToString()` - Returns `"Ok(value)"` or `"Err(error)"`
+
 ### Extension Methods (ParseExtensions)
+
+Out-free wrappers for TryParse-style APIs:
 
 ```csharp
 Result<T, Error> TryParse<T>(this string? input, IFormatProvider? provider = null)
@@ -834,18 +1257,22 @@ Result<T, Error> TryParse<T>(this string? input, IFormatProvider? provider = nul
 Result<T, Error> TryParse<T>(this string? input, ParseExtensions.TryParseDelegate<T> tryParse, string? parserName = null)
 ```
 
+**Example:**
+
+```csharp
+Result<int, Error> amount = "42".TryParse<int>();
+Result<int, Error> amount2 = "42".TryParse<int>(int.TryParse, nameof(int.TryParse));
+```
+
 ### Extension Methods (ResultExtensions)
 
 #### `Map<T, E, U>`
-
 Transforms the success value while propagating errors:
-
 ```csharp
 Result<U, E> Map<T, E, U>(this Result<T, E> result, Func<T, U> mapper)
 ```
 
 **Example:**
-
 ```csharp
 var result = Result<int, string>.Ok(5);
 var mapped = result.Map<int, string, string>(x => $"Value: {x}");
@@ -853,15 +1280,12 @@ var mapped = result.Map<int, string, string>(x => $"Value: {x}");
 ```
 
 #### `Bind<T, E, U>`
-
 Chains operations that return results (also known as `flatMap` or `andThen`):
-
 ```csharp
 Result<U, E> Bind<T, E, U>(this Result<T, E> result, Func<T, Result<U, E>> binder)
 ```
 
 **Example:**
-
 ```csharp
 var result = Result<int, string>.Ok(10)
     .Bind(x => x > 0 
@@ -893,15 +1317,12 @@ var result = Result<int, string>.Ok(150)
 ```
 
 #### `Select<U>` (LINQ Support)
-
 Projects the success value (enables `select` in LINQ queries):
-
 ```csharp
 Result<U, E> Select<U>(this Result<T, E> result, Func<T, U> selector)
 ```
 
 **Example:**
-
 ```csharp
 var result = from x in Result<int, string>.Ok(10)
              select x * 2;
@@ -909,15 +1330,12 @@ var result = from x in Result<int, string>.Ok(10)
 ```
 
 #### `SelectMany<U>` (LINQ Support)
-
 Chains results (enables `from` in LINQ queries):
-
 ```csharp
 Result<U, E> SelectMany<U>(this Result<T, E> result, Func<T, Result<U, E>> selector)
 ```
 
 **Example:**
-
 ```csharp
 var result = from x in ParseInt("10")
              from y in ParseInt("20")
@@ -926,15 +1344,12 @@ var result = from x in ParseInt("10")
 ```
 
 #### `Unwrap<T, E>`
-
 Extracts the success value or throws an exception (use with caution):
-
 ```csharp
 T Unwrap<T, E>(this Result<T, E> result)
 ```
 
 **Example:**
-
 ```csharp
 var result = Result<int, string>.Ok(42);
 var value = result.Unwrap(); // Returns 42
@@ -948,13 +1363,11 @@ var willThrow = failed.Unwrap(); // Throws InvalidOperationException
 A rich error type inspired by Rust's error handling patterns with **production-grade optimizations**.
 
 #### Static Factory Methods
-
 - `Error New(string message)` - Creates a new error
 - `Error New(string message, ErrorKind kind)` - Creates an error with a specific kind
 - `Error FromException(Exception exception)` - Converts an exception to an error (maps 11+ exception types)
 
 #### Instance Methods
-
 - `Error WithContext(string contextMessage)` - Adds context to the error
 - `Error WithMetadata(string key, object value)` - Attaches metadata (validates types)
 - `Error WithMetadata<T>(string key, T value) where T : struct` - Type-safe metadata attachment
@@ -965,7 +1378,6 @@ A rich error type inspired by Rust's error handling patterns with **production-g
 - `string GetFullMessage()` - Gets the full error chain as a string (depth-limited, circular-safe)
 
 #### Properties
-
 - `string Message` - The error message
 - `ErrorKind Kind` - The error category (14 predefined kinds)
 - `Error? Source` - The source error (if chained)
@@ -973,7 +1385,6 @@ A rich error type inspired by Rust's error handling patterns with **production-g
 - `bool HasSource` - Whether this error has a source
 
 #### Production Features
-
 - **ImmutableDictionary** for metadata - O(log n) operations with structural sharing
 - **Type-safe metadata API** - Generic overloads for compile-time type safety
 - **Metadata type validation** - Validates at addition time (primitives, DateTime, Guid, enums, value types)
@@ -984,7 +1395,6 @@ A rich error type inspired by Rust's error handling patterns with **production-g
 - **Equality support** - Proper `Equals`, `GetHashCode`, `==`, `!=` operators
 
 **Performance Characteristics:**
-
 - Metadata addition: O(log n) with structural sharing
 - Depth limit: Bounded at 50 levels
 - Circular detection: O(1) per node
@@ -994,7 +1404,6 @@ A rich error type inspired by Rust's error handling patterns with **production-g
 ## Why Use Result Types?
 
 ### Traditional Exception-Based Approach
-
 ```csharp
 public User GetUser(int id)
 {
@@ -1009,7 +1418,6 @@ User user = GetUser(123); // Might throw at runtime!
 ```
 
 ### Result-Based Approach
-
 ```csharp
 public Result<User, string> GetUser(int id)
 {
@@ -1047,48 +1455,70 @@ var message = result.Match(
 
 ## Testing
 
-The library includes comprehensive test coverage with **339 unit tests** covering:
+### Fast Local vs Full CI Test Runs
 
-- **Result<T, E>** (260 tests)
-    - Basic creation and inspection
-    - Pattern matching
-    - Equality and hash code
-    - Map and Bind operations
-    - LINQ query syntax integration (SelectMany, Select, from/select)
-    - Advanced features (MapError, Expect, Tap, Contains)
-    - Collection operations (Combine, Partition)
-    - Full async support (MapAsync, BindAsync, TapAsync, OrElseAsync, CombineAsync)
-    - Cancellation token support (all async methods with cancellation scenarios)
-- **Option<T>** (43 tests)
-    - Creation and value access
-    - Pattern matching with switch expressions
-    - Equality and hash code
-    - Record functionality (with expressions, ToString)
-    - Collection integration (List, HashSet, Dictionary, LINQ)
-    - Edge cases (nested options, tuples, null handling)
+For fast local feedback, tests run as `net8.0` by default and skip tests tagged with `Category=Slow` or `Category=Stress`.
+
+Use these commands:
+
+```powershell
+# Fast local default (single TFM + excludes Slow/Stress)
+dotnet test
+
+# Full CI-equivalent matrix (net8.0 + net9.0 + net10.0, includes Slow/Stress)
+dotnet test -p:ContinuousIntegrationBuild=true
+```
+
+The library includes comprehensive test coverage with **460+ unit tests** covering:
+- **Result<T, E>** (269 tests)
+  - Basic creation and inspection
+  - Pattern matching (returning and void overloads)
+  - Equality and hash code
+  - Map and Bind operations
+  - LINQ query syntax integration (SelectMany, Select, from/select)
+  - Advanced features (MapError, Expect, Tap, Contains)
+  - Collection operations (Combine, Partition)
+  - Full async support (MapAsync, BindAsync, TapAsync, OrElseAsync, CombineAsync)
+  - Cancellation token support (all async methods with cancellation scenarios)
+- **ExtendedResult<T, TE>** (93 tests)
+  - Creation via `Ok`, `Err`, and implicit conversions
+  - Exhaustive pattern matching via `Success`/`Failure` subtypes (returning and void overloads)
+  - Equality and hash code (record structural equality)
+  - `TryGetValue` / `TryGetError` / `UnwrapOr` / `UnwrapOrElse`
+  - `OrElse` / `Inspect` / `InspectErr`
+  - `Try` / `TryAsync` including exception-capture and null-argument handling
+  - Void `Match(Action, Action)` — side-effect branching with null-safety
+- **Option<T>** (50 tests)
+  - Creation and value access
+  - Pattern matching with switch expressions
+  - Equality and hash code
+  - Record functionality (with expressions, ToString)
+  - Collection integration (List, HashSet, Dictionary, LINQ)
+  - Edge cases (nested options, tuples, null handling)
+  - Implicit conversion (value → Some, return statements, method parameters, pattern matching)
 - **Error type** (64 comprehensive tests)
-    - Context chaining and error propagation
-    - Type-safe metadata with generics
-    - Metadata type validation
-    - Exception conversion with 11 exception types
-    - Error kind modification
-    - Stack trace capture (configurable)
-    - Depth limiting (50 levels)
-    - Circular reference detection
-    - Full error chain formatting
-    - Equality and hash code
+  - Context chaining and error propagation
+  - Type-safe metadata with generics
+  - Metadata type validation
+  - Exception conversion with 11 exception types
+  - Error kind modification
+  - Stack trace capture (configurable)
+  - Depth limiting (50 levels)
+  - Circular reference detection
+  - Full error chain formatting
+  - Equality and hash code
 - **🧪 Experimental Mutex<T>** (48 tests)
-    - Lock acquisition and release
-    - Try-lock and timeout variants
-    - Async locking with cancellation and cooperative cancellation on disposal
-    - Concurrency stress tests
-    - RAII guard management
+  - Lock acquisition and release
+  - Try-lock and timeout variants
+  - Async locking with cancellation and cooperative cancellation on disposal
+  - Concurrency stress tests
+  - RAII guard management
 - **🧪 Experimental RwLock<T>** (42 tests)
-    - Read/write guard acquisition and release
-    - Try-lock and timeout variants
-    - Live-guard drain-wait on disposal
-    - Cross-thread `IntoInner()` (guard-held and guard-released)
-    - Concurrent read/write-vs-dispose stress test
+  - Read/write guard acquisition and release
+  - Try-lock and timeout variants
+  - Live-guard drain-wait on disposal
+  - Cross-thread `IntoInner()` (guard-held and guard-released)
+  - Concurrent read/write-vs-dispose stress test
 - Exception handling (Try/TryAsync)
 - Side effects (Inspect/InspectErr)
 - Value extraction methods
@@ -1161,7 +1591,6 @@ if (writeResult.TryGetValue(out var writeGuard))
 ```
 
 **Key Features:**
-
 - ✅ **Result-Based Locking** - All lock operations return `Result<Guard<T>, Error>`
 - ✅ **RAII Lock Management** - Automatic lock release via `IDisposable`
 - ✅ **Multiple Lock Strategies** - Blocking, try-lock, and timeout variants
@@ -1171,7 +1600,6 @@ if (writeResult.TryGetValue(out var writeGuard))
 - ⚠️ **RwLock<T> is synchronous only** — it has no async API. **Guards must never be held across an `await`**; doing so will block the thread pool and can cause deadlocks.
 
 **Mutex<T> Methods:**
-
 - `Lock()` - Blocking lock acquisition (sync)
 - `TryLock()` - Non-blocking attempt
 - `TryLockTimeout(TimeSpan)` - Lock with timeout
@@ -1179,7 +1607,6 @@ if (writeResult.TryGetValue(out var writeGuard))
 - `LockAsyncTimeout(TimeSpan, CancellationToken)` - Async lock with timeout
 
 **RwLock<T> Methods:**
-
 - `Read()` - Acquire read lock (allows concurrent readers)
 - `TryRead()` - Non-blocking read attempt
 - `TryReadTimeout(TimeSpan)` - Read with timeout
@@ -1190,13 +1617,16 @@ if (writeResult.TryGetValue(out var writeGuard))
 
 **⚠️ Experimental Notice:**
 
-The `Mutex<T>` and `RwLock<T>` APIs are currently experimental and may undergo changes based on user feedback and
-real-world usage patterns. While fully tested, we recommend:
+The `Mutex<T>` and `RwLock<T>` APIs are currently experimental and may undergo changes based on user feedback and real-world usage patterns. While fully tested, we recommend:
 
 - Using them in non-critical paths initially
 - Providing feedback on the API design
 - Testing thoroughly in your specific use cases
 - Being prepared for potential API changes in minor version updates
+
+**✅ Resolved — Mutex<T> Disposal:**
+
+`Mutex<T>.Dispose()` safely handles pending `LockAsync()` and `LockAsyncTimeout()` calls: waiting tasks receive a `Result.Err` rather than hanging, via a disposal-linked `CancellationToken` and waiter-count tracking. This behaviour is covered by the `LockAsync_DisposedDuringWait_ReturnsError` and `LockAsyncTimeout_DisposedDuringWait_ReturnsError` regression tests.
 
 **⚠️ Known Limitation - RwLock<T> Disposal while a thread is blocked on entry:**
 
@@ -1208,4 +1638,4 @@ real-world usage patterns. While fully tested, we recommend:
 
 **Recommendation:** Ensure all work that may acquire the lock has finished before calling `Dispose()` — for example at application shutdown or after draining a work queue.
 
-For complete documentation on synchronization primitives and other advanced features, see the [Advanced Features Guide](ADVANCED_FEATURES.md).
+For complete synchronization primitives documentation, see the [Advanced Features Guide](https://github.com/snoekiede/Esox.SharpAndRusty/blob/main/Esox.SharpAndRusty/ADVANCED_FEATURES.md).
