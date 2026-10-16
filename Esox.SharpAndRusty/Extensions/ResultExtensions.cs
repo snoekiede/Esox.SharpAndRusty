@@ -4,6 +4,22 @@ namespace Esox.SharpAndRusty.Extensions;
 
 public static class ResultExtensions
 {
+    /// <typeparam name="E">The type of the error value.</typeparam>
+    extension<E>(Result<Unit, E>)
+    {
+        /// <summary>
+        ///     Creates a successful result with no value, equivalent to Rust's <c>Ok(())</c>.
+        ///     Only available on <c>Result&lt;Unit, E&gt;</c>; calling it on any other success type is a compile-time error.
+        /// </summary>
+        /// <returns>A <see cref="Result{Unit,E}" /> representing success.</returns>
+        /// <example>
+        ///     <code>
+        /// Result&lt;Unit, string&gt; result = Result&lt;Unit, string&gt;.Ok();
+        ///     </code>
+        /// </example>
+        public static Result<Unit, E> Ok() => Result<Unit, E>.Ok(Unit.Value);
+    }
+
     /// <param name="result">The result to transform.</param>
     /// <typeparam name="T">The type of the original success value.</typeparam>
     /// <typeparam name="E">The type of the error value.</typeparam>
@@ -347,4 +363,5 @@ public static class ResultExtensions
             return (successes, failures);
         }
     }
+    
 }
