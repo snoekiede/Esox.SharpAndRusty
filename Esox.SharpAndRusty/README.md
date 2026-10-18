@@ -486,6 +486,35 @@ ExtendedResult<Unit, string> done = ExtendedResult<Unit, string>.Ok();
 
 `Ok()` is only available when the success type is `Unit`; `Result<int, string>.Ok()` does not compile.
 
+> **Note:** `Result<Unit, E>.Ok()` is an extension member, so it needs `using Esox.SharpAndRusty.Extensions;` in addition to
+> `using Esox.SharpAndRusty.Types;`. Without it you get error CS7036 ("There is no argument given that corresponds to the
+> required parameter 'value'"), because only `Ok(Unit value)` is visible. `ExtendedResult<Unit, E>.Ok()` has the same requirement.
+
+### Mapping with Code That Can Throw: `TryMap`
+
+`Map` is for transformations that cannot fail, so it does not catch exceptions. When the mapper may throw (for example
+code you do not control), use `TryMap`. It catches any exception thrown by the mapper and converts it to your error type
+with a handler:
+
+```csharp
+using Esox.SharpAndRusty.Extensions;
+using Esox.SharpAndRusty.Types;
+
+var result = Result<int, Error>.Ok(10);
+
+// Map would throw DivideByZeroException here; TryMap returns an Err instead
+var divided = result.TryMap(x => x / 0, Error.FromException);
+
+// Any error type works: pass a handler that builds it
+var asText = Result<int, string>.Ok(10).TryMap(x => x / 0, ex => $"Math failed: {ex.Message}");
+```
+
+Caveats:
+- An existing failure is passed through unchanged and the mapper is not called.
+- All exceptions thrown by the mapper are caught, including unexpected ones, so do not use `TryMap` for control flow.
+- For code you own, prefer a function that returns a `Result` and chain it with `Bind`; `TryMap` is a bridge for exception-based code.
+- There is no async variant yet.
+
 ### Safe Value Extraction
 
 ```csharp
@@ -1279,6 +1308,17 @@ var mapped = result.Map<int, string, string>(x => $"Value: {x}");
 // Result: Ok("Value: 5")
 ```
 
+#### `TryMap<T, E, U>`
+Like `Map`, but catches exceptions thrown by the mapper and converts them to an error. Requires `using Esox.SharpAndRusty.Extensions;`:
+```csharp
+Result<U, E> TryMap<T, E, U>(this Result<T, E> result, Func<T, U> mapper, Func<Exception, E> exceptionToErrorMapper)
+```
+
+**Example:**
+```csharp
+var result = Result<int, Error>.Ok(10).TryMap(x => x / 0, Error.FromException);
+// Result: Err(DivideByZeroException details)
+```
 #### `Bind<T, E, U>`
 Chains operations that return results (also known as `flatMap` or `andThen`):
 ```csharp

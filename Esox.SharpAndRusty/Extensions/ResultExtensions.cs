@@ -4,19 +4,14 @@ namespace Esox.SharpAndRusty.Extensions;
 
 public static class ResultExtensions
 {
+    /// <param name="result">The Result to create a successful result from.</param>
     /// <typeparam name="E">The type of the error value.</typeparam>
-    extension<E>(Result<Unit, E>)
+    extension<E>(Result<Unit, E> result)
     {
         /// <summary>
-        ///     Creates a successful result with no value, equivalent to Rust's <c>Ok(())</c>.
-        ///     Only available on <c>Result&lt;Unit, E&gt;</c>; calling it on any other success type is a compile-time error.
+        ///   Creates a successful Result with a Unit value, representing a successful operation that does not return a meaningful value.
         /// </summary>
-        /// <returns>A <see cref="Result{Unit,E}" /> representing success.</returns>
-        /// <example>
-        ///     <code>
-        /// Result&lt;Unit, string&gt; result = Result&lt;Unit, string&gt;.Ok();
-        ///     </code>
-        /// </example>
+        /// <returns>A successful Result with a Unit value.</returns>
         public static Result<Unit, E> Ok() => Result<Unit, E>.Ok(Unit.Value);
     }
 
@@ -43,6 +38,8 @@ public static class ResultExtensions
             );
         }
 
+
+        
         /// <summary>
         ///     Chains together two operations that return results, allowing the second operation to depend on the success value of
         ///     the first.
@@ -361,6 +358,42 @@ public static class ResultExtensions
             }
 
             return (successes, failures);
+        }
+    }
+
+    extension<T,E>(Result<T, E> result)
+    {
+        /// <summary>
+        ///     Transforms the success value with a mapper that may throw.
+        ///     Any exception thrown by the mapper is caught and converted into an error using
+        ///     <paramref name="exceptionToErrorMapper" />.
+        ///     An existing error is passed through unchanged and the mapper is not invoked.
+        ///     Use <c>Map</c> for transforms that cannot fail, and <c>Bind</c> when the transform already returns a Result.
+        /// </summary>
+        /// <typeparam name="U">The type of the mapped value.</typeparam>
+        /// <param name="mapper">The function to apply to the success value.</param>
+        /// <param name="exceptionToErrorMapper">Converts a thrown exception into an error value.</param>
+        /// <returns>A Result containing the mapped value, or an error if this Result or the mapper failed.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when mapper is null.</exception>
+        /// <example>
+        ///     <code>
+        /// var result = Result&lt;int, Error&gt;.Ok(10)
+        ///     .TryMap(x =&gt; x / 0, Error.FromException);
+        /// // result is an Err containing the DivideByZeroException details
+        /// </code>
+        /// </example>
+        public Result<U, E> TryMap<U>(Func<T, U> mapper, Func<Exception,E> exceptionToErrorMapper)
+        {
+            ArgumentNullException.ThrowIfNull(mapper);
+            ArgumentNullException.ThrowIfNull(exceptionToErrorMapper);
+            try
+            {
+                return result.Map(mapper);
+            }
+            catch (Exception ex)
+            {
+                return Result<U, E>.Err(exceptionToErrorMapper(ex));
+            }
         }
     }
     
