@@ -172,7 +172,7 @@ public readonly struct Result<T, E> : IEquatable<Result<T, E>>
     /// <exception cref="ArgumentNullException">Thrown when action is null.</exception>
     public Result<T, E> Inspect(Action<T> action)
     {
-        if (action is null) throw new ArgumentNullException(nameof(action));
+        ArgumentNullException.ThrowIfNull(action);
         if (IsSuccess) action(_value);
         return this;
     }
@@ -186,7 +186,7 @@ public readonly struct Result<T, E> : IEquatable<Result<T, E>>
     /// <exception cref="ArgumentNullException">Thrown when action is null.</exception>
     public Result<T, E> InspectErr(Action<E> action)
     {
-        if (action is null) throw new ArgumentNullException(nameof(action));
+        ArgumentNullException.ThrowIfNull(action);
         if (IsFailure) action(_error);
         return this;
     }

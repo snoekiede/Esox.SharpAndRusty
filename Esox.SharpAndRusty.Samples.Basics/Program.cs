@@ -13,10 +13,38 @@ public class Program
         StandardUserRepositoryDemo();
         SharpResultDemo();
         UserRepositoryBindExample();
+        UserRepositoryMapExample();
     }
 
+    private static string printTitle(string title)
+    {
+        var line = new string('-', title.Length);
+        var result = $"{line}\n{title}\n{line}";
+        Console.WriteLine(result);
+        return result;
+    }
+    internal static void UserRepositoryMapExample()
+    {
+        printTitle("User Repository Map");
+        var repo = new SharpUserRepository();
+
+        var result = repo.AddUser(new User { Id = 1, Name = "John Doe",Email="johndoe@example.com"});
+        result.Match(
+            success => Console.WriteLine($"Successfully added user"),
+            failure => Console.WriteLine($"Failure: {failure}")
+        );
+        
+        var mapResult= repo.GetUserById(1)
+            .Map(u => u.Email!.ToUpper());
+        mapResult.Match(
+            success => Console.WriteLine($"Mapped email: {success}"),
+            failure => Console.WriteLine($"Failure: {failure}")
+        );
+        
+    }
     internal static void UserRepositoryBindExample()
     {
+        printTitle("User Repository Bind");
         var repo = new SharpUserRepository();
 
         var result = repo.AddUser(new User { Id = 1, Name = "John Doe",Email="johndoe@example.com" });
@@ -55,6 +83,8 @@ public class Program
     }
     internal static void StandardUserRepositoryDemo()
     {
+        printTitle("Standard User Repository Demo");
+
         var repo = new UserRepository();
 
         repo.AddUser(new User { Id=1,Name = "John Doe" });
@@ -78,6 +108,7 @@ public class Program
 
     internal static void SharpResultDemo()
     {
+        printTitle("Sharp Result Demo");
         var repo = new SharpUserRepository();
 
         var result=repo.AddUser(new User { Id = 1, Name = "John Doe" });
@@ -108,6 +139,7 @@ public class Program
 
     internal static void StandardResultDemo()
     {
+        printTitle("Standard Result Demo");
         // standard result initialization
         var result = Result<int, Error>.Ok(42);
 
@@ -142,6 +174,12 @@ public class Program
         var mathResult = result.Map(x => x * 2);
 
         mathResult.Match(
+            success => Console.WriteLine($"Success: {success}"),
+            failure => Console.WriteLine($"Failure: {failure}")
+        );
+        
+        var otherMathResult=result.TryMap(x=>x/0);
+        otherMathResult.Match(
             success => Console.WriteLine($"Success: {success}"),
             failure => Console.WriteLine($"Failure: {failure}")
         );
