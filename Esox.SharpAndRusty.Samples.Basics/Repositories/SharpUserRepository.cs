@@ -1,5 +1,6 @@
 ﻿using Esox.SharpAndRusty.Samples.Basics.Models;
 using Esox.SharpAndRusty.Types;
+using Esox.SharpAndRusty.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -21,7 +22,7 @@ namespace Esox.SharpAndRusty.Samples.Basics.Repositories
             if (_users.All(x => x.Name != user.Name))
             {
                 _users.Add(user);
-                return Unit.Value;
+                return Result<Unit,Error>.Ok();
             }
             else
             {

@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.7.6] - 2026
+
+> **Note:** Versions 1.7.3, 1.7.4, and 1.7.5 were withdrawn because of errors in those releases and were never documented here. Their changes are included in 1.7.6.
+
+### Added
+
+- **Parameterless `Ok()`** for `Result<Unit, E>` and `ExtendedResult<Unit, E>`, matching Rust's `Ok(())`. It is only available when the success type is `Unit`, so `Result<int, string>.Ok()` is a compile-time error.
+- **`TryMap`** for `Result<T, E>`: like `Map`, but catches exceptions thrown by the mapper and converts them to an error with a `Func<Exception, E>` handler (for example `result.TryMap(x => x / 0, Error.FromException)`). A failed result is returned unchanged and the mapper is not called. All exceptions are caught, so it is meant as a bridge for exception-based code; prefer `Bind` with a `Result`-returning function for your own code. There is no async variant yet.
+
+### Changed
+
+- `Result<T, E>` internal null checks now use `ArgumentNullException.ThrowIfNull`; behaviour is unchanged.
+- `System.Security.Cryptography.Pkcs` is now referenced explicitly by `Esox.SharpAndRusty.EntityFrameworkCore` (8.0.2 for net8.0, 9.0.21 for net9.0 and net10.0) to pull in a patched version of the transitive dependency.
+
+### Documentation
+
+- Added a `Esox.SharpAndRusty.Samples.Basics` console project demonstrating `Result` versus exceptions, `Bind`, `Map`, and `TryMap`.
+- Documented `TryMap`, and noted that the parameterless `Ok()` is an extension member that requires `using Esox.SharpAndRusty.Extensions;` (otherwise error CS7036 is reported).
+
+---
+
 ## [1.7.2] - 2026
 
 ### Deprecated
@@ -15,7 +36,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Parameterless `Ok()`** for `Result<Unit, E>` and `ExtendedResult<Unit, E>`, matching Rust's `Ok(())`. It is only available when the success type is `Unit`, so `Result<int, string>.Ok()` is a compile-time error.
 - **`Ensure` / `EnsureAsync`** for `Result<T, E>` (and synchronous `Ensure` for `ExtendedResult<T, E>`): check a condition on the success value and switch to the failure track when it does not hold, either with an error factory (`Func<T, E>`) or a fixed error. `EnsureAsync` supports both synchronous and asynchronous predicates and a `CancellationToken`. A failed result is returned unchanged and the predicate is not called.
 
 ### Changed

@@ -178,7 +178,8 @@ public class Program
             failure => Console.WriteLine($"Failure: {failure}")
         );
         
-        var otherMathResult=result.TryMap(x=>x/0);
+        var otherMathResult=result.TryMap(x=>x/0,
+            ex=>Error.New($"Math error: {ex.Message}"));
         otherMathResult.Match(
             success => Console.WriteLine($"Success: {success}"),
             failure => Console.WriteLine($"Failure: {failure}")

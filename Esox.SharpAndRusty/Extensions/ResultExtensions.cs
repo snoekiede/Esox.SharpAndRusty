@@ -4,7 +4,16 @@ namespace Esox.SharpAndRusty.Extensions;
 
 public static class ResultExtensions
 {
-
+    /// <param name="result">The Result to create a successful result from.</param>
+    /// <typeparam name="E">The type of the error value.</typeparam>
+    extension<E>(Result<Unit, E> result)
+    {
+        /// <summary>
+        ///   Creates a successful Result with a Unit value, representing a successful operation that does not return a meaningful value.
+        /// </summary>
+        /// <returns>A successful Result with a Unit value.</returns>
+        public static Result<Unit, E> Ok() => Result<Unit, E>.Ok(Unit.Value);
+    }
 
     /// <param name="result">The result to transform.</param>
     /// <typeparam name="T">The type of the original success value.</typeparam>
@@ -352,26 +361,39 @@ public static class ResultExtensions
         }
     }
 
-    extension<T>(Result<T, Error> result)
+    extension<T,E>(Result<T, E> result)
     {
-        public Result<U, Error> TryMap<U>(Func<T, U> mapper)
+        /// <summary>
+        ///     Transforms the success value with a mapper that may throw.
+        ///     Any exception thrown by the mapper is caught and converted into an error using
+        ///     <paramref name="exceptionToErrorMapper" />.
+        ///     An existing error is passed through unchanged and the mapper is not invoked.
+        ///     Use <c>Map</c> for transforms that cannot fail, and <c>Bind</c> when the transform already returns a Result.
+        /// </summary>
+        /// <typeparam name="U">The type of the mapped value.</typeparam>
+        /// <param name="mapper">The function to apply to the success value.</param>
+        /// <param name="exceptionToErrorMapper">Converts a thrown exception into an error value.</param>
+        /// <returns>A Result containing the mapped value, or an error if this Result or the mapper failed.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when mapper is null.</exception>
+        /// <example>
+        ///     <code>
+        /// var result = Result&lt;int, Error&gt;.Ok(10)
+        ///     .TryMap(x =&gt; x / 0, Error.FromException);
+        /// // result is an Err containing the DivideByZeroException details
+        /// </code>
+        /// </example>
+        public Result<U, E> TryMap<U>(Func<T, U> mapper, Func<Exception,E> exceptionToErrorMapper)
         {
             ArgumentNullException.ThrowIfNull(mapper);
-
-            return result.Match(
-                value =>
-                {
-                    try
-                    {
-                        return Result<U, Error>.Ok(mapper(value));
-                    }
-                    catch (Exception ex)
-                    {
-                        return Result<U, Error>.Err(Error.New($"Mapping failed: {ex.Message}"));
-                    }
-                },
-                Result<U, Error>.Err    
-            );
+            ArgumentNullException.ThrowIfNull(exceptionToErrorMapper);
+            try
+            {
+                return result.Map(mapper);
+            }
+            catch (Exception ex)
+            {
+                return Result<U, E>.Err(exceptionToErrorMapper(ex));
+            }
         }
     }
     
