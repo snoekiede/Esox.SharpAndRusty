@@ -432,7 +432,11 @@ public class UnitTests
         var result = Result<Unit, string>.Ok();
 
         Assert.True(result.IsSuccess);
+        Assert.False(result.IsFailure);
         Assert.Equal(Result<Unit, string>.Ok(Unit.Value), result);
+        Assert.True(result.TryGetValue(out var value));
+        Assert.Equal(Unit.Value, value);
+        Assert.False(result.TryGetError(out _));
         Assert.Equal(Unit.Value, result.Match(v => v, _ => throw new InvalidOperationException()));
     }
 
