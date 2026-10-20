@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
@@ -15,8 +15,8 @@
         <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
         <Version>1.8.0.0-rc1</Version>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <AssemblyVersion>1.8.0.0-rc1</AssemblyVersion>
-        <FileVersion>1.8.0.0-rc1</FileVersion>
+        <AssemblyVersion>1.8.0.0</AssemblyVersion>
+        <FileVersion>1.8.0.0</FileVersion>
     </PropertyGroup>
     <PropertyGroup>
         <AnalysisLevel>latest</AnalysisLevel>
