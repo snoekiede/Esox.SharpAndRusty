@@ -51,6 +51,7 @@ namespace Esox.SharpAndRusty.Sync;
     false,
     DiagnosticId = "ESOX2001",
     UrlFormat = "https://github.com/snoekiede/Esox.SharpAndRusty/blob/main/CHANGELOG.md")]
+[Experimental("ESOXEXP001")]
 public sealed class RwLock<T> : IDisposable
 {
     private readonly ReaderWriterLockSlim _lock;

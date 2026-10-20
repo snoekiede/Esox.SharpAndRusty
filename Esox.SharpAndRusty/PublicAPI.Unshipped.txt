@@ -1,0 +1,3 @@
+#nullable enable
+
+static Esox.SharpAndRusty.Types.Option<T> Esox.SharpAndRusty.Extensions.PatternMatchingHelpers.IfNone<T>(this Esox.SharpAndRusty.Types.Option<T> option, System.Action action) -> Esox.SharpAndRusty.Types.Option<T>
