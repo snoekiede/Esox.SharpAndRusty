@@ -5,6 +5,7 @@ name: .NET
 permissions:
   contents: read
   pull-requests: write
+  id-token: write
 on:
   push:
     branches: [ "main" ]
@@ -39,3 +40,23 @@ jobs:
         run: dotnet build --no-restore
       - name: Test
         run: dotnet test --no-build --verbosity normal
+
+      - name: Pack NuGet packages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          dotnet pack Esox.SharpAndRusty\Esox.SharpAndRusty.csproj --configuration Release --no-build --output nupkgs
+          dotnet pack Esox.SharpAndRusty.EntityFrameworkCore\Esox.SharpAndRusty.EntityFrameworkCore.csproj --configuration Release --no-build --output nupkgs
+          dotnet pack Esox.SharpAndRusty.Analyzers\Esox.SharpAndRusty.Analyzers.csproj --configuration Release --no-build --output nupkgs
+
+      # Trusted Publishing: exchanges the GitHub OIDC token for a short-lived NuGet API key
+      - name: NuGet login (OIDC)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        id: nuget-login
+        uses: NuGet/login@v1
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
+      # Already-published versions are skipped, so bump <Version> in the csproj to release
+      - name: Push to NuGet
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: dotnet nuget push "nupkgs\*.nupkg" --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
