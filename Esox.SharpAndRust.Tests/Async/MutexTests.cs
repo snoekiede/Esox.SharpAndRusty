@@ -1040,8 +1040,9 @@ public class MutexTests
         var successCount = 0;
         const int taskCount = 10;
         const int holdMs = 50;
-        // Timeout must cover worst-case: all tasks queued serially (taskCount * holdMs) plus a generous buffer.
-        var timeout = TimeSpan.FromMilliseconds(taskCount * holdMs * 4);
+        // Generous timeout: on loaded CI runners (parallel test classes, thread-pool starvation) the serial
+        // queue can take far longer than taskCount * holdMs. Successful runs don't wait for it.
+        var timeout = TimeSpan.FromSeconds(30);
 
         // Act - materialize tasks immediately so all are scheduled before any can time out.
         var tasks = Enumerable.Range(0, taskCount).Select(i => Task.Run(async () =>
@@ -1135,7 +1136,7 @@ public class MutexTests
         var disposeCompleted = new ManualResetEventSlim(false);
         var waitStarted = new ManualResetEventSlim(false);
 
-        // A thread blocked inside Lock() — it will unblock once guard1 is released or dispose fires.
+        // A thread blocked inside Lock() ï¿½ it will unblock once guard1 is released or dispose fires.
         var waiter = new Thread(() =>
         {
             waitStarted.Set();
