@@ -18,8 +18,15 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
 
-      # Create the directory and decode the key file
+      - name: Check csproj versions are greater than latest tag
+        shell: pwsh
+        run: ./.github/scripts/check-version.ps1
+
+      # Create
       - name: Provide strong-name key
         env:
           SNK_KEY_BASE64: ${{ secrets.SNK_KEY_BASE64 }}
