@@ -23,10 +23,10 @@ public class UnhandledResultAnalyzer : DiagnosticAnalyzer
     private static readonly LocalizableString TitleResult = "Result value must be used";
 
     private static readonly LocalizableString MessageFormatResult =
-        "Result<{0}, {1}> returned by '{2}' must be used. Ignoring a Result may hide errors.";
+        "{0}<{1}, {2}> returned by '{3}' must be used. Ignoring it may hide errors.";
 
     private static readonly LocalizableString DescriptionResult =
-        "Methods returning Result<T, E> must have their return value handled. This prevents accidentally ignoring potential errors, similar to Rust's behavior.";
+        "Methods returning Result<T, E>, ExtendedResult<T, TE>, Validation<T, E> or Either<L, R> must have their return value handled. This prevents accidentally ignoring potential errors, similar to Rust's behavior.";
 
     private static readonly LocalizableString TitleOption = "Option value must be used";
 
@@ -89,7 +89,7 @@ public class UnhandledResultAnalyzer : DiagnosticAnalyzer
 
         // Check if return type is Result or Option
         var returnType = methodSymbol.ReturnType;
-        if (!IsResultOrOptionType(returnType, out var isResult, out var typeArgs))
+        if (!IsResultOrOptionType(returnType, out var isResult, out var typeName, out var typeArgs))
             return;
 
         // Check if the result is being used
@@ -97,7 +97,7 @@ public class UnhandledResultAnalyzer : DiagnosticAnalyzer
             return;
 
         // Report diagnostic
-        ReportDiagnostic(context, invocation.GetLocation(), isResult, typeArgs, methodSymbol.Name);
+        ReportDiagnostic(context, invocation.GetLocation(), isResult, typeName, typeArgs, methodSymbol.Name);
     }
 
     private void AnalyzeMemberAccess(SyntaxNodeAnalysisContext context)
@@ -118,17 +118,24 @@ public class UnhandledResultAnalyzer : DiagnosticAnalyzer
 
         // Check if return type is Result or Option
         var returnType = propertySymbol.Type;
-        if (!IsResultOrOptionType(returnType, out var isResult, out var typeArgs))
+        if (!IsResultOrOptionType(returnType, out var isResult, out var typeName, out var typeArgs))
             return;
 
         // Report diagnostic
-        ReportDiagnostic(context, memberAccess.GetLocation(), isResult, typeArgs, propertySymbol.Name);
+        ReportDiagnostic(context, memberAccess.GetLocation(), isResult, typeName, typeArgs, propertySymbol.Name);
     }
 
-    private bool IsResultOrOptionType(ITypeSymbol type, out bool isResult,
+    private static readonly ImmutableHashSet<string> TwoArgumentTypes = ImmutableHashSet.Create(
+        "Esox.SharpAndRusty.Types.Result",
+        "Esox.SharpAndRusty.Types.ExtendedResult",
+        "Esox.SharpAndRusty.Types.Validation",
+        "Esox.SharpAndRusty.Types.Either");
+
+    private bool IsResultOrOptionType(ITypeSymbol type, out bool isResult, out string typeName,
         out ImmutableArray<ITypeSymbol> typeArguments)
     {
         isResult = false;
+        typeName = string.Empty;
         typeArguments = ImmutableArray<ITypeSymbol>.Empty;
 
         if (type is not INamedTypeSymbol namedType)
@@ -136,10 +143,11 @@ public class UnhandledResultAnalyzer : DiagnosticAnalyzer
 
         var fullName = GetFullTypeName(namedType);
 
-        // Check for Result<T, E>
-        if (fullName == "Esox.SharpAndRusty.Types.Result" && namedType.TypeArguments.Length == 2)
+        // Check for Result<T, E>, ExtendedResult<T, TE>, Validation<T, E> and Either<L, R>
+        if (TwoArgumentTypes.Contains(fullName) && namedType.TypeArguments.Length == 2)
         {
             isResult = true;
+            typeName = namedType.Name;
             typeArguments = namedType.TypeArguments;
             return true;
         }
@@ -148,6 +156,7 @@ public class UnhandledResultAnalyzer : DiagnosticAnalyzer
         if (fullName == "Esox.SharpAndRusty.Types.Option" && namedType.TypeArguments.Length == 1)
         {
             isResult = false;
+            typeName = namedType.Name;
             typeArguments = namedType.TypeArguments;
             return true;
         }
@@ -228,6 +237,7 @@ public class UnhandledResultAnalyzer : DiagnosticAnalyzer
         SyntaxNodeAnalysisContext context,
         Location location,
         bool isResult,
+        string typeName,
         ImmutableArray<ITypeSymbol> typeArgs,
         string memberName)
     {
@@ -236,6 +246,7 @@ public class UnhandledResultAnalyzer : DiagnosticAnalyzer
             var diagnostic = Diagnostic.Create(
                 RuleResult,
                 location,
+                typeName,
                 typeArgs[0].ToDisplayString(),
                 typeArgs[1].ToDisplayString(),
                 memberName);

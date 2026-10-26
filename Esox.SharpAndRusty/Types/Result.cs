@@ -161,7 +161,7 @@ public readonly struct Result<T, E> : IEquatable<Result<T, E>>
     /// <exception cref="ArgumentNullException">Thrown when alternative is null.</exception>
     public Result<T, E> OrElse(Func<E, Result<T, E>> alternative)
     {
-        if (alternative is null) throw new ArgumentNullException(nameof(alternative));
+        ArgumentNullException.ThrowIfNull(alternative, nameof(alternative));
         return IsSuccess ? this : alternative(_error);
     }
 
@@ -260,8 +260,8 @@ public readonly struct Result<T, E> : IEquatable<Result<T, E>>
     /// <exception cref="ArgumentNullException">Thrown when operation or errorHandler is null.</exception>
     public static async Task<Result<T, E>> TryAsync(Func<Task<T>> operation, Func<Exception, E> errorHandler)
     {
-        if (operation is null) throw new ArgumentNullException(nameof(operation));
-        if (errorHandler is null) throw new ArgumentNullException(nameof(errorHandler));
+        ArgumentNullException.ThrowIfNull(operation,nameof(operation));
+        ArgumentNullException.ThrowIfNull(errorHandler, nameof(errorHandler));
 
         try
         {
@@ -284,8 +284,8 @@ public readonly struct Result<T, E> : IEquatable<Result<T, E>>
     /// <exception cref="ArgumentNullException">Thrown when operation or errorHandler is null.</exception>
     public static Result<T, E> Try(Func<T> operation, Func<Exception, E> errorHandler)
     {
-        if (operation is null) throw new ArgumentNullException(nameof(operation));
-        if (errorHandler is null) throw new ArgumentNullException(nameof(errorHandler));
+        ArgumentNullException.ThrowIfNull(operation,nameof(operation));
+        ArgumentNullException.ThrowIfNull(errorHandler, nameof(errorHandler));
 
         try
         {

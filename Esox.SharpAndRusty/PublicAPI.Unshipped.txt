@@ -1,3 +1,413 @@
 #nullable enable
-
-static Esox.SharpAndRusty.Types.Option<T> Esox.SharpAndRusty.Extensions.PatternMatchingHelpers.IfNone<T>(this Esox.SharpAndRusty.Types.Option<T> option, System.Action action) -> Esox.SharpAndRusty.Types.Option<T>
+Esox.SharpAndRusty.Extensions.AsyncCollectionExtensions
+Esox.SharpAndRusty.Extensions.AsyncCollectionExtensions.extension<T, E>(System.Collections.Generic.IEnumerable<System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<T, E>>!>!)
+Esox.SharpAndRusty.Extensions.AsyncCollectionExtensions.extension<T, E>(System.Collections.Generic.IEnumerable<System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<T, E>>!>!).CollectErrAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<E>!>!
+Esox.SharpAndRusty.Extensions.AsyncCollectionExtensions.extension<T, E>(System.Collections.Generic.IEnumerable<System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<T, E>>!>!).CollectOkAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<T>!>!
+Esox.SharpAndRusty.Extensions.AsyncCollectionExtensions.extension<T, E>(System.Collections.Generic.IEnumerable<System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<T, E>>!>!).PartitionResultsAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<(System.Collections.Generic.List<T>! successes, System.Collections.Generic.List<E>! failures)>!
+Esox.SharpAndRusty.Extensions.AsyncCollectionExtensions.extension<T, E>(System.Collections.Generic.IEnumerable<System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<T, E>>!>!).SequenceAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<System.Collections.Generic.IEnumerable<T>!, Esox.SharpAndRusty.Types.Error!>>!
+Esox.SharpAndRusty.Extensions.AsyncCollectionExtensions.extension<T>(System.Collections.Generic.IEnumerable<System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Option<T>!>!>!)
+Esox.SharpAndRusty.Extensions.AsyncCollectionExtensions.extension<T>(System.Collections.Generic.IEnumerable<System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Option<T>!>!>!).CollectSomeAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<T>!>!
+Esox.SharpAndRusty.Extensions.AsyncCollectionExtensions.extension<T>(System.Collections.Generic.IEnumerable<System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Option<T>!>!>!).SequenceAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Option<System.Collections.Generic.IEnumerable<T>!>!>!
+Esox.SharpAndRusty.Extensions.AsyncCollectionExtensions.extension<T>(System.Collections.Generic.IEnumerable<T>!)
+Esox.SharpAndRusty.Extensions.AsyncCollectionExtensions.extension<T>(System.Collections.Generic.IEnumerable<T>!).TraverseAsync<U, E>(System.Func<T, System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<U, E>>!>! asyncSelector, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<System.Collections.Generic.IEnumerable<U>!, Esox.SharpAndRusty.Types.Error!>>!
+Esox.SharpAndRusty.Extensions.AsyncCollectionExtensions.extension<T>(System.Collections.Generic.IEnumerable<T>!).TraverseAsync<U>(System.Func<T, System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Option<U>!>!>! asyncSelector, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Option<System.Collections.Generic.IEnumerable<U>!>!>!
+Esox.SharpAndRusty.Extensions.AsyncCollectionExtensions.extension<T>(System.Collections.Generic.IEnumerable<T>!).TraverseParallelAsync<U, E>(System.Func<T, System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<U, E>>!>! asyncSelector, int maxDegreeOfParallelism = -1, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<System.Collections.Generic.IEnumerable<U>!, Esox.SharpAndRusty.Types.Error!>>!
+Esox.SharpAndRusty.Extensions.AsyncCollectionExtensions.extension<T>(System.Collections.Generic.IEnumerable<T>!).TraverseParallelAsync<U>(System.Func<T, System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Option<U>!>!>! asyncSelector, int maxDegreeOfParallelism = -1, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Option<System.Collections.Generic.IEnumerable<U>!>!>!
+Esox.SharpAndRusty.Extensions.AsyncOptionExtensions
+Esox.SharpAndRusty.Extensions.AsyncOptionExtensions.extension<T>(Esox.SharpAndRusty.Types.Option<T>!)
+Esox.SharpAndRusty.Extensions.AsyncOptionExtensions.extension<T>(Esox.SharpAndRusty.Types.Option<T>!).BindAsync<TResult>(System.Func<T, System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Option<TResult>!>!>! asyncBinder, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Option<TResult>!>!
+Esox.SharpAndRusty.Extensions.AsyncOptionExtensions.extension<T>(Esox.SharpAndRusty.Types.Option<T>!).FilterAsync(System.Func<T, System.Threading.Tasks.Task<bool>!>! asyncPredicate, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Option<T>!>!
+Esox.SharpAndRusty.Extensions.AsyncOptionExtensions.extension<T>(Esox.SharpAndRusty.Types.Option<T>!).InspectAsync(System.Func<T, System.Threading.Tasks.Task!>! asyncInspector, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Option<T>!>!
+Esox.SharpAndRusty.Extensions.AsyncOptionExtensions.extension<T>(Esox.SharpAndRusty.Types.Option<T>!).InspectNoneAsync(System.Func<System.Threading.Tasks.Task!>! asyncInspector, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Option<T>!>!
+Esox.SharpAndRusty.Extensions.AsyncOptionExtensions.extension<T>(Esox.SharpAndRusty.Types.Option<T>!).MapAsync<TResult>(System.Func<T, System.Threading.Tasks.Task<TResult>!>! asyncMapper, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Option<TResult>!>!
+Esox.SharpAndRusty.Extensions.AsyncOptionExtensions.extension<T>(Esox.SharpAndRusty.Types.Option<T>!).MatchAsync(System.Func<T, System.Threading.Tasks.Task!>! onSomeAsync, System.Func<System.Threading.Tasks.Task!>! onNoneAsync, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Esox.SharpAndRusty.Extensions.AsyncOptionExtensions.extension<T>(Esox.SharpAndRusty.Types.Option<T>!).MatchAsync<TResult>(System.Func<T, System.Threading.Tasks.Task<TResult>!>! onSomeAsync, System.Func<System.Threading.Tasks.Task<TResult>!>! onNoneAsync, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TResult>!
+Esox.SharpAndRusty.Extensions.AsyncOptionExtensions.extension<T>(Esox.SharpAndRusty.Types.Option<T>!).OkOrElseAsync<E>(System.Func<System.Threading.Tasks.Task<E>!>! asyncErrorFactory, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<T, E>>!
+Esox.SharpAndRusty.Extensions.CollectionExtensions
+Esox.SharpAndRusty.Extensions.CollectionExtensions.extension<L, R>(System.Collections.Generic.IEnumerable<Esox.SharpAndRusty.Types.Either<L, R>!>!)
+Esox.SharpAndRusty.Extensions.CollectionExtensions.extension<L, R>(System.Collections.Generic.IEnumerable<Esox.SharpAndRusty.Types.Either<L, R>!>!).SequenceLeft() -> Esox.SharpAndRusty.Types.Either<System.Collections.Generic.IEnumerable<L>!, R>!
+Esox.SharpAndRusty.Extensions.CollectionExtensions.extension<L, R>(System.Collections.Generic.IEnumerable<Esox.SharpAndRusty.Types.Either<L, R>!>!).SequenceRight() -> Esox.SharpAndRusty.Types.Either<L, System.Collections.Generic.IEnumerable<R>!>!
+Esox.SharpAndRusty.Extensions.CollectionExtensions.extension<T, E>(System.Collections.Generic.IEnumerable<Esox.SharpAndRusty.Types.Result<T, E>>!)
+Esox.SharpAndRusty.Extensions.CollectionExtensions.extension<T, E>(System.Collections.Generic.IEnumerable<Esox.SharpAndRusty.Types.Result<T, E>>!).AllOk() -> bool
+Esox.SharpAndRusty.Extensions.CollectionExtensions.extension<T, E>(System.Collections.Generic.IEnumerable<Esox.SharpAndRusty.Types.Result<T, E>>!).AnyOk() -> bool
+Esox.SharpAndRusty.Extensions.CollectionExtensions.extension<T, E>(System.Collections.Generic.IEnumerable<Esox.SharpAndRusty.Types.Result<T, E>>!).CollectErr() -> System.Collections.Generic.IEnumerable<E>!
+Esox.SharpAndRusty.Extensions.CollectionExtensions.extension<T, E>(System.Collections.Generic.IEnumerable<Esox.SharpAndRusty.Types.Result<T, E>>!).CollectOk() -> System.Collections.Generic.IEnumerable<T>!
+Esox.SharpAndRusty.Extensions.CollectionExtensions.extension<T, E>(System.Collections.Generic.IEnumerable<Esox.SharpAndRusty.Types.Result<T, E>>!).FirstOk() -> Esox.SharpAndRusty.Types.Result<T, System.Collections.Generic.IEnumerable<E>!>
+Esox.SharpAndRusty.Extensions.CollectionExtensions.extension<T, E>(System.Collections.Generic.IEnumerable<Esox.SharpAndRusty.Types.Result<T, E>>!).PartitionResults() -> (System.Collections.Generic.List<T>! successes, System.Collections.Generic.List<E>! failures)
+Esox.SharpAndRusty.Extensions.CollectionExtensions.extension<T, E>(System.Collections.Generic.IEnumerable<Esox.SharpAndRusty.Types.Result<T, E>>!).Sequence() -> Esox.SharpAndRusty.Types.Result<System.Collections.Generic.IEnumerable<T>!, E>
+Esox.SharpAndRusty.Extensions.CollectionExtensions.extension<T, E>(System.Collections.Generic.IEnumerable<Esox.SharpAndRusty.Types.Result<T, E>>!).SequenceAll() -> Esox.SharpAndRusty.Types.Result<System.Collections.Generic.IEnumerable<T>!, System.Collections.Generic.IEnumerable<E>!>
+Esox.SharpAndRusty.Extensions.CollectionExtensions.extension<T, E>(System.Collections.Generic.IEnumerable<Esox.SharpAndRusty.Types.Validation<T, E>!>!)
+Esox.SharpAndRusty.Extensions.CollectionExtensions.extension<T, E>(System.Collections.Generic.IEnumerable<Esox.SharpAndRusty.Types.Validation<T, E>!>!).PartitionValidations() -> (System.Collections.Generic.List<T>! valid, System.Collections.Generic.List<System.Collections.Generic.IReadOnlyList<E>!>! invalid)
+Esox.SharpAndRusty.Extensions.CollectionExtensions.extension<T>(System.Collections.Generic.IEnumerable<Esox.SharpAndRusty.Types.Option<T>!>!)
+Esox.SharpAndRusty.Extensions.CollectionExtensions.extension<T>(System.Collections.Generic.IEnumerable<Esox.SharpAndRusty.Types.Option<T>!>!).AllSome() -> bool
+Esox.SharpAndRusty.Extensions.CollectionExtensions.extension<T>(System.Collections.Generic.IEnumerable<Esox.SharpAndRusty.Types.Option<T>!>!).AnySome() -> bool
+Esox.SharpAndRusty.Extensions.CollectionExtensions.extension<T>(System.Collections.Generic.IEnumerable<Esox.SharpAndRusty.Types.Option<T>!>!).CollectSome() -> System.Collections.Generic.IEnumerable<T>!
+Esox.SharpAndRusty.Extensions.CollectionExtensions.extension<T>(System.Collections.Generic.IEnumerable<Esox.SharpAndRusty.Types.Option<T>!>!).FirstSome() -> Esox.SharpAndRusty.Types.Option<T>!
+Esox.SharpAndRusty.Extensions.CollectionExtensions.extension<T>(System.Collections.Generic.IEnumerable<Esox.SharpAndRusty.Types.Option<T>!>!).PartitionOptions() -> (System.Collections.Generic.List<T>! values, int noneCount)
+Esox.SharpAndRusty.Extensions.CollectionExtensions.extension<T>(System.Collections.Generic.IEnumerable<Esox.SharpAndRusty.Types.Option<T>!>!).Sequence() -> Esox.SharpAndRusty.Types.Option<System.Collections.Generic.IEnumerable<T>!>!
+Esox.SharpAndRusty.Extensions.CollectionExtensions.extension<T>(System.Collections.Generic.IEnumerable<T>!)
+Esox.SharpAndRusty.Extensions.CollectionExtensions.extension<T>(System.Collections.Generic.IEnumerable<T>!).Choose<U>(System.Func<T, Esox.SharpAndRusty.Types.Option<U>!>! selector) -> Esox.SharpAndRusty.Types.Option<U>!
+Esox.SharpAndRusty.Extensions.CollectionExtensions.extension<T>(System.Collections.Generic.IEnumerable<T>!).Traverse<U, E>(System.Func<T, Esox.SharpAndRusty.Types.Result<U, E>>! selector) -> Esox.SharpAndRusty.Types.Result<System.Collections.Generic.IEnumerable<U>!, E>
+Esox.SharpAndRusty.Extensions.CollectionExtensions.extension<T>(System.Collections.Generic.IEnumerable<T>!).Traverse<U>(System.Func<T, Esox.SharpAndRusty.Types.Option<U>!>! selector) -> Esox.SharpAndRusty.Types.Option<System.Collections.Generic.IEnumerable<U>!>!
+Esox.SharpAndRusty.Extensions.CollectionExtensions.extension<T>(System.Collections.Generic.IEnumerable<T>!).TraverseLeft<L, R>(System.Func<T, Esox.SharpAndRusty.Types.Either<L, R>!>! selector) -> Esox.SharpAndRusty.Types.Either<System.Collections.Generic.IEnumerable<L>!, R>!
+Esox.SharpAndRusty.Extensions.CollectionExtensions.extension<T>(System.Collections.Generic.IEnumerable<T>!).TraverseRight<L, R>(System.Func<T, Esox.SharpAndRusty.Types.Either<L, R>!>! selector) -> Esox.SharpAndRusty.Types.Either<L, System.Collections.Generic.IEnumerable<R>!>!
+Esox.SharpAndRusty.Extensions.CollectionExtensions.extension<T>(System.Collections.Generic.IEnumerable<T>!).TraverseValidation<U, E>(System.Func<T, Esox.SharpAndRusty.Types.Validation<U, E>!>! validator) -> Esox.SharpAndRusty.Types.Validation<System.Collections.Generic.IEnumerable<U>!, E>!
+Esox.SharpAndRusty.Extensions.CollectionExtensions.extension<TKey, TValue, E>(System.Collections.Generic.IEnumerable<Esox.SharpAndRusty.Types.Result<System.Collections.Generic.KeyValuePair<TKey, TValue>, E>>!)
+Esox.SharpAndRusty.Extensions.CollectionExtensions.extension<TKey, TValue, E>(System.Collections.Generic.IEnumerable<Esox.SharpAndRusty.Types.Result<System.Collections.Generic.KeyValuePair<TKey, TValue>, E>>!).ToOkDictionary() -> System.Collections.Generic.Dictionary<TKey, TValue>!
+Esox.SharpAndRusty.Extensions.CollectionExtensions.extension<TKey, TValue>(System.Collections.Generic.IEnumerable<Esox.SharpAndRusty.Types.Option<System.Collections.Generic.KeyValuePair<TKey, TValue>>!>!)
+Esox.SharpAndRusty.Extensions.CollectionExtensions.extension<TKey, TValue>(System.Collections.Generic.IEnumerable<Esox.SharpAndRusty.Types.Option<System.Collections.Generic.KeyValuePair<TKey, TValue>>!>!).ToSomeDictionary() -> System.Collections.Generic.Dictionary<TKey, TValue>!
+Esox.SharpAndRusty.Extensions.EitherExtensions
+Esox.SharpAndRusty.Extensions.EitherExtensions.extension<L, R>(Esox.SharpAndRusty.Types.Either<L, R>!)
+Esox.SharpAndRusty.Extensions.EitherExtensions.extension<L, R>(Esox.SharpAndRusty.Types.Either<L, R>!).BindLeft<L2>(System.Func<L, Esox.SharpAndRusty.Types.Either<L2, R>!>! binder) -> Esox.SharpAndRusty.Types.Either<L2, R>!
+Esox.SharpAndRusty.Extensions.EitherExtensions.extension<L, R>(Esox.SharpAndRusty.Types.Either<L, R>!).BindRight<R2>(System.Func<R, Esox.SharpAndRusty.Types.Either<L, R2>!>! binder) -> Esox.SharpAndRusty.Types.Either<L, R2>!
+Esox.SharpAndRusty.Extensions.EitherExtensions.extension<L, R>(Esox.SharpAndRusty.Types.Either<L, R>!).GetLeftOrDefault(L defaultValue) -> L
+Esox.SharpAndRusty.Extensions.EitherExtensions.extension<L, R>(Esox.SharpAndRusty.Types.Either<L, R>!).GetRightOrDefault(R defaultValue) -> R
+Esox.SharpAndRusty.Extensions.EitherExtensions.extension<L, R>(Esox.SharpAndRusty.Types.Either<L, R>!).IfLeft(System.Action<L>! action) -> Esox.SharpAndRusty.Types.Either<L, R>!
+Esox.SharpAndRusty.Extensions.EitherExtensions.extension<L, R>(Esox.SharpAndRusty.Types.Either<L, R>!).IfRight(System.Action<R>! action) -> Esox.SharpAndRusty.Types.Either<L, R>!
+Esox.SharpAndRusty.Extensions.EitherExtensions.extension<L, R>(System.Collections.Generic.IEnumerable<Esox.SharpAndRusty.Types.Either<L, R>!>!)
+Esox.SharpAndRusty.Extensions.EitherExtensions.extension<L, R>(System.Collections.Generic.IEnumerable<Esox.SharpAndRusty.Types.Either<L, R>!>!).Lefts() -> System.Collections.Generic.IEnumerable<L>!
+Esox.SharpAndRusty.Extensions.EitherExtensions.extension<L, R>(System.Collections.Generic.IEnumerable<Esox.SharpAndRusty.Types.Either<L, R>!>!).Partition() -> (System.Collections.Generic.List<L>! lefts, System.Collections.Generic.List<R>! rights)
+Esox.SharpAndRusty.Extensions.EitherExtensions.extension<L, R>(System.Collections.Generic.IEnumerable<Esox.SharpAndRusty.Types.Either<L, R>!>!).Rights() -> System.Collections.Generic.IEnumerable<R>!
+Esox.SharpAndRusty.Extensions.ErrorExtensions
+Esox.SharpAndRusty.Extensions.ErrorExtensions.extension(System.Exception!)
+Esox.SharpAndRusty.Extensions.ErrorExtensions.extension(System.Exception!).ToResult<T>() -> Esox.SharpAndRusty.Types.Result<T, Esox.SharpAndRusty.Types.Error!>
+Esox.SharpAndRusty.Extensions.ErrorExtensions.extension<T>(Esox.SharpAndRusty.Types.Result<T, Esox.SharpAndRusty.Types.Error!>)
+Esox.SharpAndRusty.Extensions.ErrorExtensions.extension<T>(Esox.SharpAndRusty.Types.Result<T, Esox.SharpAndRusty.Types.Error!>).Context(string! contextMessage) -> Esox.SharpAndRusty.Types.Result<T, Esox.SharpAndRusty.Types.Error!>
+Esox.SharpAndRusty.Extensions.ErrorExtensions.extension<T>(Esox.SharpAndRusty.Types.Result<T, Esox.SharpAndRusty.Types.Error!>).WithContext(System.Func<Esox.SharpAndRusty.Types.Error!, string!>! contextFactory) -> Esox.SharpAndRusty.Types.Result<T, Esox.SharpAndRusty.Types.Error!>
+Esox.SharpAndRusty.Extensions.ErrorExtensions.extension<T>(Esox.SharpAndRusty.Types.Result<T, Esox.SharpAndRusty.Types.Error!>).WithKind(Esox.SharpAndRusty.Types.ErrorKind kind) -> Esox.SharpAndRusty.Types.Result<T, Esox.SharpAndRusty.Types.Error!>
+Esox.SharpAndRusty.Extensions.ErrorExtensions.extension<T>(Esox.SharpAndRusty.Types.Result<T, Esox.SharpAndRusty.Types.Error!>).WithMetadata(string! key, object! value) -> Esox.SharpAndRusty.Types.Result<T, Esox.SharpAndRusty.Types.Error!>
+Esox.SharpAndRusty.Extensions.ErrorExtensions.extension<T>(Esox.SharpAndRusty.Types.Result<T, Esox.SharpAndRusty.Types.Error!>).WithMetadata<TValue>(string! key, TValue value) -> Esox.SharpAndRusty.Types.Result<T, Esox.SharpAndRusty.Types.Error!>
+Esox.SharpAndRusty.Extensions.ErrorExtensions.extension<T>(System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<T, Esox.SharpAndRusty.Types.Error!>>!)
+Esox.SharpAndRusty.Extensions.ErrorExtensions.extension<T>(System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<T, Esox.SharpAndRusty.Types.Error!>>!).ContextAsync(string! contextMessage, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<T, Esox.SharpAndRusty.Types.Error!>>!
+Esox.SharpAndRusty.Extensions.ErrorExtensions.extension<T>(System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<T, Esox.SharpAndRusty.Types.Error!>>!).WithContextAsync(System.Func<Esox.SharpAndRusty.Types.Error!, string!>! contextFactory, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<T, Esox.SharpAndRusty.Types.Error!>>!
+Esox.SharpAndRusty.Extensions.ErrorExtensions.extension<T>(System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<T, Esox.SharpAndRusty.Types.Error!>>!).WithMetadataAsync(string! key, object! value, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<T, Esox.SharpAndRusty.Types.Error!>>!
+Esox.SharpAndRusty.Extensions.ErrorExtensions.extension<T>(System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<T, Esox.SharpAndRusty.Types.Error!>>!).WithMetadataAsync<TValue>(string! key, TValue value, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<T, Esox.SharpAndRusty.Types.Error!>>!
+Esox.SharpAndRusty.Extensions.ExtendedResultExtensions
+Esox.SharpAndRusty.Extensions.ExtendedResultExtensions.extension<E>(Esox.SharpAndRusty.Types.ExtendedResult<Esox.SharpAndRusty.Types.Unit, E>!)
+Esox.SharpAndRusty.Extensions.ExtendedResultExtensions.extension<T, E>(Esox.SharpAndRusty.Types.ExtendedResult<T, E>!)
+Esox.SharpAndRusty.Extensions.ExtendedResultExtensions.extension<T, E>(Esox.SharpAndRusty.Types.ExtendedResult<T, E>!).Bind<U>(System.Func<T, Esox.SharpAndRusty.Types.ExtendedResult<U, E>!>! binder) -> Esox.SharpAndRusty.Types.ExtendedResult<U, E>!
+Esox.SharpAndRusty.Extensions.ExtendedResultExtensions.extension<T, E>(Esox.SharpAndRusty.Types.ExtendedResult<T, E>!).Ensure(System.Func<T, bool>! predicate, E error) -> Esox.SharpAndRusty.Types.ExtendedResult<T, E>!
+Esox.SharpAndRusty.Extensions.ExtendedResultExtensions.extension<T, E>(Esox.SharpAndRusty.Types.ExtendedResult<T, E>!).Ensure(System.Func<T, bool>! predicate, System.Func<T, E>! errorFactory) -> Esox.SharpAndRusty.Types.ExtendedResult<T, E>!
+Esox.SharpAndRusty.Extensions.ExtendedResultExtensions.extension<T, E>(Esox.SharpAndRusty.Types.ExtendedResult<T, E>!).Expect(string! message) -> T
+Esox.SharpAndRusty.Extensions.ExtendedResultExtensions.extension<T, E>(Esox.SharpAndRusty.Types.ExtendedResult<T, E>!).Map<U>(System.Func<T, U>! mapper) -> Esox.SharpAndRusty.Types.ExtendedResult<U, E>!
+Esox.SharpAndRusty.Extensions.ExtendedResultExtensions.extension<T, E>(Esox.SharpAndRusty.Types.ExtendedResult<T, E>!).MapError<E2>(System.Func<E, E2>! errorMapper) -> Esox.SharpAndRusty.Types.ExtendedResult<T, E2>!
+Esox.SharpAndRusty.Extensions.ExtendedResultExtensions.extension<T, E>(Esox.SharpAndRusty.Types.ExtendedResult<T, E>!).Select<U>(System.Func<T, U>! selector) -> Esox.SharpAndRusty.Types.ExtendedResult<U, E>!
+Esox.SharpAndRusty.Extensions.ExtendedResultExtensions.extension<T, E>(Esox.SharpAndRusty.Types.ExtendedResult<T, E>!).SelectMany<U, V>(System.Func<T, Esox.SharpAndRusty.Types.ExtendedResult<U, E>!>! selector, System.Func<T, U, V>! projector) -> Esox.SharpAndRusty.Types.ExtendedResult<V, E>!
+Esox.SharpAndRusty.Extensions.ExtendedResultExtensions.extension<T, E>(Esox.SharpAndRusty.Types.ExtendedResult<T, E>!).SelectMany<U>(System.Func<T, Esox.SharpAndRusty.Types.ExtendedResult<U, E>!>! selector) -> Esox.SharpAndRusty.Types.ExtendedResult<U, E>!
+Esox.SharpAndRusty.Extensions.ExtendedResultExtensions.extension<T, E>(Esox.SharpAndRusty.Types.ExtendedResult<T, E>!).Tap(System.Action<T>! onSuccess, System.Action<E>! onFailure) -> Esox.SharpAndRusty.Types.ExtendedResult<T, E>!
+Esox.SharpAndRusty.Extensions.ExtendedResultExtensions.extension<T, E>(Esox.SharpAndRusty.Types.ExtendedResult<T, E>!).Unwrap() -> T
+Esox.SharpAndRusty.Extensions.ExtendedResultExtensions.extension<T, E>(System.Collections.Generic.IEnumerable<Esox.SharpAndRusty.Types.ExtendedResult<T, E>!>!)
+Esox.SharpAndRusty.Extensions.ExtendedResultExtensions.extension<T, E>(System.Collections.Generic.IEnumerable<Esox.SharpAndRusty.Types.ExtendedResult<T, E>!>!).Combine() -> Esox.SharpAndRusty.Types.ExtendedResult<System.Collections.Generic.IEnumerable<T>!, E>!
+Esox.SharpAndRusty.Extensions.ExtendedResultExtensions.extension<T, E>(System.Collections.Generic.IEnumerable<Esox.SharpAndRusty.Types.ExtendedResult<T, E>!>!).Partition() -> (System.Collections.Generic.List<T>! successes, System.Collections.Generic.List<E>! failures)
+Esox.SharpAndRusty.Extensions.OptionExtensions
+Esox.SharpAndRusty.Extensions.OptionExtensions.extension<T>(Esox.SharpAndRusty.Types.Option<T>!)
+Esox.SharpAndRusty.Extensions.OptionExtensions.extension<T>(Esox.SharpAndRusty.Types.Option<T>!).And<U>(Esox.SharpAndRusty.Types.Option<U>! other) -> Esox.SharpAndRusty.Types.Option<U>!
+Esox.SharpAndRusty.Extensions.OptionExtensions.extension<T>(Esox.SharpAndRusty.Types.Option<T>!).Bind<TResult>(System.Func<T, Esox.SharpAndRusty.Types.Option<TResult>!>! binder) -> Esox.SharpAndRusty.Types.Option<TResult>!
+Esox.SharpAndRusty.Extensions.OptionExtensions.extension<T>(Esox.SharpAndRusty.Types.Option<T>!).Filter(System.Func<T, bool>! predicate) -> Esox.SharpAndRusty.Types.Option<T>!
+Esox.SharpAndRusty.Extensions.OptionExtensions.extension<T>(Esox.SharpAndRusty.Types.Option<T>!).GetValueOrDefault(T defaultValue) -> T
+Esox.SharpAndRusty.Extensions.OptionExtensions.extension<T>(Esox.SharpAndRusty.Types.Option<T>!).GetValueOrElse(System.Func<T>! defaultFactory) -> T
+Esox.SharpAndRusty.Extensions.OptionExtensions.extension<T>(Esox.SharpAndRusty.Types.Option<T>!).Inspect(System.Action<T>! inspector) -> Esox.SharpAndRusty.Types.Option<T>!
+Esox.SharpAndRusty.Extensions.OptionExtensions.extension<T>(Esox.SharpAndRusty.Types.Option<T>!).InspectNone(System.Action! inspector) -> Esox.SharpAndRusty.Types.Option<T>!
+Esox.SharpAndRusty.Extensions.OptionExtensions.extension<T>(Esox.SharpAndRusty.Types.Option<T>!).IsNone() -> bool
+Esox.SharpAndRusty.Extensions.OptionExtensions.extension<T>(Esox.SharpAndRusty.Types.Option<T>!).IsSome() -> bool
+Esox.SharpAndRusty.Extensions.OptionExtensions.extension<T>(Esox.SharpAndRusty.Types.Option<T>!).Map<TResult>(System.Func<T, TResult>! mapper) -> Esox.SharpAndRusty.Types.Option<TResult>!
+Esox.SharpAndRusty.Extensions.OptionExtensions.extension<T>(Esox.SharpAndRusty.Types.Option<T>!).Match(System.Action<T>! onSome, System.Action! onNone) -> void
+Esox.SharpAndRusty.Extensions.OptionExtensions.extension<T>(Esox.SharpAndRusty.Types.Option<T>!).Match<TResult>(System.Func<T, TResult>! onSome, System.Func<TResult>! onNone) -> TResult
+Esox.SharpAndRusty.Extensions.OptionExtensions.extension<T>(Esox.SharpAndRusty.Types.Option<T>!).OkOr<E>(E error) -> Esox.SharpAndRusty.Types.Result<T, E>
+Esox.SharpAndRusty.Extensions.OptionExtensions.extension<T>(Esox.SharpAndRusty.Types.Option<T>!).OkOrElse<E>(System.Func<E>! errorFactory) -> Esox.SharpAndRusty.Types.Result<T, E>
+Esox.SharpAndRusty.Extensions.OptionExtensions.extension<T>(Esox.SharpAndRusty.Types.Option<T>!).Or(Esox.SharpAndRusty.Types.Option<T>! alternative) -> Esox.SharpAndRusty.Types.Option<T>!
+Esox.SharpAndRusty.Extensions.OptionExtensions.extension<T>(Esox.SharpAndRusty.Types.Option<T>!).Xor(Esox.SharpAndRusty.Types.Option<T>! other) -> Esox.SharpAndRusty.Types.Option<T>!
+Esox.SharpAndRusty.Extensions.OptionExtensions.extension<T>(Esox.SharpAndRusty.Types.Option<T>!).Zip<U>(Esox.SharpAndRusty.Types.Option<U>! other) -> Esox.SharpAndRusty.Types.Option<(T, U)>!
+Esox.SharpAndRusty.Extensions.OptionExtensions.extension<T>(Esox.SharpAndRusty.Types.Option<T>!).ZipWith<U, TResult>(Esox.SharpAndRusty.Types.Option<U>! other, System.Func<T, U, TResult>! zipper) -> Esox.SharpAndRusty.Types.Option<TResult>!
+Esox.SharpAndRusty.Extensions.OptionLinqExtensions
+Esox.SharpAndRusty.Extensions.OptionLinqExtensions.extension<T>(Esox.SharpAndRusty.Types.Option<T>!)
+Esox.SharpAndRusty.Extensions.OptionLinqExtensions.extension<T>(Esox.SharpAndRusty.Types.Option<T>!).Select<TResult>(System.Func<T, TResult>! selector) -> Esox.SharpAndRusty.Types.Option<TResult>!
+Esox.SharpAndRusty.Extensions.OptionLinqExtensions.extension<T>(Esox.SharpAndRusty.Types.Option<T>!).SelectMany<TCollection, TResult>(System.Func<T, Esox.SharpAndRusty.Types.Option<TCollection>!>! collectionSelector, System.Func<T, TCollection, TResult>! resultSelector) -> Esox.SharpAndRusty.Types.Option<TResult>!
+Esox.SharpAndRusty.Extensions.OptionLinqExtensions.extension<T>(Esox.SharpAndRusty.Types.Option<T>!).SelectMany<TResult>(System.Func<T, Esox.SharpAndRusty.Types.Option<TResult>!>! selector) -> Esox.SharpAndRusty.Types.Option<TResult>!
+Esox.SharpAndRusty.Extensions.OptionLinqExtensions.extension<T>(Esox.SharpAndRusty.Types.Option<T>!).Where(System.Func<T, bool>! predicate) -> Esox.SharpAndRusty.Types.Option<T>!
+Esox.SharpAndRusty.Extensions.ParseExtensions
+Esox.SharpAndRusty.Extensions.ParseExtensions.extension(string?)
+Esox.SharpAndRusty.Extensions.ParseExtensions.extension(string?).TryParse<T>(Esox.SharpAndRusty.Extensions.ParseExtensions.TryParseDelegate<T>! tryParse, string? parserName = null) -> Esox.SharpAndRusty.Types.Result<T, Esox.SharpAndRusty.Types.Error!>
+Esox.SharpAndRusty.Extensions.ParseExtensions.extension(string?).TryParse<T>(System.IFormatProvider? provider = null) -> Esox.SharpAndRusty.Types.Result<T, Esox.SharpAndRusty.Types.Error!>
+Esox.SharpAndRusty.Extensions.ParseExtensions.TryParseDelegate<T>
+Esox.SharpAndRusty.Extensions.PatternMatchingHelpers
+Esox.SharpAndRusty.Extensions.PatternMatchingHelpers.extension<T, E>(Esox.SharpAndRusty.Types.Result<T, E>)
+Esox.SharpAndRusty.Extensions.PatternMatchingHelpers.extension<T, E>(Esox.SharpAndRusty.Types.Result<T, E>).Do(System.Action<T>! onSuccess, System.Action<E>! onFailure) -> Esox.SharpAndRusty.Types.Result<T, E>
+Esox.SharpAndRusty.Extensions.PatternMatchingHelpers.extension<T, E>(Esox.SharpAndRusty.Types.Result<T, E>).GetValueOrDefault(T defaultValue) -> T
+Esox.SharpAndRusty.Extensions.PatternMatchingHelpers.extension<T, E>(Esox.SharpAndRusty.Types.Result<T, E>).GetValueOrElse(System.Func<E, T>! defaultFactory) -> T
+Esox.SharpAndRusty.Extensions.PatternMatchingHelpers.extension<T, E>(Esox.SharpAndRusty.Types.Result<T, E>).GetValueOrThrow(System.Func<E, System.Exception!>! exceptionFactory) -> T
+Esox.SharpAndRusty.Extensions.PatternMatchingHelpers.extension<T, E>(Esox.SharpAndRusty.Types.Result<T, E>).OnFailure(System.Action<E>! action) -> Esox.SharpAndRusty.Types.Result<T, E>
+Esox.SharpAndRusty.Extensions.PatternMatchingHelpers.extension<T, E>(Esox.SharpAndRusty.Types.Result<T, E>).OnSuccess(System.Action<T>! action) -> Esox.SharpAndRusty.Types.Result<T, E>
+Esox.SharpAndRusty.Extensions.PatternMatchingHelpers.extension<T, E>(Esox.SharpAndRusty.Types.Result<T, E>).ToOption() -> Esox.SharpAndRusty.Types.Option<T>!
+Esox.SharpAndRusty.Extensions.PatternMatchingHelpers.extension<T>(Esox.SharpAndRusty.Types.Option<T>!)
+Esox.SharpAndRusty.Extensions.PatternMatchingHelpers.extension<T>(Esox.SharpAndRusty.Types.Option<T>!).GetOrDefault(T defaultValue) -> T
+Esox.SharpAndRusty.Extensions.PatternMatchingHelpers.extension<T>(Esox.SharpAndRusty.Types.Option<T>!).GetOrElse(System.Func<T>! defaultFactory) -> T
+Esox.SharpAndRusty.Extensions.PatternMatchingHelpers.extension<T>(Esox.SharpAndRusty.Types.Option<T>!).GetOrThrow(System.Func<System.Exception!>! exceptionFactory) -> T
+Esox.SharpAndRusty.Extensions.PatternMatchingHelpers.extension<T>(Esox.SharpAndRusty.Types.Option<T>!).IfNone(System.Action! action) -> Esox.SharpAndRusty.Types.Option<T>!
+Esox.SharpAndRusty.Extensions.PatternMatchingHelpers.extension<T>(Esox.SharpAndRusty.Types.Option<T>!).IfSome(System.Action<T>! action) -> Esox.SharpAndRusty.Types.Option<T>!
+Esox.SharpAndRusty.Extensions.ResultAsyncExtensions
+Esox.SharpAndRusty.Extensions.ResultAsyncExtensions.extension<T, E>(Esox.SharpAndRusty.Types.Result<T, E>)
+Esox.SharpAndRusty.Extensions.ResultAsyncExtensions.extension<T, E>(Esox.SharpAndRusty.Types.Result<T, E>).BindAsync<U>(System.Func<T, System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<U, E>>!>! asyncBinder, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<U, E>>!
+Esox.SharpAndRusty.Extensions.ResultAsyncExtensions.extension<T, E>(Esox.SharpAndRusty.Types.Result<T, E>).MapAsync<U>(System.Func<T, System.Threading.Tasks.Task<U>!>! asyncMapper, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<U, E>>!
+Esox.SharpAndRusty.Extensions.ResultAsyncExtensions.extension<T, E>(System.Collections.Generic.IEnumerable<System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<T, E>>!>!)
+Esox.SharpAndRusty.Extensions.ResultAsyncExtensions.extension<T, E>(System.Collections.Generic.IEnumerable<System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<T, E>>!>!).CombineAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<System.Collections.Generic.IEnumerable<T>!, E>>!
+Esox.SharpAndRusty.Extensions.ResultAsyncExtensions.extension<T, E>(System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<T, E>>!)
+Esox.SharpAndRusty.Extensions.ResultAsyncExtensions.extension<T, E>(System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<T, E>>!).BindAsync<U>(System.Func<T, Esox.SharpAndRusty.Types.Result<U, E>>! binder, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<U, E>>!
+Esox.SharpAndRusty.Extensions.ResultAsyncExtensions.extension<T, E>(System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<T, E>>!).BindAsync<U>(System.Func<T, System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<U, E>>!>! asyncBinder, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<U, E>>!
+Esox.SharpAndRusty.Extensions.ResultAsyncExtensions.extension<T, E>(System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<T, E>>!).EnsureAsync(System.Func<T, bool>! predicate, System.Func<T, E>! errorFactory, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<T, E>>!
+Esox.SharpAndRusty.Extensions.ResultAsyncExtensions.extension<T, E>(System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<T, E>>!).EnsureAsync(System.Func<T, System.Threading.Tasks.Task<bool>!>! predicate, System.Func<T, E>! errorFactory, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<T, E>>!
+Esox.SharpAndRusty.Extensions.ResultAsyncExtensions.extension<T, E>(System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<T, E>>!).MapAsync<U>(System.Func<T, U>! mapper, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<U, E>>!
+Esox.SharpAndRusty.Extensions.ResultAsyncExtensions.extension<T, E>(System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<T, E>>!).MapErrorAsync<E2>(System.Func<E, E2>! errorMapper, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<T, E2>>!
+Esox.SharpAndRusty.Extensions.ResultAsyncExtensions.extension<T, E>(System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<T, E>>!).OrElseAsync(System.Func<E, System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<T, E>>!>! asyncAlternative, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<T, E>>!
+Esox.SharpAndRusty.Extensions.ResultAsyncExtensions.extension<T, E>(System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<T, E>>!).TapAsync(System.Func<T, System.Threading.Tasks.Task!>! onSuccess, System.Func<E, System.Threading.Tasks.Task!>! onFailure, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<T, E>>!
+Esox.SharpAndRusty.Extensions.ResultExtensions
+Esox.SharpAndRusty.Extensions.ResultExtensions.extension<E>(Esox.SharpAndRusty.Types.Result<Esox.SharpAndRusty.Types.Unit, E>)
+Esox.SharpAndRusty.Extensions.ResultExtensions.extension<T, E>(Esox.SharpAndRusty.Types.Result<T, E>)
+Esox.SharpAndRusty.Extensions.ResultExtensions.extension<T, E>(Esox.SharpAndRusty.Types.Result<T, E>).Bind<U>(System.Func<T, Esox.SharpAndRusty.Types.Result<U, E>>! binder) -> Esox.SharpAndRusty.Types.Result<U, E>
+Esox.SharpAndRusty.Extensions.ResultExtensions.extension<T, E>(Esox.SharpAndRusty.Types.Result<T, E>).Contains(T value) -> bool
+Esox.SharpAndRusty.Extensions.ResultExtensions.extension<T, E>(Esox.SharpAndRusty.Types.Result<T, E>).Ensure(System.Func<T, bool>! predicate, E error) -> Esox.SharpAndRusty.Types.Result<T, E>
+Esox.SharpAndRusty.Extensions.ResultExtensions.extension<T, E>(Esox.SharpAndRusty.Types.Result<T, E>).Ensure(System.Func<T, bool>! predicate, System.Func<T, E>! errorFactory) -> Esox.SharpAndRusty.Types.Result<T, E>
+Esox.SharpAndRusty.Extensions.ResultExtensions.extension<T, E>(Esox.SharpAndRusty.Types.Result<T, E>).Expect(string! message) -> T
+Esox.SharpAndRusty.Extensions.ResultExtensions.extension<T, E>(Esox.SharpAndRusty.Types.Result<T, E>).Map<U>(System.Func<T, U>! mapper) -> Esox.SharpAndRusty.Types.Result<U, E>
+Esox.SharpAndRusty.Extensions.ResultExtensions.extension<T, E>(Esox.SharpAndRusty.Types.Result<T, E>).MapError<E2>(System.Func<E, E2>! errorMapper) -> Esox.SharpAndRusty.Types.Result<T, E2>
+Esox.SharpAndRusty.Extensions.ResultExtensions.extension<T, E>(Esox.SharpAndRusty.Types.Result<T, E>).Select<U>(System.Func<T, U>! selector) -> Esox.SharpAndRusty.Types.Result<U, E>
+Esox.SharpAndRusty.Extensions.ResultExtensions.extension<T, E>(Esox.SharpAndRusty.Types.Result<T, E>).SelectMany<U, V>(System.Func<T, Esox.SharpAndRusty.Types.Result<U, E>>! selector, System.Func<T, U, V>! projector) -> Esox.SharpAndRusty.Types.Result<V, E>
+Esox.SharpAndRusty.Extensions.ResultExtensions.extension<T, E>(Esox.SharpAndRusty.Types.Result<T, E>).SelectMany<U>(System.Func<T, Esox.SharpAndRusty.Types.Result<U, E>>! selector) -> Esox.SharpAndRusty.Types.Result<U, E>
+Esox.SharpAndRusty.Extensions.ResultExtensions.extension<T, E>(Esox.SharpAndRusty.Types.Result<T, E>).Tap(System.Action<T>! onSuccess, System.Action<E>! onFailure) -> Esox.SharpAndRusty.Types.Result<T, E>
+Esox.SharpAndRusty.Extensions.ResultExtensions.extension<T, E>(Esox.SharpAndRusty.Types.Result<T, E>).TryMap<U>(System.Func<T, U>! mapper, System.Func<System.Exception!, E>! exceptionToErrorMapper) -> Esox.SharpAndRusty.Types.Result<U, E>
+Esox.SharpAndRusty.Extensions.ResultExtensions.extension<T, E>(Esox.SharpAndRusty.Types.Result<T, E>).Unwrap() -> T
+Esox.SharpAndRusty.Extensions.ResultExtensions.extension<T, E>(System.Collections.Generic.IEnumerable<Esox.SharpAndRusty.Types.Result<T, E>>!)
+Esox.SharpAndRusty.Extensions.ResultExtensions.extension<T, E>(System.Collections.Generic.IEnumerable<Esox.SharpAndRusty.Types.Result<T, E>>!).Combine() -> Esox.SharpAndRusty.Types.Result<System.Collections.Generic.IEnumerable<T>!, E>
+Esox.SharpAndRusty.Extensions.ResultExtensions.extension<T, E>(System.Collections.Generic.IEnumerable<Esox.SharpAndRusty.Types.Result<T, E>>!).Partition() -> (System.Collections.Generic.List<T>! successes, System.Collections.Generic.List<E>! failures)
+Esox.SharpAndRusty.Extensions.TryExtensions
+Esox.SharpAndRusty.Extensions.ValidationExtensions
+Esox.SharpAndRusty.Extensions.ValidationExtensions.extension<T, E>(Esox.SharpAndRusty.Types.Result<T, E>)
+Esox.SharpAndRusty.Extensions.ValidationExtensions.extension<T, E>(Esox.SharpAndRusty.Types.Result<T, E>).ToValidation() -> Esox.SharpAndRusty.Types.Validation<T, E>!
+Esox.SharpAndRusty.Extensions.ValidationExtensions.extension<T, E>(Esox.SharpAndRusty.Types.Validation<T, E>!)
+Esox.SharpAndRusty.Extensions.ValidationExtensions.extension<T, E>(Esox.SharpAndRusty.Types.Validation<T, E>!).Bind<TResult>(System.Func<T, Esox.SharpAndRusty.Types.Validation<TResult, E>!>! binder) -> Esox.SharpAndRusty.Types.Validation<TResult, E>!
+Esox.SharpAndRusty.Extensions.ValidationExtensions.extension<T, E>(Esox.SharpAndRusty.Types.Validation<T, E>!).OnFailure(System.Action<System.Collections.Immutable.ImmutableList<E>!>! action) -> Esox.SharpAndRusty.Types.Validation<T, E>!
+Esox.SharpAndRusty.Extensions.ValidationExtensions.extension<T, E>(Esox.SharpAndRusty.Types.Validation<T, E>!).OnSuccess(System.Action<T>! action) -> Esox.SharpAndRusty.Types.Validation<T, E>!
+Esox.SharpAndRusty.Extensions.ValidationExtensions.extension<T, E>(System.Collections.Generic.IEnumerable<Esox.SharpAndRusty.Types.Validation<T, E>!>!)
+Esox.SharpAndRusty.Extensions.ValidationExtensions.extension<T, E>(System.Collections.Generic.IEnumerable<Esox.SharpAndRusty.Types.Validation<T, E>!>!).Sequence() -> Esox.SharpAndRusty.Types.Validation<System.Collections.Generic.IEnumerable<T>!, E>!
+Esox.SharpAndRusty.Extensions.ValidationExtensions.extension<T, TResult, E>(Esox.SharpAndRusty.Types.Validation<System.Func<T, TResult>!, E>!)
+Esox.SharpAndRusty.Extensions.ValidationExtensions.extension<T, TResult, E>(Esox.SharpAndRusty.Types.Validation<System.Func<T, TResult>!, E>!).Apply(Esox.SharpAndRusty.Types.Validation<T, E>! validation) -> Esox.SharpAndRusty.Types.Validation<TResult, E>!
+Esox.SharpAndRusty.Sync.Mutex<T>
+Esox.SharpAndRusty.Sync.Mutex<T>.Dispose() -> void
+Esox.SharpAndRusty.Sync.Mutex<T>.IntoInner() -> T
+Esox.SharpAndRusty.Sync.Mutex<T>.IsDisposed.get -> bool
+Esox.SharpAndRusty.Sync.Mutex<T>.Lock() -> Esox.SharpAndRusty.Types.Result<Esox.SharpAndRusty.Sync.MutexGuard<T>!, Esox.SharpAndRusty.Types.Error!>
+Esox.SharpAndRusty.Sync.Mutex<T>.LockAsync(System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<Esox.SharpAndRusty.Sync.MutexGuard<T>!, Esox.SharpAndRusty.Types.Error!>>!
+Esox.SharpAndRusty.Sync.Mutex<T>.LockAsyncTimeout(System.TimeSpan timeout, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<Esox.SharpAndRusty.Sync.MutexGuard<T>!, Esox.SharpAndRusty.Types.Error!>>!
+Esox.SharpAndRusty.Sync.Mutex<T>.Mutex(T value) -> void
+Esox.SharpAndRusty.Sync.Mutex<T>.TryLock() -> Esox.SharpAndRusty.Types.Result<Esox.SharpAndRusty.Sync.MutexGuard<T>!, Esox.SharpAndRusty.Types.Error!>
+Esox.SharpAndRusty.Sync.Mutex<T>.TryLockTimeout(System.TimeSpan timeout) -> Esox.SharpAndRusty.Types.Result<Esox.SharpAndRusty.Sync.MutexGuard<T>!, Esox.SharpAndRusty.Types.Error!>
+Esox.SharpAndRusty.Sync.MutexGuard<T>
+Esox.SharpAndRusty.Sync.MutexGuard<T>.Dispose() -> void
+Esox.SharpAndRusty.Sync.MutexGuard<T>.Map<TResult>(System.Func<T, TResult>! mapper) -> TResult
+Esox.SharpAndRusty.Sync.MutexGuard<T>.Update(System.Func<T, T>! updater) -> void
+Esox.SharpAndRusty.Sync.MutexGuard<T>.Value.get -> T
+Esox.SharpAndRusty.Sync.MutexGuard<T>.Value.set -> void
+Esox.SharpAndRusty.Sync.ReadGuard<T>
+Esox.SharpAndRusty.Sync.ReadGuard<T>.Dispose() -> void
+Esox.SharpAndRusty.Sync.ReadGuard<T>.Map<TResult>(System.Func<T, TResult>! mapper) -> TResult
+Esox.SharpAndRusty.Sync.ReadGuard<T>.Value.get -> T
+Esox.SharpAndRusty.Sync.RwLock<T>
+Esox.SharpAndRusty.Sync.RwLock<T>.CurrentReadCount.get -> int
+Esox.SharpAndRusty.Sync.RwLock<T>.Dispose() -> void
+Esox.SharpAndRusty.Sync.RwLock<T>.IntoInner() -> Esox.SharpAndRusty.Types.Result<T, Esox.SharpAndRusty.Types.Error!>
+Esox.SharpAndRusty.Sync.RwLock<T>.IsDisposed.get -> bool
+Esox.SharpAndRusty.Sync.RwLock<T>.IsReadLockHeld.get -> bool
+Esox.SharpAndRusty.Sync.RwLock<T>.IsWriteLockHeld.get -> bool
+Esox.SharpAndRusty.Sync.RwLock<T>.Read() -> Esox.SharpAndRusty.Types.Result<Esox.SharpAndRusty.Sync.ReadGuard<T>!, Esox.SharpAndRusty.Types.Error!>
+Esox.SharpAndRusty.Sync.RwLock<T>.RwLock(T value, System.Threading.LockRecursionPolicy recursionPolicy = System.Threading.LockRecursionPolicy.NoRecursion) -> void
+Esox.SharpAndRusty.Sync.RwLock<T>.TryRead() -> Esox.SharpAndRusty.Types.Result<Esox.SharpAndRusty.Sync.ReadGuard<T>!, Esox.SharpAndRusty.Types.Error!>
+Esox.SharpAndRusty.Sync.RwLock<T>.TryReadTimeout(System.TimeSpan timeout) -> Esox.SharpAndRusty.Types.Result<Esox.SharpAndRusty.Sync.ReadGuard<T>!, Esox.SharpAndRusty.Types.Error!>
+Esox.SharpAndRusty.Sync.RwLock<T>.TryWrite() -> Esox.SharpAndRusty.Types.Result<Esox.SharpAndRusty.Sync.WriteGuard<T>!, Esox.SharpAndRusty.Types.Error!>
+Esox.SharpAndRusty.Sync.RwLock<T>.TryWriteTimeout(System.TimeSpan timeout) -> Esox.SharpAndRusty.Types.Result<Esox.SharpAndRusty.Sync.WriteGuard<T>!, Esox.SharpAndRusty.Types.Error!>
+Esox.SharpAndRusty.Sync.RwLock<T>.Write() -> Esox.SharpAndRusty.Types.Result<Esox.SharpAndRusty.Sync.WriteGuard<T>!, Esox.SharpAndRusty.Types.Error!>
+Esox.SharpAndRusty.Sync.WriteGuard<T>
+Esox.SharpAndRusty.Sync.WriteGuard<T>.Dispose() -> void
+Esox.SharpAndRusty.Sync.WriteGuard<T>.Map<TResult>(System.Func<T, TResult>! mapper) -> TResult
+Esox.SharpAndRusty.Sync.WriteGuard<T>.Update(System.Func<T, T>! updater) -> void
+Esox.SharpAndRusty.Sync.WriteGuard<T>.Value.get -> T
+Esox.SharpAndRusty.Sync.WriteGuard<T>.Value.set -> void
+Esox.SharpAndRusty.Types.Either<L, R>
+Esox.SharpAndRusty.Types.Either<L, R>.IsLeft.get -> bool
+Esox.SharpAndRusty.Types.Either<L, R>.IsRight.get -> bool
+Esox.SharpAndRusty.Types.Either<L, R>.Left
+Esox.SharpAndRusty.Types.Either<L, R>.Left.Left(L Value) -> void
+Esox.SharpAndRusty.Types.Either<L, R>.Left.Value.get -> L
+Esox.SharpAndRusty.Types.Either<L, R>.Left.Value.init -> void
+Esox.SharpAndRusty.Types.Either<L, R>.LeftOption() -> Esox.SharpAndRusty.Types.Option<L>!
+Esox.SharpAndRusty.Types.Either<L, R>.Map<L2, R2>(System.Func<L, L2>! leftMapper, System.Func<R, R2>! rightMapper) -> Esox.SharpAndRusty.Types.Either<L2, R2>!
+Esox.SharpAndRusty.Types.Either<L, R>.MapLeft<L2>(System.Func<L, L2>! mapper) -> Esox.SharpAndRusty.Types.Either<L2, R>!
+Esox.SharpAndRusty.Types.Either<L, R>.MapRight<R2>(System.Func<R, R2>! mapper) -> Esox.SharpAndRusty.Types.Either<L, R2>!
+Esox.SharpAndRusty.Types.Either<L, R>.Match(System.Action<L>! onLeft, System.Action<R>! onRight) -> void
+Esox.SharpAndRusty.Types.Either<L, R>.Match<TResult>(System.Func<L, TResult>! onLeft, System.Func<R, TResult>! onRight) -> TResult
+Esox.SharpAndRusty.Types.Either<L, R>.Right
+Esox.SharpAndRusty.Types.Either<L, R>.Right.Right(R Value) -> void
+Esox.SharpAndRusty.Types.Either<L, R>.Right.Value.get -> R
+Esox.SharpAndRusty.Types.Either<L, R>.Right.Value.init -> void
+Esox.SharpAndRusty.Types.Either<L, R>.RightOption() -> Esox.SharpAndRusty.Types.Option<R>!
+Esox.SharpAndRusty.Types.Either<L, R>.Swap() -> Esox.SharpAndRusty.Types.Either<R, L>!
+Esox.SharpAndRusty.Types.Either<L, R>.TryGetLeft(out L? value) -> bool
+Esox.SharpAndRusty.Types.Either<L, R>.TryGetRight(out R? value) -> bool
+Esox.SharpAndRusty.Types.Error
+Esox.SharpAndRusty.Types.Error.CaptureStackTrace(bool includeFileInfo = false) -> Esox.SharpAndRusty.Types.Error!
+Esox.SharpAndRusty.Types.Error.Equals(Esox.SharpAndRusty.Types.Error? other) -> bool
+Esox.SharpAndRusty.Types.Error.GetFullMessage() -> string!
+Esox.SharpAndRusty.Types.Error.HasSource.get -> bool
+Esox.SharpAndRusty.Types.Error.Kind.get -> Esox.SharpAndRusty.Types.ErrorKind
+Esox.SharpAndRusty.Types.Error.Message.get -> string!
+Esox.SharpAndRusty.Types.Error.Source.get -> Esox.SharpAndRusty.Types.Error?
+Esox.SharpAndRusty.Types.Error.StackTrace.get -> string?
+Esox.SharpAndRusty.Types.Error.TryGetMetadata(string! key, out object? value) -> bool
+Esox.SharpAndRusty.Types.Error.TryGetMetadata<T>(string! key, out T? value) -> bool
+Esox.SharpAndRusty.Types.Error.WithContext(string! contextMessage) -> Esox.SharpAndRusty.Types.Error!
+Esox.SharpAndRusty.Types.Error.WithKind(Esox.SharpAndRusty.Types.ErrorKind kind) -> Esox.SharpAndRusty.Types.Error!
+Esox.SharpAndRusty.Types.Error.WithMetadata(string! key, object! value) -> Esox.SharpAndRusty.Types.Error!
+Esox.SharpAndRusty.Types.Error.WithMetadata<T>(string! key, T value) -> Esox.SharpAndRusty.Types.Error!
+Esox.SharpAndRusty.Types.ErrorKind
+Esox.SharpAndRusty.Types.ErrorKind.AlreadyExists = 9 -> Esox.SharpAndRusty.Types.ErrorKind
+Esox.SharpAndRusty.Types.ErrorKind.ConnectionRefused = 2 -> Esox.SharpAndRusty.Types.ErrorKind
+Esox.SharpAndRusty.Types.ErrorKind.ConnectionReset = 3 -> Esox.SharpAndRusty.Types.ErrorKind
+Esox.SharpAndRusty.Types.ErrorKind.Interrupted = 5 -> Esox.SharpAndRusty.Types.ErrorKind
+Esox.SharpAndRusty.Types.ErrorKind.InvalidInput = 6 -> Esox.SharpAndRusty.Types.ErrorKind
+Esox.SharpAndRusty.Types.ErrorKind.InvalidOperation = 10 -> Esox.SharpAndRusty.Types.ErrorKind
+Esox.SharpAndRusty.Types.ErrorKind.InvalidState = 13 -> Esox.SharpAndRusty.Types.ErrorKind
+Esox.SharpAndRusty.Types.ErrorKind.Io = 8 -> Esox.SharpAndRusty.Types.ErrorKind
+Esox.SharpAndRusty.Types.ErrorKind.NotFound = 0 -> Esox.SharpAndRusty.Types.ErrorKind
+Esox.SharpAndRusty.Types.ErrorKind.NotSupported = 7 -> Esox.SharpAndRusty.Types.ErrorKind
+Esox.SharpAndRusty.Types.ErrorKind.Other = 14 -> Esox.SharpAndRusty.Types.ErrorKind
+Esox.SharpAndRusty.Types.ErrorKind.ParseError = 11 -> Esox.SharpAndRusty.Types.ErrorKind
+Esox.SharpAndRusty.Types.ErrorKind.PermissionDenied = 1 -> Esox.SharpAndRusty.Types.ErrorKind
+Esox.SharpAndRusty.Types.ErrorKind.ResourceExhausted = 12 -> Esox.SharpAndRusty.Types.ErrorKind
+Esox.SharpAndRusty.Types.ErrorKind.Timeout = 4 -> Esox.SharpAndRusty.Types.ErrorKind
+Esox.SharpAndRusty.Types.ExtendedResult<T, TE>
+Esox.SharpAndRusty.Types.ExtendedResult<T, TE>.Failure
+Esox.SharpAndRusty.Types.ExtendedResult<T, TE>.Failure.Error.get -> TE
+Esox.SharpAndRusty.Types.ExtendedResult<T, TE>.Failure.Error.init -> void
+Esox.SharpAndRusty.Types.ExtendedResult<T, TE>.Failure.Failure(TE Error) -> void
+Esox.SharpAndRusty.Types.ExtendedResult<T, TE>.Inspect(System.Action<T>! action) -> Esox.SharpAndRusty.Types.ExtendedResult<T, TE>!
+Esox.SharpAndRusty.Types.ExtendedResult<T, TE>.InspectErr(System.Action<TE>! action) -> Esox.SharpAndRusty.Types.ExtendedResult<T, TE>!
+Esox.SharpAndRusty.Types.ExtendedResult<T, TE>.IsFailure.get -> bool
+Esox.SharpAndRusty.Types.ExtendedResult<T, TE>.IsSuccess.get -> bool
+Esox.SharpAndRusty.Types.ExtendedResult<T, TE>.Match(System.Action<T>! success, System.Action<TE>! failure) -> void
+Esox.SharpAndRusty.Types.ExtendedResult<T, TE>.Match<TR>(System.Func<T, TR>! success, System.Func<TE, TR>! failure) -> TR
+Esox.SharpAndRusty.Types.ExtendedResult<T, TE>.OrElse(System.Func<TE, Esox.SharpAndRusty.Types.ExtendedResult<T, TE>!>! alternative) -> Esox.SharpAndRusty.Types.ExtendedResult<T, TE>!
+Esox.SharpAndRusty.Types.ExtendedResult<T, TE>.Success
+Esox.SharpAndRusty.Types.ExtendedResult<T, TE>.Success.Success(T Value) -> void
+Esox.SharpAndRusty.Types.ExtendedResult<T, TE>.Success.Value.get -> T
+Esox.SharpAndRusty.Types.ExtendedResult<T, TE>.Success.Value.init -> void
+Esox.SharpAndRusty.Types.ExtendedResult<T, TE>.TryGetError(out TE error) -> bool
+Esox.SharpAndRusty.Types.ExtendedResult<T, TE>.TryGetValue(out T value) -> bool
+Esox.SharpAndRusty.Types.ExtendedResult<T, TE>.UnwrapOr(T defaultValue) -> T
+Esox.SharpAndRusty.Types.ExtendedResult<T, TE>.UnwrapOrElse(System.Func<TE, T>! defaultFactory) -> T
+Esox.SharpAndRusty.Types.Option<T>
+Esox.SharpAndRusty.Types.Option<T>.None
+Esox.SharpAndRusty.Types.Option<T>.Some
+Esox.SharpAndRusty.Types.Option<T>.Some.Some(T Value) -> void
+Esox.SharpAndRusty.Types.Option<T>.Some.Value.get -> T
+Esox.SharpAndRusty.Types.Option<T>.Some.Value.init -> void
+Esox.SharpAndRusty.Types.Result<T, E>
+Esox.SharpAndRusty.Types.Result<T, E>.Equals(Esox.SharpAndRusty.Types.Result<T, E> other) -> bool
+Esox.SharpAndRusty.Types.Result<T, E>.ErrorOption() -> Esox.SharpAndRusty.Types.Option<E>!
+Esox.SharpAndRusty.Types.Result<T, E>.Inspect(System.Action<T>! action) -> Esox.SharpAndRusty.Types.Result<T, E>
+Esox.SharpAndRusty.Types.Result<T, E>.InspectErr(System.Action<E>! action) -> Esox.SharpAndRusty.Types.Result<T, E>
+Esox.SharpAndRusty.Types.Result<T, E>.IsFailure.get -> bool
+Esox.SharpAndRusty.Types.Result<T, E>.IsSuccess.get -> bool
+Esox.SharpAndRusty.Types.Result<T, E>.Match(System.Action<T>! success, System.Action<E>! failure) -> void
+Esox.SharpAndRusty.Types.Result<T, E>.Match<R>(System.Func<T, R>! success, System.Func<E, R>! failure) -> R
+Esox.SharpAndRusty.Types.Result<T, E>.OrElse(System.Func<E, Esox.SharpAndRusty.Types.Result<T, E>>! alternative) -> Esox.SharpAndRusty.Types.Result<T, E>
+Esox.SharpAndRusty.Types.Result<T, E>.Result() -> void
+Esox.SharpAndRusty.Types.Result<T, E>.TryGetError(out E error) -> bool
+Esox.SharpAndRusty.Types.Result<T, E>.TryGetValue(out T value) -> bool
+Esox.SharpAndRusty.Types.Result<T, E>.UnwrapOr(T defaultValue) -> T
+Esox.SharpAndRusty.Types.Result<T, E>.UnwrapOrElse(System.Func<E, T>! defaultFactory) -> T
+Esox.SharpAndRusty.Types.Result<T, E>.ValueOption() -> Esox.SharpAndRusty.Types.Option<T>!
+Esox.SharpAndRusty.Types.Unit
+Esox.SharpAndRusty.Types.Unit.CompareTo(Esox.SharpAndRusty.Types.Unit other) -> int
+Esox.SharpAndRusty.Types.Unit.Equals(Esox.SharpAndRusty.Types.Unit other) -> bool
+Esox.SharpAndRusty.Types.Unit.Unit() -> void
+Esox.SharpAndRusty.Types.Validation<T, E>
+Esox.SharpAndRusty.Types.Validation<T, E>.Failure
+Esox.SharpAndRusty.Types.Validation<T, E>.Failure.Errors.get -> System.Collections.Immutable.ImmutableList<E>!
+Esox.SharpAndRusty.Types.Validation<T, E>.Failure.Errors.init -> void
+Esox.SharpAndRusty.Types.Validation<T, E>.Failure.Failure(E error) -> void
+Esox.SharpAndRusty.Types.Validation<T, E>.Failure.Failure(System.Collections.Generic.IEnumerable<E>! errors) -> void
+Esox.SharpAndRusty.Types.Validation<T, E>.Failure.Failure(System.Collections.Immutable.ImmutableList<E>! Errors) -> void
+Esox.SharpAndRusty.Types.Validation<T, E>.IsFailure.get -> bool
+Esox.SharpAndRusty.Types.Validation<T, E>.IsSuccess.get -> bool
+Esox.SharpAndRusty.Types.Validation<T, E>.Map<TResult>(System.Func<T, TResult>! mapper) -> Esox.SharpAndRusty.Types.Validation<TResult, E>!
+Esox.SharpAndRusty.Types.Validation<T, E>.MapErrors<E2>(System.Func<E, E2>! errorMapper) -> Esox.SharpAndRusty.Types.Validation<T, E2>!
+Esox.SharpAndRusty.Types.Validation<T, E>.Match<TResult>(System.Func<T, TResult>! onSuccess, System.Func<System.Collections.Immutable.ImmutableList<E>!, TResult>! onFailure) -> TResult
+Esox.SharpAndRusty.Types.Validation<T, E>.Success
+Esox.SharpAndRusty.Types.Validation<T, E>.Success.Success(T Value) -> void
+Esox.SharpAndRusty.Types.Validation<T, E>.Success.Value.get -> T
+Esox.SharpAndRusty.Types.Validation<T, E>.Success.Value.init -> void
+Esox.SharpAndRusty.Types.Validation<T, E>.ToResult(System.Func<System.Collections.Immutable.ImmutableList<E>!, E>! errorCombiner) -> Esox.SharpAndRusty.Types.Result<T, E>
+Esox.SharpAndRusty.Types.Validation<T, E>.ToResultFirstError() -> Esox.SharpAndRusty.Types.Result<T, E>
+Esox.SharpAndRusty.Types.Validation<T, E>.TryGetErrors(out System.Collections.Immutable.ImmutableList<E>! errors) -> bool
+Esox.SharpAndRusty.Types.Validation<T, E>.TryGetValue(out T? value) -> bool
+override Esox.SharpAndRusty.Types.Either<L, R>.Left.ToString() -> string!
+override Esox.SharpAndRusty.Types.Either<L, R>.Right.ToString() -> string!
+override Esox.SharpAndRusty.Types.Either<L, R>.ToString() -> string!
+override Esox.SharpAndRusty.Types.Error.Equals(object? obj) -> bool
+override Esox.SharpAndRusty.Types.Error.GetHashCode() -> int
+override Esox.SharpAndRusty.Types.Error.ToString() -> string!
+override Esox.SharpAndRusty.Types.ExtendedResult<T, TE>.GetHashCode() -> int
+override Esox.SharpAndRusty.Types.Result<T, E>.Equals(object? obj) -> bool
+override Esox.SharpAndRusty.Types.Result<T, E>.GetHashCode() -> int
+override Esox.SharpAndRusty.Types.Result<T, E>.ToString() -> string!
+override Esox.SharpAndRusty.Types.Unit.Equals(object? obj) -> bool
+override Esox.SharpAndRusty.Types.Unit.GetHashCode() -> int
+override Esox.SharpAndRusty.Types.Unit.ToString() -> string!
+override sealed Esox.SharpAndRusty.Types.ExtendedResult<T, TE>.ToString() -> string!
+override sealed Esox.SharpAndRusty.Types.Validation<T, E>.ToString() -> string!
+static Esox.SharpAndRusty.Extensions.ErrorExtensions.Try<T>(System.Func<T>! operation) -> Esox.SharpAndRusty.Types.Result<T, Esox.SharpAndRusty.Types.Error!>
+static Esox.SharpAndRusty.Extensions.ErrorExtensions.TryAsync<T>(System.Func<System.Threading.Tasks.Task<T>!>! operation, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<T, Esox.SharpAndRusty.Types.Error!>>!
+static Esox.SharpAndRusty.Extensions.ExtendedResultExtensions.extension<E>(Esox.SharpAndRusty.Types.ExtendedResult<Esox.SharpAndRusty.Types.Unit, E>!).Ok() -> Esox.SharpAndRusty.Types.ExtendedResult<Esox.SharpAndRusty.Types.Unit, E>!
+static Esox.SharpAndRusty.Extensions.OptionExtensions.Flatten<T>(this Esox.SharpAndRusty.Types.Option<Esox.SharpAndRusty.Types.Option<T>!>! nested) -> Esox.SharpAndRusty.Types.Option<T>!
+static Esox.SharpAndRusty.Extensions.OptionExtensions.ToNullable<T>(this Esox.SharpAndRusty.Types.Option<T>! option) -> T?
+static Esox.SharpAndRusty.Extensions.ResultExtensions.extension<E>(Esox.SharpAndRusty.Types.Result<Esox.SharpAndRusty.Types.Unit, E>).Ok() -> Esox.SharpAndRusty.Types.Result<Esox.SharpAndRusty.Types.Unit, E>
+static Esox.SharpAndRusty.Extensions.TryExtensions.Try<T, E>(System.Func<T>! func, System.Func<System.Exception!, E>? errorMapper) -> Esox.SharpAndRusty.Types.Result<T, E>
+static Esox.SharpAndRusty.Extensions.TryExtensions.Try<T>(System.Func<T>! func) -> Esox.SharpAndRusty.Types.Result<T, System.Exception!>
+static Esox.SharpAndRusty.Extensions.TryExtensions.TryAsync<T, E>(System.Func<System.Threading.Tasks.Task<T>!>! asyncFunc, System.Func<System.Exception!, E>! errorMapper, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<T, E>>!
+static Esox.SharpAndRusty.Extensions.TryExtensions.TryAsync<T>(System.Func<System.Threading.Tasks.Task<T>!>! asyncFunc, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<T, System.Exception!>>!
+static Esox.SharpAndRusty.Extensions.TryExtensions.TryOption<T>(System.Func<T?>! func) -> Esox.SharpAndRusty.Types.Option<T!>!
+static Esox.SharpAndRusty.Extensions.TryExtensions.TryOptionAsync<T>(System.Func<System.Threading.Tasks.Task<T?>!>! asyncFunc, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Option<T!>!>!
+static Esox.SharpAndRusty.Extensions.ValidationExtensions.Apply<T1, T2, E, TResult>(Esox.SharpAndRusty.Types.Validation<T1, E>! validation1, Esox.SharpAndRusty.Types.Validation<T2, E>! validation2, System.Func<T1, T2, TResult>! combiner) -> Esox.SharpAndRusty.Types.Validation<TResult, E>!
+static Esox.SharpAndRusty.Extensions.ValidationExtensions.Apply<T1, T2, T3, E, TResult>(Esox.SharpAndRusty.Types.Validation<T1, E>! validation1, Esox.SharpAndRusty.Types.Validation<T2, E>! validation2, Esox.SharpAndRusty.Types.Validation<T3, E>! validation3, System.Func<T1, T2, T3, TResult>! combiner) -> Esox.SharpAndRusty.Types.Validation<TResult, E>!
+static Esox.SharpAndRusty.Extensions.ValidationExtensions.Apply<T1, T2, T3, T4, E, TResult>(Esox.SharpAndRusty.Types.Validation<T1, E>! validation1, Esox.SharpAndRusty.Types.Validation<T2, E>! validation2, Esox.SharpAndRusty.Types.Validation<T3, E>! validation3, Esox.SharpAndRusty.Types.Validation<T4, E>! validation4, System.Func<T1, T2, T3, T4, TResult>! combiner) -> Esox.SharpAndRusty.Types.Validation<TResult, E>!
+static Esox.SharpAndRusty.Types.Error.FromException(System.Exception! exception) -> Esox.SharpAndRusty.Types.Error!
+static Esox.SharpAndRusty.Types.Error.implicit operator Esox.SharpAndRusty.Types.Error!(string! message) -> Esox.SharpAndRusty.Types.Error!
+static Esox.SharpAndRusty.Types.Error.New(string! message) -> Esox.SharpAndRusty.Types.Error!
+static Esox.SharpAndRusty.Types.Error.New(string! message, Esox.SharpAndRusty.Types.ErrorKind kind) -> Esox.SharpAndRusty.Types.Error!
+static Esox.SharpAndRusty.Types.Error.operator !=(Esox.SharpAndRusty.Types.Error? left, Esox.SharpAndRusty.Types.Error? right) -> bool
+static Esox.SharpAndRusty.Types.Error.operator ==(Esox.SharpAndRusty.Types.Error? left, Esox.SharpAndRusty.Types.Error? right) -> bool
+static Esox.SharpAndRusty.Types.ExtendedResult<T, TE>.Err(TE error) -> Esox.SharpAndRusty.Types.ExtendedResult<T, TE>!
+static Esox.SharpAndRusty.Types.ExtendedResult<T, TE>.implicit operator Esox.SharpAndRusty.Types.ExtendedResult<T, TE>!(T value) -> Esox.SharpAndRusty.Types.ExtendedResult<T, TE>!
+static Esox.SharpAndRusty.Types.ExtendedResult<T, TE>.implicit operator Esox.SharpAndRusty.Types.ExtendedResult<T, TE>!(TE error) -> Esox.SharpAndRusty.Types.ExtendedResult<T, TE>!
+static Esox.SharpAndRusty.Types.ExtendedResult<T, TE>.Ok(T value) -> Esox.SharpAndRusty.Types.ExtendedResult<T, TE>!
+static Esox.SharpAndRusty.Types.ExtendedResult<T, TE>.Try(System.Func<T>! operation, System.Func<System.Exception!, TE>! errorHandler) -> Esox.SharpAndRusty.Types.ExtendedResult<T, TE>!
+static Esox.SharpAndRusty.Types.ExtendedResult<T, TE>.TryAsync(System.Func<System.Threading.Tasks.Task<T>!>! operation, System.Func<System.Exception!, TE>! errorHandler) -> System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.ExtendedResult<T, TE>!>!
+static Esox.SharpAndRusty.Types.Option<T>.implicit operator Esox.SharpAndRusty.Types.Option<T>!(T value) -> Esox.SharpAndRusty.Types.Option<T>!
+static Esox.SharpAndRusty.Types.Result<T, E>.Err(E error) -> Esox.SharpAndRusty.Types.Result<T, E>
+static Esox.SharpAndRusty.Types.Result<T, E>.implicit operator Esox.SharpAndRusty.Types.Result<T, E>(E error) -> Esox.SharpAndRusty.Types.Result<T, E>
+static Esox.SharpAndRusty.Types.Result<T, E>.implicit operator Esox.SharpAndRusty.Types.Result<T, E>(T value) -> Esox.SharpAndRusty.Types.Result<T, E>
+static Esox.SharpAndRusty.Types.Result<T, E>.Ok(T value) -> Esox.SharpAndRusty.Types.Result<T, E>
+static Esox.SharpAndRusty.Types.Result<T, E>.operator !=(Esox.SharpAndRusty.Types.Result<T, E> left, Esox.SharpAndRusty.Types.Result<T, E> right) -> bool
+static Esox.SharpAndRusty.Types.Result<T, E>.operator ==(Esox.SharpAndRusty.Types.Result<T, E> left, Esox.SharpAndRusty.Types.Result<T, E> right) -> bool
+static Esox.SharpAndRusty.Types.Result<T, E>.Try(System.Func<T>! operation, System.Func<System.Exception!, E>! errorHandler) -> Esox.SharpAndRusty.Types.Result<T, E>
+static Esox.SharpAndRusty.Types.Result<T, E>.TryAsync(System.Func<System.Threading.Tasks.Task<T>!>! operation, System.Func<System.Exception!, E>! errorHandler) -> System.Threading.Tasks.Task<Esox.SharpAndRusty.Types.Result<T, E>>!
+static Esox.SharpAndRusty.Types.Unit.operator !=(Esox.SharpAndRusty.Types.Unit left, Esox.SharpAndRusty.Types.Unit right) -> bool
+static Esox.SharpAndRusty.Types.Unit.operator <(Esox.SharpAndRusty.Types.Unit left, Esox.SharpAndRusty.Types.Unit right) -> bool
+static Esox.SharpAndRusty.Types.Unit.operator <=(Esox.SharpAndRusty.Types.Unit left, Esox.SharpAndRusty.Types.Unit right) -> bool
+static Esox.SharpAndRusty.Types.Unit.operator ==(Esox.SharpAndRusty.Types.Unit left, Esox.SharpAndRusty.Types.Unit right) -> bool
+static Esox.SharpAndRusty.Types.Unit.operator >(Esox.SharpAndRusty.Types.Unit left, Esox.SharpAndRusty.Types.Unit right) -> bool
+static Esox.SharpAndRusty.Types.Unit.operator >=(Esox.SharpAndRusty.Types.Unit left, Esox.SharpAndRusty.Types.Unit right) -> bool
+static Esox.SharpAndRusty.Types.Validation<T, E>.Invalid(E error) -> Esox.SharpAndRusty.Types.Validation<T, E>!
+static Esox.SharpAndRusty.Types.Validation<T, E>.Invalid(System.Collections.Generic.IEnumerable<E>! errors) -> Esox.SharpAndRusty.Types.Validation<T, E>!
+static Esox.SharpAndRusty.Types.Validation<T, E>.Valid(T value) -> Esox.SharpAndRusty.Types.Validation<T, E>!
+static readonly Esox.SharpAndRusty.Types.Unit.Value -> Esox.SharpAndRusty.Types.Unit
+virtual Esox.SharpAndRusty.Types.ExtendedResult<T, TE>.Equals(Esox.SharpAndRusty.Types.ExtendedResult<T, TE>? other) -> bool

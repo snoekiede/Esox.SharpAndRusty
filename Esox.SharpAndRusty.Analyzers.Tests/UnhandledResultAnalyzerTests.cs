@@ -26,7 +26,33 @@ public class TestClass
 
             var expected = new DiagnosticResult(UnhandledResultAnalyzer.DiagnosticIdResult, DiagnosticSeverity.Warning)
                 .WithLocation(0)
-                .WithArguments("int", "string", "GetResult");
+                .WithArguments("Result", "int", "string", "GetResult");
+
+            await VerifyAnalyzerAsync(test, expected);
+        }
+
+        [Theory]
+        [InlineData("ExtendedResult<int, string>", "ExtendedResult", "int", "string")]
+        [InlineData("Validation<int, string>", "Validation", "int", "string")]
+        [InlineData("Either<int, string>", "Either", "int", "string")]
+        public async Task UnhandledResultLikeType_ReportsDiagnostic(string type, string name, string a1, string a2)
+        {
+            var test = @"
+using Esox.SharpAndRusty.Types;
+
+public class TestClass
+{
+    public " + type + @" GetValue() => default!;
+
+    public void TestMethod()
+    {
+        {|#0:GetValue()|};
+    }
+}";
+
+            var expected = new DiagnosticResult(UnhandledResultAnalyzer.DiagnosticIdResult, DiagnosticSeverity.Warning)
+                .WithLocation(0)
+                .WithArguments(name, a1, a2, "GetValue");
 
             await VerifyAnalyzerAsync(test, expected);
         }
@@ -214,7 +240,7 @@ public class TestClass
 
             var expected1 = new DiagnosticResult(UnhandledResultAnalyzer.DiagnosticIdResult, DiagnosticSeverity.Warning)
                 .WithLocation(0)
-                .WithArguments("int", "string", "GetResult");
+                .WithArguments("Result", "int", "string", "GetResult");
 
             var expected2 = new DiagnosticResult(UnhandledResultAnalyzer.DiagnosticIdOption, DiagnosticSeverity.Warning)
                 .WithLocation(1)
@@ -264,6 +290,130 @@ public class TestClass
 }";
 
             await VerifyAnalyzerAsync(test);
+        }
+
+        [Theory]
+        [InlineData("ExtendedResult<int, string>")]
+        [InlineData("Validation<int, string>")]
+        [InlineData("Either<int, string>")]
+        public async Task ResultLikeTypeAssignedToVariable_NoDiagnostic(string type)
+        {
+            var test = @"
+using Esox.SharpAndRusty.Types;
+
+public class TestClass
+{
+    public " + type + @" GetValue() => default!;
+
+    public void TestMethod()
+    {
+        var value = GetValue();
+    }
+}";
+
+            await VerifyAnalyzerAsync(test);
+        }
+
+        [Theory]
+        [InlineData("ExtendedResult<int, string>")]
+        [InlineData("Validation<int, string>")]
+        [InlineData("Either<int, string>")]
+        public async Task ResultLikeTypeReturned_NoDiagnostic(string type)
+        {
+            var test = @"
+using Esox.SharpAndRusty.Types;
+
+public class TestClass
+{
+    public " + type + @" GetValue() => default!;
+
+    public " + type + @" TestMethod()
+    {
+        return GetValue();
+    }
+}";
+
+            await VerifyAnalyzerAsync(test);
+        }
+
+        [Theory]
+        [InlineData("ExtendedResult<int, string>")]
+        [InlineData("Validation<int, string>")]
+        [InlineData("Either<int, string>")]
+        public async Task ResultLikeTypeUsedWithMatch_NoDiagnostic(string type)
+        {
+            var test = @"
+using Esox.SharpAndRusty.Types;
+
+public class TestClass
+{
+    public " + type + @" GetValue() => default!;
+
+    public void TestMethod()
+    {
+        GetValue().ToString();
+    }
+}";
+
+            await VerifyAnalyzerAsync(test);
+        }
+
+        [Theory]
+        [InlineData("ExtendedResult")]
+        [InlineData("Validation")]
+        [InlineData("Either")]
+        public async Task UnrelatedResultLikeType_DoesNotReportDiagnostic(string type)
+        {
+            var test = @"
+namespace OtherLibrary
+{
+    public class " + type + @"<T, E> { }
+}
+
+public class TestClass
+{
+    public OtherLibrary." + type + @"<int, string> GetValue() => new();
+
+    public void TestMethod()
+    {
+        GetValue();
+    }
+}";
+
+            await VerifyAnalyzerAsync(test);
+        }
+
+        [Fact]
+        public async Task MultipleUnhandledResultLikeTypes_ReportsMultipleDiagnostics()
+        {
+            var test = @"
+using Esox.SharpAndRusty.Types;
+
+public class TestClass
+{
+    public ExtendedResult<int, string> GetExtended() => default!;
+    public Validation<int, string> GetValidation() => default!;
+    public Either<int, string> GetEither() => default!;
+
+    public void TestMethod()
+    {
+        {|#0:GetExtended()|};
+        {|#1:GetValidation()|};
+        {|#2:GetEither()|};
+    }
+}";
+
+            var expected0 = new DiagnosticResult(UnhandledResultAnalyzer.DiagnosticIdResult, DiagnosticSeverity.Warning)
+                .WithLocation(0)
+                .WithArguments("ExtendedResult", "int", "string", "GetExtended");
+            var expected1 = new DiagnosticResult(UnhandledResultAnalyzer.DiagnosticIdResult, DiagnosticSeverity.Warning)
+                .WithLocation(1)
+                .WithArguments("Validation", "int", "string", "GetValidation");
+            var expected2 = new DiagnosticResult(UnhandledResultAnalyzer.DiagnosticIdResult, DiagnosticSeverity.Warning)
+                .WithLocation(2)
+                .WithArguments("Either", "int", "string", "GetEither");
+
+            await VerifyAnalyzerAsync(test, expected0, expected1, expected2);
         }
 
         private static async Task VerifyAnalyzerAsync(string source, params DiagnosticResult[] expected)

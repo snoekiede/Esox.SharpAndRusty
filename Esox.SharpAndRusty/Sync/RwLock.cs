@@ -731,7 +731,8 @@ public sealed class ReadGuard<T> : IDisposable
     /// </example>
     public TResult Map<TResult>(Func<T, TResult> mapper)
     {
-        if (mapper is null) throw new ArgumentNullException(nameof(mapper));
+        ArgumentNullException.ThrowIfNull(mapper, nameof(mapper));
+        
         if (_disposed) throw new ObjectDisposedException(nameof(ReadGuard<>), "Cannot map over disposed guard");
 
         return mapper(_value);
@@ -861,7 +862,7 @@ public sealed class WriteGuard<T> : IDisposable
     /// </example>
     public TResult Map<TResult>(Func<T, TResult> mapper)
     {
-        if (mapper is null) throw new ArgumentNullException(nameof(mapper));
+        ArgumentNullException.ThrowIfNull(mapper, nameof(mapper));
         if (_disposed) throw new ObjectDisposedException(nameof(WriteGuard<>), "Cannot map over disposed guard");
 
         return mapper(_value);
@@ -884,7 +885,7 @@ public sealed class WriteGuard<T> : IDisposable
     /// </example>
     public void Update(Func<T, T> updater)
     {
-        if (updater is null) throw new ArgumentNullException(nameof(updater));
+        ArgumentNullException.ThrowIfNull(updater, nameof(updater));
         if (_disposed) throw new ObjectDisposedException(nameof(WriteGuard<>), "Cannot update disposed guard");
 
         _value = updater(_value);

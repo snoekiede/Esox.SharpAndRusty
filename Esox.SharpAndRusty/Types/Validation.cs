@@ -58,8 +58,8 @@ public abstract record Validation<T, E>
             errors = failure.Errors;
             return true;
         }
-        
-        errors = ImmutableList<E>.Empty;
+
+        errors = [];
         return false;
     }
 
@@ -93,7 +93,7 @@ public abstract record Validation<T, E>
     /// <returns>A new validation with the transformed value or the original errors.</returns>
     public Validation<TResult, E> Map<TResult>(Func<T, TResult> mapper)
     {
-        if (mapper is null) throw new ArgumentNullException(nameof(mapper));
+        ArgumentNullException.ThrowIfNull(mapper, nameof(mapper));
 
         return this switch
         {
@@ -129,7 +129,7 @@ public abstract record Validation<T, E>
     /// <returns>A Result containing the value or the combined error.</returns>
     public Result<T, E> ToResult(Func<ImmutableList<E>, E> errorCombiner)
     {
-        if (errorCombiner is null) throw new ArgumentNullException(nameof(errorCombiner));
+        ArgumentNullException.ThrowIfNull(errorCombiner, nameof(errorCombiner));
 
         return this switch
         {
@@ -195,7 +195,7 @@ public abstract record Validation<T, E>
         /// <summary>
         ///     Creates a Failure with a single error.
         /// </summary>
-        public Failure(E error) : this(ImmutableList.Create(error))
+        public Failure(E error) : this([error])
         {
         }
 

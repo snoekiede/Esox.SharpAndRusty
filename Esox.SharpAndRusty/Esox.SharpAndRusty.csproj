@@ -43,11 +43,6 @@
         <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.4" PrivateAssets="All" />
     </ItemGroup>
 
-    <ItemGroup>
-        <AdditionalFiles Include="PublicAPI.Shipped.txt" />
-        <AdditionalFiles Include="PublicAPI.Unshipped.txt" />
-    </ItemGroup>
-
     <Target Name="ValidateAssemblySigning" BeforeTargets="CoreCompile" Condition="'$(SignAssembly)' == 'true' and !Exists('$(AssemblyOriginatorKeyFile)')">
         <Error Text="Assembly signing is enabled, but the signing key was not found. Set EsoxSigningKeyFile to the secure .snk path." />
     </Target>
