@@ -1,4 +1,6 @@
-﻿// ReSharper disable HeapView.ObjectAllocation.Evident
+﻿using System.Diagnostics.CodeAnalysis;
+
+// ReSharper disable HeapView.ObjectAllocation.Evident
 namespace Esox.SharpAndRusty.Types;
 
 // ReSharper disable once InconsistentNaming
@@ -51,7 +53,7 @@ public abstract record ExtendedResult<T, TE>
     ///     default value.
     /// </param>
     /// <returns>true if the result is successful; otherwise, false.</returns>
-    public bool TryGetValue(out T value)
+    public bool TryGetValue([MaybeNullWhen(false), NotNullWhen(true)] out T value)
     {
         switch (this)
         {
@@ -113,7 +115,7 @@ public abstract record ExtendedResult<T, TE>
     ///     default value.
     /// </param>
     /// <returns>true if the result is a failure; otherwise, false.</returns>
-    public bool TryGetError(out TE error)
+    public bool TryGetError([MaybeNullWhen(false), NotNullWhen(true)] out TE error)
     {
         switch (this)
         {

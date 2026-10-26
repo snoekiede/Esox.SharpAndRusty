@@ -1,7 +1,9 @@
-﻿namespace Esox.SharpAndRusty.Types;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Esox.SharpAndRusty.Types;
 
 /// <summary>
-///     Represents the result of an operation that can either succeed with a value of type <typeparamref name="T" />
+///     Represents the result of an operation that can either succeed
 ///     or fail with an error of type <typeparamref name="E" />.
 /// </summary>
 /// <typeparam name="T">The type of the success value.</typeparam>
@@ -82,7 +84,7 @@ public readonly struct Result<T, E> : IEquatable<Result<T, E>>
     ///     default value.
     /// </param>
     /// <returns>true if the result is successful; otherwise, false.</returns>
-    public bool TryGetValue(out T value)
+    public bool TryGetValue([MaybeNullWhen(false), NotNullWhen(true)] out T value)
     {
         if (IsSuccess)
         {
@@ -102,7 +104,7 @@ public readonly struct Result<T, E> : IEquatable<Result<T, E>>
     ///     default value.
     /// </param>
     /// <returns>true if the result is a failure; otherwise, false.</returns>
-    public bool TryGetError(out E error)
+    public bool TryGetError([MaybeNullWhen(false), NotNullWhen(true)] out E error)
     {
         if (IsFailure)
         {

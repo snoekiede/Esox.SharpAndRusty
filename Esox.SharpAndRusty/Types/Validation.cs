@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 
 // ReSharper disable HeapView.ObjectAllocation.Evident
 // ReSharper disable HeapView.ObjectAllocation
@@ -33,7 +34,7 @@ public abstract record Validation<T, E>
     /// </summary>
     /// <param name="value">When this method returns, contains the success value if present; otherwise, the default value.</param>
     /// <returns><c>true</c> if the validation succeeded; otherwise, <c>false</c>.</returns>
-    public bool TryGetValue(out T? value)
+    public bool TryGetValue([NotNullWhen(true)] out T? value)
     {
         if (this is Success success)
         {

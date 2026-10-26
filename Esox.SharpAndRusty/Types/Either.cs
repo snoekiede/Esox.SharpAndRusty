@@ -1,9 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
+
 // ReSharper disable HeapView.ObjectAllocation
 // ReSharper disable HeapView.ObjectAllocation.Evident
 namespace Esox.SharpAndRusty.Types;
 
 /// <summary>
-///     Represents a value that can be one of two possible types (Left or Right).
+///     Represents a value that can be one
 ///     Unlike <see cref="Result{T, E}" />, Either doesn't imply success or failure - both sides are equally valid.
 /// </summary>
 /// <typeparam name="L">The type of the Left value.</typeparam>
@@ -31,7 +33,7 @@ public abstract record Either<L, R>
     /// </summary>
     /// <param name="value">When this method returns, contains the Left value if present; otherwise, the default value.</param>
     /// <returns><c>true</c> if the Either contains a Left value; otherwise, <c>false</c>.</returns>
-    public bool TryGetLeft(out L? value)
+    public bool TryGetLeft([NotNullWhen(true)] out L? value)
     {
         if (this is Left left)
         {
@@ -48,7 +50,7 @@ public abstract record Either<L, R>
     /// </summary>
     /// <param name="value">When this method returns, contains the Right value if present; otherwise, the default value.</param>
     /// <returns><c>true</c> if the Either contains a Right value; otherwise, <c>false</c>.</returns>
-    public bool TryGetRight(out R? value)
+    public bool TryGetRight([NotNullWhen(true)] out R? value)
     {
         if (this is Right right)
         {
