@@ -7,13 +7,13 @@ namespace Esox.SharpAndRusty.Samples.LibraryAPI.Books
     {
         [Required]
         [StringLength(255, MinimumLength = 1)]
-        public string Title { get; init; } = string.Empty;
+        public string Title { get; set; } = string.Empty;
         [Required]
         [StringLength(255, MinimumLength = 1)]
-        public string Author { get; init; } = string.Empty;
+        public string Author { get; set; } = string.Empty;
         [Required]
         [StringLength(255, MinimumLength = 1)] 
-        public string Description { get; init; } = string.Empty;
-        public int YearOfPublication { get; init; }
+        public string Description { get; set; } = string.Empty;
+        public int YearOfPublication { get; set; }
     }
 }
