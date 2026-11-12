@@ -1,0 +1,6 @@
+@Esox.SharpAndRusty.Samples.LibraryAPI_HostAddress = http://localhost:5206
+
+GET {{Esox.SharpAndRusty.Samples.LibraryAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
